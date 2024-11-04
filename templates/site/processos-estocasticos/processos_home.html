@@ -1,0 +1,162 @@
+
+<div class="container mt-5">
+    <h1>Cadeia de Markov</h1>
+    <p>
+        Introduza o número de estados, os nomes dos estados, as probabilidades da matriz de transição, as percentagens iniciais e o número de iterações
+        para simular a cadeia de Markov.
+    </p>
+
+    <form id="markovForm" method="post" action="{% url 'simulate_markov' %}">
+        {% csrf_token %}
+        
+        <!-- Number of States -->
+        <div class="form-group">
+            <label for="num_states">Número de estados:</label>
+            <input type="number" class="form-control" id="num_states" name="num_states" required>
+        </div>
+        
+        <!-- State Names -->
+        <div class="form-group">
+            <label for="states">Nome dos estados (separados por virgula):</label>
+            <input type="text" class="form-control" id="states" name="states" placeholder="E.g., A, B, C" required>
+        </div>
+
+        <!-- Transition Matrix -->
+        <div class="form-group grid gap-6">
+            <label >Matriz de transição:</label>
+            <div id="transition_matrix_container"></div>
+        </div>
+        
+        <!-- Initial Percentages -->
+        <div class="form-group">
+            <label>Porcentagens Iniciais para cada estado:</label>
+            <div id="initial_percentages_container"></div>
+        </div>
+
+        <!-- Number of Iterations -->
+        <div class="form-group">
+            <label for="iterations">Número de iterações:</label>
+            <input type="number" class="form-control" id="iterations" name="iterations" required>
+        </div>
+
+        <button type="button" class="btn btn-primary mt-3" onclick="submitMarkovForm()">Simulate</button>
+    </form>
+</div>
+
+<!-- JavaScript for dynamic matrix input, initial percentages, and AJAX submission -->
+<script>
+    // Function to generate the transition matrix and initial percentages inputs based on state names
+    document.getElementById('num_states').addEventListener('input', function() {
+        const numStates = parseInt(this.value);
+        const statesInput = document.getElementById('states').value;
+        const states = statesInput ? statesInput.split(',') : Array.from({ length: numStates }, (_, i) => `State ${i + 1}`);
+
+        // Generate the transition matrix
+        generateTransitionMatrix(numStates, states);
+
+        // Generate the initial percentages
+        generateInitialPercentages(numStates, states);
+    });
+
+    // Update matrix and percentages labels when states are entered/updated
+    document.getElementById('states').addEventListener('input', function() {
+        document.getElementById('num_states').dispatchEvent(new Event('input'));
+    });
+
+    // Function to generate transition matrix inputs with labels
+    function generateTransitionMatrix(numStates, states) {
+        const container = document.getElementById('transition_matrix_container');
+        container.innerHTML = ''; 
+
+        if (!isNaN(numStates) && numStates > 0) {
+            for (let i = 0; i < numStates; i++) {
+                const row = document.createElement('div');
+                row.className = 'd-flex mb-2 align-items-center';
+
+                for (let j = 0; j < numStates; j++) {
+                    // Create label for each transition
+                    const label = document.createElement('label');
+                    label.textContent = `${states[i]} → ${states[j]}`;
+                    label.className = 'mr-2 pt-2';
+                    label.style.minWidth = '100px';
+
+                    // Create input for each transition probability
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = '0.01';
+                    input.min = '0';
+                    input.max = '1';
+                    input.className = 'form-control mr-4';
+                    input.name = `transition_matrix[${i}][${j}]`;
+                    input.placeholder = `P(${states[i]}→${states[j]})`;
+                    input.style.width = '180px';
+
+                    row.appendChild(label); 
+                    row.appendChild(input);
+                }
+
+                container.appendChild(row);
+            }
+        }
+    }
+
+    // Function to generate initial percentage inputs with labels
+    function generateInitialPercentages(numStates, states) {
+        const container = document.getElementById('initial_percentages_container');
+        container.innerHTML = ''; // Clear previous inputs
+
+        if (!isNaN(numStates) && numStates > 0) {
+            for (let i = 0; i < numStates; i++) {
+                const row = document.createElement('div');
+                row.className = 'd-flex mb-2 align-items-center';
+
+                // Create label for each state's initial percentage
+                const label = document.createElement('label');
+                label.textContent = `${states[i]}`;
+                label.className = 'mr-2';
+                label.style.minWidth = '100px';
+
+                // Create input for each state's initial percentage
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.step = '0.01';
+                input.min = '0';
+                input.max = '1';
+                input.className = 'form-control';
+                input.name = `initial_percentages[${i}]`;
+                input.placeholder = `e.g., 0.5`;
+                input.style.width = '180px';
+
+                row.appendChild(label);
+                row.appendChild(input);
+                container.appendChild(row);
+            }
+        }
+    }
+
+    // Function to submit the form via AJAX and open a pop-up with the result
+    function submitMarkovForm() {
+        const form = document.getElementById('markovForm');
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else {
+                // Open a new pop-up window
+                const resultWindow = window.open('', 'Markov Simulation Result', 'width=800,height=600');
+                resultWindow.document.write('<html><head><title>Markov Chain Result</title></head><body>');
+                resultWindow.document.write('<h3>Simulation Result</h3>');
+                resultWindow.document.write(`<img src="data:image/png;base64,${data.plot}" alt="Markov Chain Evolution" class="img-fluid">`);
+                resultWindow.document.write('</body></html>');
+                resultWindow.document.close();
+            }
+        })
+        .catch(error => alert("An error occurred: " + error));
+    }
+</script>

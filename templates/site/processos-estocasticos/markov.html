@@ -1,0 +1,6 @@
+<div id="result" class="mt-5">
+    {% if plot %}
+        <h3>Simulation Result</h3>
+        <img src="data:image/png;base64,{{ plot }}" alt="Markov Chain Evolution" class="img-fluid">
+    {% endif %}
+</div>

@@ -1,0 +1,154 @@
+<!-- app_teoria/templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 200px;
+            background-color: #343a40;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #ffffff;
+            padding: 15px;
+            text-decoration: none;
+            display: block;
+            font-weight: 500;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+        .content {
+            margin-left: 200px;
+            padding: 20px;
+        }
+
+
+        /* Accordion CSS */
+        .accordion-section {
+            border-top: 1px solid #495057;
+        }
+        .accordion-label {
+            padding: 10px;
+            cursor: pointer;
+            display: block;
+            color: #ffffff;
+            background-color: #343a40;
+            font-weight: 500;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+        .accordion-label:hover {
+            background-color: #495057;
+        }
+
+        /* Arrow icon */
+        .accordion-label svg {
+            transition: transform 0.3s ease;
+            margin-left: auto;
+            width: 1.25em;
+            height: 1.25em;
+        }
+        
+        .accordion-checkbox:checked + .accordion-label svg {
+            transform: rotate(90deg);
+        }
+        /* Hide native checkbox */
+        .accordion-checkbox {
+            display: none;
+        }
+
+        /* Content of the accordion hidden by default */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: #495057;
+        }
+
+        /* When checkbox is checked, show accordion content */
+        .accordion-checkbox:checked + .accordion-label + .accordion-content {
+            max-height: 400px; 
+        }
+        .accordion-content a {
+            padding: 10px 20px;
+            color: #ffffff;
+            display: block;
+            text-decoration: none;
+            font-weight: normal;
+        }
+        .accordion-content a:hover {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a class="text-center" style="font-size:24px;" href="/home">Menu</a>
+        <div class="accordion-section">
+            <input type="checkbox" id="accordion-1" class="accordion-checkbox">
+            <label class="accordion-label" for="accordion-1">Processos Estocásticos (PEs)
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </label>
+            <div class="accordion-content">
+                <a href="{% url 'processos_home' %}" class="nav-link" data-url="{% url 'processos_home' %}">Cadeias de markov</a>
+                <a href="{% url 'teoria_opcoes_financeiras' %}" class="nav-link" data-url="{% url 'teoria_opcoes_financeiras' %}">Random walk</a>
+                <a href="{% url 'teoria_opcoes_reais' %}" class="nav-link" data-url="{% url 'teoria_opcoes_reais' %}">MGB - Wiener</a>
+                <a href="{% url 'processos_home' %}" class="nav-link" data-url="{% url 'processos_home' %}">MGB - Itô</a>
+                <a href="{% url 'processos_home' %}" class="nav-link" data-url="{% url 'processos_home' %}">Modelo de reversão a média</a>
+            </div>
+        </div>
+        <a href="{% url 'teoria_opcoes_financeiras' %}" class="nav-link" data-url="{% url 'teoria_opcoes_financeiras' %}">Teoria das opções financeiras (TOF)</a>
+        <a href="{% url 'teoria_opcoes_reais' %}" class="nav-link" data-url="{% url 'teoria_opcoes_reais' %}">Teoria das opções reais</a>
+        <a href="{% url 'admin:logout' %}" class="mt-auto">Sair</a> 
+    </div>
+
+    <div class="content">
+        <div id="main-content">
+            <div class="container d-flex flex-column justify-content-center align-items-center">
+                <h2>Bem-vindo à SAETO!</h2>
+                <p>Sistema de apoio ao ensino de teoria das opções.</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function(){
+            $('.nav-link').click(function(event){
+                event.preventDefault(); // Evita o redirecionamento padrão
+                const url = $(this).data('url'); // Pega a URL do data-url
+
+                // Faz uma requisição AJAX para a URL
+                $.ajax({
+                    url: url,
+                    success: function(data) {
+                        // Substitui o conteúdo da div #main-content
+                        $('#main-content').html(data);
+                    },
+                    error: function() {
+                        $('#main-content').html('<p>Erro ao carregar conteúdo. Tente novamente.</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
