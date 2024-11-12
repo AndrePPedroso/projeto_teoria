@@ -1,0 +1,43 @@
+<div class="container mt-5">
+    <h1>Visualização de Random Walk</h1>
+    <p>
+        Insira o número de passos para gerar um Random Walk com três distribuições diferentes.
+    </p>
+
+    <form id="randomWalkVisualizationForm" method="post" action="{% url 'simulate_random_walk' %}">
+        {% csrf_token %}
+        
+        <!-- Número de Passos -->
+        <div class="form-group">
+            <label for="steps">Número de Passos:</label>
+            <input type="number" class="form-control" id="steps" name="steps" required min="1" placeholder="Exemplo: 1000">
+        </div>
+
+        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkVisualizationForm()">Gerar</button>
+    </form>
+
+    <!-- Container para exibir o gráfico -->
+    <div id="plotContainer" class="mt-4"></div>
+</div>
+
+<script>
+    function submitRandomWalkVisualizationForm() {
+        const form = document.getElementById('randomWalkVisualizationForm');
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.plot_image) {
+                const plotContainer = document.getElementById('plotContainer');
+                plotContainer.innerHTML = `<img src="data:image/png;base64,${data.plot_image}" alt="Random Walk Visualization" class="img-fluid">`;
+            } else {
+                alert("Erro ao gerar o gráfico.");
+            }
+        })
+        .catch(error => alert("Ocorreu um erro: " + error));
+    }
+</script>

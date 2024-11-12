@@ -1,0 +1,61 @@
+<div class="container mt-5">
+    <h1>Random Walk</h1>
+    <p>
+        Introduza o número de caminhos e o número de passos para gerar o Random Walk.
+    </p>
+
+    <form id="randomWalkForm" method="post" action="{% url 'simulate_random_walk_normal' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="paths">Número de Caminhos:</label>
+            <input type="number" class="form-control" id="paths" name="paths" required min="1" placeholder="Exemplo: 5">
+        </div>
+        
+        <div class="form-group">
+            <label for="steps">Número de Passos:</label>
+            <input type="number" class="form-control" id="steps" name="steps" required min="1" placeholder="Exemplo: 100">
+        </div>
+
+        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkForm()">Gerar</button>
+    </form>
+</div>
+
+<script>
+    function submitRandomWalkForm() {
+        const form = document.getElementById('randomWalkForm');
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert("Erro: " + data.error);
+            } else {
+                const resultWindow = window.open('', 'Random Walk Result', 'width=800,height=600');
+                resultWindow.document.write('<html><head><title>Random Walk Result</title></head><body>');
+                resultWindow.document.write('<h3>Resultado da Simulação</h3>');
+                resultWindow.document.write(`<img src="data:image/png;base64,${data.walk_plot}" alt="Random Walk Evolution" class="img-fluid">`);
+                resultWindow.document.write('<h3>Distribuição e Estatísticas</h3>');
+                resultWindow.document.write(`<img src="data:image/png;base64,${data.histograms_plot}" alt="Distribuição dos Caminhos" class="img-fluid">`);
+                
+                resultWindow.document.write('<h4>Estatísticas Descritivas</h4>');
+                data.statistics.forEach(stat => {
+                    resultWindow.document.write(`<h5>${stat[0]}</h5>`);
+                    resultWindow.document.write('<ul>');
+                    for (const [key, value] of Object.entries(stat[1])) {
+                        resultWindow.document.write(`<li><strong>${key}:</strong> ${value.toFixed(2)}</li>`);
+                    }
+                    resultWindow.document.write('</ul>');
+                });
+
+                resultWindow.document.write('</body></html>');
+                resultWindow.document.close();
+            }
+        })
+        .catch(error => alert("Ocorreu um erro: " + error));
+    }
+</script>
