@@ -1,1 +1,1 @@
-web: gunicorn app_teoria.wsgi
+web: gunicorn core.wsgi
