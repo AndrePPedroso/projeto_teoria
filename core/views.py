@@ -1,9 +1,11 @@
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect, render
-from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from estocasticos.use_cases.mbg_ito_use_case import GeneralizedBrownianMotionUseCase
+from estocasticos.use_cases.modelo_reversao_media_use_case import ReversaoMediaUseCase
+from estocasticos.use_cases.monte_carlos_use_case import  MonteCarloUseCase
 from estocasticos.use_cases.random_walk_normal_use_case import RandomWalkNormalUseCase
 from estocasticos.use_cases.cadeia_markov_use_case import CadeiaMarkovUseCase
 from estocasticos.use_cases.random_walk_use_case import RandomWalkUseCase
@@ -44,6 +46,18 @@ def random_walk_normal(request):
 
 def random_walk(request):
     return render(request, 'site/processos-estocasticos/random_walk.html')
+
+def monte_carlos(request):
+    return render(request, 'site/processos-estocasticos/monte_carlos.html')
+
+def mbg_ito(request):
+    return render(request, 'site/processos-estocasticos/mbg_ito.html')
+
+def mbg_teoria(request):
+    return render(request, 'site/teoria/mbg.html')
+
+def modelo_reversao_media(request):
+    return render(request, 'site/processos-estocasticos/modelo_media.html')
 
 def teoria_opcoes_financeiras(request):
     return render(request, 'partials/teoria_opcoes_financeiras.html')
@@ -116,3 +130,75 @@ def random_walk_view(request):
         return JsonResponse({'plot_image': plot_image})
     
     return render(request, 'random_walk_visualization.html')
+
+
+def monte_carlo_view(request):
+    if request.method == 'POST':
+        S0 = float(request.POST.get('S0', 100))
+        mu = float(request.POST.get('mu', 0.15))
+        sigma = float(request.POST.get('sigma', 0.3))
+        time_unit = request.POST.get('time_unit', 'Ano')
+        num_periods = int(request.POST.get('num_periods', 10))
+        num_simulations = int(request.POST.get('num_simulations', 100))
+
+        simulator = MonteCarloUseCase(S0, mu, sigma, time_unit, num_periods, num_simulations)
+        prices = simulator.run_simulation()
+        price_plot = simulator.plot_simulation()
+        distribution_plot = simulator.get_final_price_distribution()
+        stats = simulator.get_statistics()
+
+        return JsonResponse({
+            'price_plot': price_plot,
+            'distribution_plot': distribution_plot,
+            'statistics': stats
+        })
+    
+    return render(request, 'monte_carlo_simulation.html')
+
+def simulate_gbm_view(request):
+    if request.method == 'POST':
+        S0 = float(request.POST.get('S0', 100))
+        mu = float(request.POST.get('mu', 0.1))
+        sigma = float(request.POST.get('sigma', 0.2))
+        T = float(request.POST.get('T', 1))
+        dt = float(request.POST.get('dt', 0.01))
+        n_simulations = int(request.POST.get('n_simulations', 10))
+
+        gbm = GeneralizedBrownianMotionUseCase(S0, mu, sigma, T, dt, n_simulations)
+        time_grid, simulations = gbm.simulate_paths()
+        price_plot = gbm.plot_paths(time_grid, simulations)
+        distribution_plot = gbm.plot_distribution(simulations)
+        stats = gbm.calculate_statistics(simulations)
+
+        return JsonResponse({
+            'price_plot': price_plot,
+            'distribution_plot': distribution_plot,
+            'statistics': stats
+        })
+
+    return render(request, 'simulate_gbm.html')
+
+
+def simulate_mean_reversion_view(request):
+    if request.method == 'POST':
+        S0 = float(request.POST.get('S0', 100))
+        mu = float(request.POST.get('mu', 100))
+        kappa = float(request.POST.get('kappa', 0.5))
+        sigma = float(request.POST.get('sigma', 0.2))
+        T = float(request.POST.get('T', 1))
+        dt = float(request.POST.get('dt', 0.01))
+        n_simulations = int(request.POST.get('n_simulations', 10))
+
+        # Use case
+        simulator = ReversaoMediaUseCase(S0, mu, kappa, sigma, T, dt, n_simulations)
+        time_grid, simulations = simulator.simulate()
+        paths_plot = simulator.plot_paths(time_grid, simulations)
+        distribution_plot = simulator.plot_distribution(simulations)
+        stats = simulator.calculate_statistics(simulations)
+
+        return JsonResponse({
+            'paths_plot': paths_plot,
+            'distribution_plot': distribution_plot,
+            'statistics': stats,
+        })
+    return render(request, 'simulate_mean_reversion.html')

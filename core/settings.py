@@ -150,6 +150,6 @@ LOGOUT_REDIRECT_URL = '/admin/login/'  # Redirect after logout
 
 # Allauth configuration
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "optional"  # Options: "none", "mandatory", or "optional"
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"  # Allow login with either username or email
+ACCOUNT_EMAIL_VERIFICATION = "optional" 
+ACCOUNT_AUTHENTICATION_METHOD = "username_email" 
 ACCOUNT_USERNAME_REQUIRED = True

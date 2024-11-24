@@ -1,0 +1,74 @@
+<div class="container mt-5">
+    <h1>Simulação do Processo Browniano Generalizado</h1>
+    <form id="gbmForm" method="post" action="{% url 'mbg_simulator' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="S0">Preço Inicial (S0):</label>
+            <input type="number" class="form-control" id="S0" name="S0" value="100" min="1" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="mu">Taxa de Retorno (mu):</label>
+            <input type="number" class="form-control" id="mu" name="mu" value="0.1" step="0.0001" required>
+        </div>
+        <div class="form-group">
+            <label for="sigma">Volatilidade (sigma):</label>
+            <input type="number" class="form-control" id="sigma" name="sigma" value="0.2" step="0.0001" required>
+        </div>
+        <div class="form-group">
+            <label for="T">Horizonte Temporal (T em anos):</label>
+            <input type="number" class="form-control" id="T" name="T" value="1" min="0.01" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="dt">Passo de Tempo (dt):</label>
+            <input type="number" class="form-control" id="dt" name="dt" value="0.01" step="0.0001" required>
+        </div>
+        <div class="form-group">
+            <label for="n_simulations">Número de Simulações:</label>
+            <input type="number" class="form-control" id="n_simulations" name="n_simulations" value="10" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Executar Simulação</button>
+    </form>
+
+    <div id="results" style="display: none;" class="mt-4">
+        <h3>Resultados da Simulação</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <img id="pricePlot" class="img-fluid" alt="Gráfico de Preços">
+            </div>
+            <div class="col-md-6">
+                <img id="distributionPlot" class="img-fluid" alt="Distribuição de Preços Finais">
+            </div>
+        </div>
+        <h4>Estatísticas Descritivas</h4>
+        <table class="table table-bordered" id="statisticsTable"></table>
+    </div>
+</div>
+
+<script>
+    document.getElementById("gbmForm").onsubmit = function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        fetch(this.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("results").style.display = "block";
+            document.getElementById("pricePlot").src = "data:image/png;base64," + data.price_plot;
+            document.getElementById("distributionPlot").src = "data:image/png;base64," + data.distribution_plot;
+
+            const statsTable = document.getElementById("statisticsTable");
+            statsTable.innerHTML = "";
+            for (const [key, value] of Object.entries(data.statistics)) {
+                statsTable.innerHTML += `<tr><th>${key}</th><td>${value.toFixed(2)}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            alert("Erro: " + error.message);
+        });
+    };
+</script>

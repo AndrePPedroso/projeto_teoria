@@ -30,8 +30,16 @@ urlpatterns = [
     path('cadeia-markov/', cadeia_markov, name='cadeia_markov'),
     path('random_walk_normal/', random_walk_normal, name='random_walk_normal'),
     path('random_walk/', random_walk, name='random_walk'),
+    path('monte_carlos/', monte_carlos, name='monte_carlos'),
+    path('mbg_ito/', mbg_ito, name='mbg_ito'),
+    path('mbg_teoria/', mbg_teoria, name='mbg_teoria'),
+    path('modelo_reversao_media/', modelo_reversao_media, name='modelo_reversao_media'),
     #------calculos----------
     path('markov_simulador/', markov_simulator, name='simulate_markov'),
     path('random_walk_normal_simulador/', random_walk_normal_view, name='simulate_random_walk_normal'),
     path('random_walk_simulador/', random_walk_view, name='simulate_random_walk'),
+    path('monte_carlos_simulator/', monte_carlo_view, name='monte_carlos_simulator'),
+    path('mbg_simulator/', simulate_gbm_view, name='mbg_simulator'),
+    path('simulate-mean-reversion/', simulate_mean_reversion_view, name='simulate_mean_reversion'),
+
 ]
