@@ -1,12 +1,10 @@
 .venv
-db.sqlite3
 .idea
 .vscode/
 .env
 .vscode
 env/
 .venv/
-*.sqlite3
 *pyc
 __pycache__
 staticfiles
