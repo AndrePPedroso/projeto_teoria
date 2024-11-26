@@ -47,8 +47,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',  
     'allauth.socialaccount.providers.google', 
-    'core'
-    'usuario'
+    'core',
+    'usuario',
 ]
 
 MIDDLEWARE = [
