@@ -99,10 +99,15 @@
         <a class="text-center" style="font-size:24px;" href="/home">Menu</a>
         <div class="accordion-section">
             <input type="checkbox" id="accordion-1" class="accordion-checkbox">
-            <label class="accordion-label" for="accordion-1">Processos Estocásticos (PEs)
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+            <label class="accordion-label d-flex" for="accordion-1">
+                <div>
+                    Processos Estocásticos (PEs)
+                </div>
+                <div class="d-flex justify-content-center align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
             </label>
             <div class="accordion-content">
                 <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">Cadeias de markov</a>
@@ -113,8 +118,22 @@
                 <a href="{% url 'modelo_reversao_media' %}" class="nav-link" data-url="{% url 'modelo_reversao_media' %}">Modelo de reversão a média</a>
             </div>
         </div>
-        <a href="{% url 'teoria_opcoes_financeiras' %}" class="nav-link" data-url="{% url 'teoria_opcoes_financeiras' %}">Teoria das opções financeiras (TOF)</a>
-        <a href="{% url 'teoria_opcoes_reais' %}" class="nav-link" data-url="{% url 'teoria_opcoes_reais' %}">Teoria das opções reais</a>
+        <div class="accordion-section">
+            <input type="checkbox" id="accordion-3" class="accordion-checkbox">
+            <label class="accordion-label d-flex" for="accordion-3">
+                <div>
+                    Teoria das opções reais
+                </div>
+                <div class="d-flex justify-content-center align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </label>
+            <div class="accordion-content">
+                <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">Retorno e volatilidade: discreto e contínuo</a>
+            </div>
+        </div>
         <a href="{% url 'admin:logout' %}" class="mt-auto">Sair</a> 
     </div>
 

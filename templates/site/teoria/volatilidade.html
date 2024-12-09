@@ -1,0 +1,108 @@
+
+<body>
+<div class="container mt-5">
+    <h1>Estimativa da Volatilidade</h1>
+    <form id="volatilityForm" onsubmit="calculateVolatility(); return false;">
+        <div class="form-group">
+            <label for="timeInterval">Número de Períodos:</label>
+            <input type="number" id="timeInterval" class="form-control" placeholder="Insira o número de períodos" min="1" required>
+            <button type="button" class="btn btn-primary mt-3" onclick="generateTable()">Gerar Tabela</button>
+        </div>
+    </form>
+
+    <div id="inputTableContainer" class="mt-4" style="display: none;">
+        <h3>Preencha os Valores dos Ativos</h3>
+        <table class="table table-bordered" id="inputTable">
+            <thead>
+                <tr>
+                    <th>Período (j)</th>
+                    <th>Valor do Ativo (S(t))</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linhas serão geradas dinamicamente -->
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-success" onclick="calculateVolatility()">Calcular</button>
+    </div>
+
+    <div id="resultsContainer" class="mt-5" style="display: none;">
+        <h3>Resultados</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Período</th>
+                    <th>Retorno Discreto</th>
+                    <th>Retorno Contínuo</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTable">
+                <!-- Resultados serão gerados dinamicamente -->
+            </tbody>
+        </table>
+        <h4>Volatilidade</h4>
+        <p><strong>Volatilidade Discreta:</strong> <span id="volatilityDiscrete"></span></p>
+        <p><strong>Volatilidade Contínua:</strong> <span id="volatilityContinuous"></span></p>
+    </div>
+</div>
+
+<script>
+    function generateTable() {
+        const interval = parseInt(document.getElementById("timeInterval").value);
+        const tableBody = document.getElementById("inputTable").querySelector("tbody");
+        tableBody.innerHTML = "";
+        for (let i = 1; i <= interval; i++) {
+            const row = `<tr>
+                            <td>${i}</td>
+                            <td><input type="number" class="form-control" id="price_${i}" placeholder="Digite o valor" required></td>
+                         </tr>`;
+            tableBody.insertAdjacentHTML("beforeend", row);
+        }
+        document.getElementById("inputTableContainer").style.display = "block";
+    }
+
+    function calculateVolatility() {
+        const interval = parseInt(document.getElementById("timeInterval").value);
+        const prices = [];
+        for (let i = 1; i <= interval; i++) {
+            const price = parseFloat(document.getElementById(`price_${i}`).value);
+            if (isNaN(price)) {
+                alert("Preencha todos os valores dos ativos.");
+                return;
+            }
+            prices.push(price);
+        }
+
+        // Calcular retornos e volatilidades
+        const discreteReturns = [];
+        const continuousReturns = [];
+        for (let i = 1; i < prices.length; i++) {
+            const discreteReturn = (prices[i] - prices[i - 1]) / prices[i - 1];
+            const continuousReturn = Math.log(prices[i] / prices[i - 1]);
+            discreteReturns.push(discreteReturn);
+            continuousReturns.push(continuousReturn);
+        }
+
+        // Calcular volatilidades
+        const volatilityDiscrete = Math.sqrt(discreteReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / discreteReturns.length);
+        const volatilityContinuous = Math.sqrt(continuousReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / continuousReturns.length);
+
+        // Atualizar resultados
+        const resultsTable = document.getElementById("resultsTable");
+        resultsTable.innerHTML = "";
+        for (let i = 0; i < discreteReturns.length; i++) {
+            const row = `<tr>
+                            <td>${i + 1}</td>
+                            <td>${discreteReturns[i].toFixed(4)}</td>
+                            <td>${continuousReturns[i].toFixed(4)}</td>
+                         </tr>`;
+            resultsTable.insertAdjacentHTML("beforeend", row);
+        }
+
+        document.getElementById("volatilityDiscrete").textContent = volatilityDiscrete.toFixed(4);
+        document.getElementById("volatilityContinuous").textContent = volatilityContinuous.toFixed(4);
+
+        document.getElementById("resultsContainer").style.display = "block";
+    }
+</script>
+</body>

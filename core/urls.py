@@ -21,8 +21,8 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')), 
     path('api/swagger.<slug:format>)', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path("home/", home_view, name="home"),  
-    path('', include('usuario.urls')),
+    path("home/", home_view, name="home"),
+    path('teoria', include('teoria_opcao.urls')),  
     #------pages---------------
     path('processos-home/', processos_home, name='processos_home'),
     path('teoria-opcoes-financeiras/', teoria_opcoes_financeiras, name='teoria_opcoes_financeiras'),
