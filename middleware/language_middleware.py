@@ -4,7 +4,7 @@ class LanguageMiddleware:
 
     def __call__(self, request):
         if "language" not in request.session:
-            request.session["language"] = "pt" 
+            request.session["language"] = "pt"
 
         response = self.get_response(request)
         return response

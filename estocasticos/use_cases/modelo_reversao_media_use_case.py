@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import io
 import base64
 
+
 class ReversaoMediaUseCase:
     def __init__(self, S0, mu, kappa, sigma, T, dt, n_simulations):
         self.S0 = S0
@@ -23,8 +24,11 @@ class ReversaoMediaUseCase:
         for t in range(1, n_steps):
             Z = np.random.normal(size=self.n_simulations)
             dW = Z * np.sqrt(self.dt)
-            dS = self.kappa * (self.mu - simulations[:, t-1]) * self.dt + self.sigma * dW
-            simulations[:, t] = simulations[:, t-1] + dS
+            dS = (
+                self.kappa * (self.mu - simulations[:, t - 1]) * self.dt
+                + self.sigma * dW
+            )
+            simulations[:, t] = simulations[:, t - 1] + dS
 
         return time_grid, simulations
 
@@ -37,27 +41,27 @@ class ReversaoMediaUseCase:
         ax.set_ylabel("Valor")
 
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png')
+        plt.savefig(buffer, format="png")
         buffer.seek(0)
         image_png = buffer.getvalue()
         buffer.close()
-        return base64.b64encode(image_png).decode('utf-8')
+        return base64.b64encode(image_png).decode("utf-8")
 
     def plot_distribution(self, simulations):
         final_values = simulations[:, -1]
 
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.hist(final_values, bins=30, alpha=0.7, color='green', edgecolor='black')
+        ax.hist(final_values, bins=30, alpha=0.7, color="green", edgecolor="black")
         ax.set_title("Distribuição dos Valores Finais")
         ax.set_xlabel("Valor Final")
         ax.set_ylabel("Frequência")
 
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png')
+        plt.savefig(buffer, format="png")
         buffer.seek(0)
         image_png = buffer.getvalue()
         buffer.close()
-        return base64.b64encode(image_png).decode('utf-8')
+        return base64.b64encode(image_png).decode("utf-8")
 
     def calculate_statistics(self, simulations):
         final_values = simulations[:, -1]
