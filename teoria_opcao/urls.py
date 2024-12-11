@@ -1,9 +1,6 @@
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .api.views import *
 
-router = DefaultRouter()
-
 urlpatterns = [
-    path('volatilidade-template/', volatilidade_template, name='volatilidade_template'),
+    path('volatilidade-template', volatilidade_template, name='volatilidade_template'),
 ]

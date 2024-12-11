@@ -99,9 +99,9 @@
         <a class="text-center" style="font-size:24px;" href="/home">Menu</a>
         <div class="accordion-section">
             <input type="checkbox" id="accordion-1" class="accordion-checkbox">
-            <label class="accordion-label d-flex" for="accordion-1">
+            <label class="accordion-label d-flex justify-content-between" for="accordion-1">
                 <div>
-                    Processos Estocásticos (PEs)
+                    {% if request.session.language == 'en' %}Stochastic Processes (SPs){% else %}Processos Estocásticos (PEs){% endif %}
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,19 +110,31 @@
                 </div>
             </label>
             <div class="accordion-content">
-                <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">Cadeias de markov</a>
-                <a href="{% url 'random_walk' %}" class="nav-link" data-url="{% url 'random_walk' %}">Random walk</a>
-                <a href="{% url 'random_walk_normal' %}" class="nav-link" data-url="{% url 'random_walk_normal' %}">Random walk normal</a>
-                <a href="{% url 'monte_carlos' %}" class="nav-link" data-url="{% url 'monte_carlos' %}">MGB - Wiener</a>
-                <a href="{% url 'mbg_ito' %}" class="nav-link" data-url="{% url 'mbg_ito' %}">MGB - Itô</a>
-                <a href="{% url 'modelo_reversao_media' %}" class="nav-link" data-url="{% url 'modelo_reversao_media' %}">Modelo de reversão a média</a>
+                <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">
+                    {% if request.session.language == 'en' %}Markov chains{% else %}Cadeias de markov{% endif %}
+                </a>
+                <a href="{% url 'random_walk_template' %}" class="nav-link" data-url="{% url 'random_walk_template' %}">
+                    Random walk
+                </a>
+                <a href="{% url 'random_walk_normal' %}" class="nav-link" data-url="{% url 'random_walk_normal' %}">
+                    Random walk normal
+                </a>
+                <a href="{% url 'monte_carlos' %}" class="nav-link" data-url="{% url 'monte_carlos' %}">
+                    {% if request.session.language == 'en' %}GBM - Wiener{% else %}MGB - Wiener{% endif %}
+                </a>
+                <a href="{% url 'mbg_ito' %}" class="nav-link" data-url="{% url 'mbg_ito' %}">
+                    {% if request.session.language == 'en' %}GBM - itô{% else %}MGB - itô{% endif %}
+                </a>
+                <a href="{% url 'modelo_reversao_media' %}" class="nav-link" data-url="{% url 'modelo_reversao_media' %}">
+                    {% if request.session.language == 'en' %}Mean reversion model{% else %}Modelo de reversão a média{% endif %}
+                </a>
             </div>
         </div>
         <div class="accordion-section">
             <input type="checkbox" id="accordion-3" class="accordion-checkbox">
-            <label class="accordion-label d-flex" for="accordion-3">
+            <label class="accordion-label d-flex justify-content-between" for="accordion-3">
                 <div>
-                    Teoria das opções reais
+                    {% if request.session.language == 'en' %}Real options theory{% else %}Teoria das opções reais{% endif %}
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,21 +143,50 @@
                 </div>
             </label>
             <div class="accordion-content">
-                <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">Retorno e volatilidade: discreto e contínuo</a>
+                <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">
+                    {% if request.session.language == 'en' %}Return and volatility: <span class="fs-6">discrete and continuous</span>{% else %}Retorno e volatilidade: <span class="fs-6">discreto e contínuo</span> {% endif %}
+                </a>
             </div>
         </div>
-        <a href="{% url 'admin:logout' %}" class="mt-auto">Sair</a> 
+        <div class="mt-auto px-2">
+            <select id="languageSelect" class="form-control px-2" onchange="updateLanguage(this.value)">
+                <option class="" value="pt" {% if request.session.language == 'pt' %}selected{% endif %}>Portuguese</option>
+                <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
+            </select>
+            <a href="{% url 'admin:logout' %}" class="mt-auto">Sair</a> 
+        </div>
     </div>
-
     <div class="content">
         <div id="main-content">
             <div class="container d-flex flex-column vh-100 justify-content-center align-items-center">
+                {% if request.session.language == 'en' %}
+                <h2>Welcome to $AE-TO!</h2>
+                <p>Support system for teaching option theory.</p>
+                {% else %}
                 <h2>Bem-vindo à $AE-TO!</h2>
                 <p>Sistema de apoio ao ensino de teoria das opções.</p>
+                {% endif %}
             </div>
         </div>
     </div>
     <script>
+        function updateLanguage(language) {
+            $.ajax({
+                url: "{% url 'set_language' %}",  // URL to handle language update
+                type: "POST",
+                data: {
+                    language: language,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function () {
+                    location.reload(); // Reload page to apply language
+                },
+                error: function () {
+                    alert('Failed to change language.');
+                }
+            });
+        }
+
         $(document).ready(function(){
             $('.nav-link').click(function(event){
                 event.preventDefault(); 

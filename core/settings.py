@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',  
     'allauth.socialaccount.providers.google', 
     'core',
+    'estocasticos',
+    'teoria_opcao',
     'usuario',
 ]
 
@@ -46,6 +48,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.language_middleware.LanguageMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'

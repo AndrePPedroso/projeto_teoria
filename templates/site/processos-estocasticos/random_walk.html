@@ -1,19 +1,30 @@
 <div class="container mt-5">
+    {% if request.session.language == 'en' %}
+    <h1>Random Walk visualization</h1>
+    <p>
+        Enter the number of steps to generate a Random Walk with three different distributions.
+    </p>
+    {% else %}
     <h1>Visualização de Random Walk</h1>
     <p>
         Insira o número de passos para gerar um Random Walk com três distribuições diferentes.
     </p>
-
+    {% endif %}
     <form id="randomWalkVisualizationForm" method="post" action="{% url 'simulate_random_walk' %}">
         {% csrf_token %}
-        
-        <!-- Número de Passos -->
         <div class="form-group">
-            <label for="steps">Número de Passos:</label>
-            <input type="number" class="form-control" id="steps" name="steps" required min="1" placeholder="Exemplo: 1000">
+            <label for="steps">
+                {% if request.session.language == 'en' %}Number of Steps:{% else %}Número de Passos:{% endif %}
+                
+            </label>
+            <input type="number" class="form-control" id="steps" name="steps" required min="1"
+            placeholder="{% if request.session.language == 'en' %}Example: 1000{% else %}Exemplo: 1000{% endif %}">
         </div>
 
-        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkVisualizationForm()">Gerar</button>
+        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkVisualizationForm()">
+            
+            {% if request.session.language == 'en' %}Generate{% else %}Gerar{% endif %}
+        </button>
     </form>
 
     <!-- Container para exibir o gráfico -->

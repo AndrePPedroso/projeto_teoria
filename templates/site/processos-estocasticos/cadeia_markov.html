@@ -1,41 +1,59 @@
 
 <div class="container mt-5">
+    {% if request.session.language == 'en' %}
+    <h1>Markov chain</h1>
+    <p>
+        Enter the number of states, the state names, the transition matrix probabilities, the initial percentages and the number of iterations
+        to simulate the Markov chain.
+    </p>
+    {% else %}
     <h1>Cadeia de Markov</h1>
     <p>
         Introduza o número de estados, os nomes dos estados, as probabilidades da matriz de transição, as percentagens iniciais e o número de iterações
         para simular a cadeia de Markov.
     </p>
+    {% endif %}
 
     <form id="markovForm" method="post" action="{% url 'simulate_markov' %}">
         {% csrf_token %}
         
         <!-- Number of States -->
         <div class="form-group">
-            <label for="num_states">Número de estados:</label>
+            <label for="num_states">
+                {% if request.session.language == 'en' %}Number of states{% else %}Número de estados:{% endif %}
+            </label>
             <input type="number" class="form-control" id="num_states" name="num_states" required>
         </div>
         
         <!-- State Names -->
         <div class="form-group">
-            <label for="states">Nome dos estados (separados por virgula):</label>
+            <label for="states">           
+                {% if request.session.language == 'en' %}Name of the states (separated by a comma):{% else %}Nome dos estados (separados por virgula):{% endif %}
+            </label>
             <input type="text" class="form-control" id="states" name="states" placeholder="E.g., A, B, C" required>
         </div>
 
         <!-- Transition Matrix -->
         <div class="form-group grid gap-6">
-            <label >Matriz de transição:</label>
+            <label >
+                {% if request.session.language == 'en' %}Transition matrix:{% else %}Matriz de transição:{% endif %}
+            </label>
             <div id="transition_matrix_container"></div>
         </div>
         
         <!-- Initial Percentages -->
         <div class="form-group">
-            <label>Porcentagens Iniciais para cada estado:</label>
+            <label>
+                {% if request.session.language == 'en' %} Initial percentages for each state:{% else %}Porcentagens Iniciais para cada estado:{% endif %}
+            </label>
             <div id="initial_percentages_container"></div>
         </div>
 
         <!-- Number of Iterations -->
         <div class="form-group">
-            <label for="iterations">Número de iterações:</label>
+            <label for="iterations">
+                {% if request.session.language == 'en' %}Number of iterations:{% else %}Número de iterações:{% endif %}
+            </label>
             <input type="number" class="form-control" id="iterations" name="iterations" required>
         </div>
 

@@ -1,108 +1,133 @@
-
 <body>
-<div class="container mt-5">
-    <h1>Estimativa da Volatilidade</h1>
-    <form id="volatilityForm" onsubmit="calculateVolatility(); return false;">
-        <div class="form-group">
-            <label for="timeInterval">Número de Períodos:</label>
-            <input type="number" id="timeInterval" class="form-control" placeholder="Insira o número de períodos" min="1" required>
-            <button type="button" class="btn btn-primary mt-3" onclick="generateTable()">Gerar Tabela</button>
+    <div class="container mt-5">
+        <h1 id="title">{% if request.session.language == 'en' %}Volatility Estimation{% else %}Estimativa da Volatilidade{% endif %}</h1>
+        <form id="volatilityForm" onsubmit="calculateVolatility(); return false;">
+            <div class="form-group">
+                <label id="labelTimeInterval" for="timeInterval">
+                    {% if request.session.language == 'en' %}Number of Periods:{% else %}Número de Períodos:{% endif %}
+                </label>
+                <input type="number" id="timeInterval" class="form-control" 
+                       placeholder="{% if request.session.language == 'en' %}Enter the number of periods{% else %}Insira o número de períodos{% endif %}" 
+                       min="2" max="100" required>
+                <button type="button" class="btn btn-primary mt-3" id="generateTableButton" onclick="generateTable()">
+                    {% if request.session.language == 'en' %}Generate Table{% else %}Gerar Tabela{% endif %}
+                </button>
+            </div>
+        </form>
+    
+        <div id="inputTableContainer" class="mt-4" style="display: none;">
+            <h3 id="fillValuesTitle">
+                {% if request.session.language == 'en' %}Fill in the Asset Values{% else %}Preencha os Valores dos Ativos{% endif %}
+            </h3>
+            <table class="table table-bordered" id="inputTable">
+                <thead>
+                    <tr>
+                        <th id="periodColumn">
+                            {% if request.session.language == 'en' %}Period{% else %}Período{% endif %}
+                        </th>
+                        <th id="valueColumn">
+                            {% if request.session.language == 'en' %}Asset Value{% else %}Valor do Ativo{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be generated dynamically -->
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-success" id="calculateButton" onclick="calculateVolatility()">
+                {% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}
+            </button>
         </div>
-    </form>
-
-    <div id="inputTableContainer" class="mt-4" style="display: none;">
-        <h3>Preencha os Valores dos Ativos</h3>
-        <table class="table table-bordered" id="inputTable">
-            <thead>
-                <tr>
-                    <th>Período (j)</th>
-                    <th>Valor do Ativo (S(t))</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Linhas serão geradas dinamicamente -->
-            </tbody>
-        </table>
-        <button type="button" class="btn btn-success" onclick="calculateVolatility()">Calcular</button>
+    
+        <div id="resultsContainer" class="mt-5" style="display: none;">
+            <h3 id="resultsTitle">
+                {% if request.session.language == 'en' %}Results{% else %}Resultados{% endif %}
+            </h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th id="resultsPeriodColumn">
+                            {% if request.session.language == 'en' %}Period{% else %}Período{% endif %}
+                        </th>
+                        <th id="discreteReturnColumn">
+                            {% if request.session.language == 'en' %}Discrete Return{% else %}Retorno Discreto{% endif %}
+                        </th>
+                        <th id="continuousReturnColumn">
+                            {% if request.session.language == 'en' %}Continuous Return{% else %}Retorno Contínuo{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTable">
+                </tbody>
+            </table>
+            <h4 id="volatilityTitle">
+                {% if request.session.language == 'en' %}Volatility{% else %}Volatilidade{% endif %}
+            </h4>
+            <p><strong id="discreteVolatilityLabel">
+                {% if request.session.language == 'en' %}Discrete Volatility:{% else %}Volatilidade Discreta:{% endif %}
+            </strong> <span id="volatilityDiscrete"></span></p>
+            <p><strong id="continuousVolatilityLabel">
+                {% if request.session.language == 'en' %}Continuous Volatility:{% else %}Volatilidade Contínua:{% endif %}
+            </strong> <span id="volatilityContinuous"></span></p>
+        </div>
     </div>
-
-    <div id="resultsContainer" class="mt-5" style="display: none;">
-        <h3>Resultados</h3>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Período</th>
-                    <th>Retorno Discreto</th>
-                    <th>Retorno Contínuo</th>
-                </tr>
-            </thead>
-            <tbody id="resultsTable">
-                <!-- Resultados serão gerados dinamicamente -->
-            </tbody>
-        </table>
-        <h4>Volatilidade</h4>
-        <p><strong>Volatilidade Discreta:</strong> <span id="volatilityDiscrete"></span></p>
-        <p><strong>Volatilidade Contínua:</strong> <span id="volatilityContinuous"></span></p>
-    </div>
-</div>
-
-<script>
-    function generateTable() {
-        const interval = parseInt(document.getElementById("timeInterval").value);
-        const tableBody = document.getElementById("inputTable").querySelector("tbody");
-        tableBody.innerHTML = "";
-        for (let i = 1; i <= interval; i++) {
-            const row = `<tr>
-                            <td>${i}</td>
-                            <td><input type="number" class="form-control" id="price_${i}" placeholder="Digite o valor" required></td>
-                         </tr>`;
-            tableBody.insertAdjacentHTML("beforeend", row);
-        }
-        document.getElementById("inputTableContainer").style.display = "block";
-    }
-
-    function calculateVolatility() {
-        const interval = parseInt(document.getElementById("timeInterval").value);
-        const prices = [];
-        for (let i = 1; i <= interval; i++) {
-            const price = parseFloat(document.getElementById(`price_${i}`).value);
-            if (isNaN(price)) {
-                alert("Preencha todos os valores dos ativos.");
-                return;
+    
+    <script>
+        function generateTable() {
+            const interval = parseInt(document.getElementById("timeInterval").value);
+            const tableBody = document.getElementById("inputTable").querySelector("tbody");
+            tableBody.innerHTML = "";
+            const placeholderText = `{% if request.session.language == 'en' %}Enter the value{% else %}Digite o valor{% endif %}`;
+            for (let i = 1; i <= interval; i++) {
+                const row = `<tr>
+                                <td>${i}</td>
+                                <td><input type="number" class="form-control" id="price_${i}" placeholder="${placeholderText}" required></td>
+                             </tr>`;
+                tableBody.insertAdjacentHTML("beforeend", row);
             }
-            prices.push(price);
+            document.getElementById("inputTableContainer").style.display = "block";
         }
-
-        // Calcular retornos e volatilidades
-        const discreteReturns = [];
-        const continuousReturns = [];
-        for (let i = 1; i < prices.length; i++) {
-            const discreteReturn = (prices[i] - prices[i - 1]) / prices[i - 1];
-            const continuousReturn = Math.log(prices[i] / prices[i - 1]);
-            discreteReturns.push(discreteReturn);
-            continuousReturns.push(continuousReturn);
-        }
-
-        // Calcular volatilidades
-        const volatilityDiscrete = Math.sqrt(discreteReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / discreteReturns.length);
-        const volatilityContinuous = Math.sqrt(continuousReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / continuousReturns.length);
-
-        // Atualizar resultados
-        const resultsTable = document.getElementById("resultsTable");
-        resultsTable.innerHTML = "";
-        for (let i = 0; i < discreteReturns.length; i++) {
-            const row = `<tr>
-                            <td>${i + 1}</td>
-                            <td>${discreteReturns[i].toFixed(4)}</td>
-                            <td>${continuousReturns[i].toFixed(4)}</td>
-                         </tr>`;
-            resultsTable.insertAdjacentHTML("beforeend", row);
-        }
-
-        document.getElementById("volatilityDiscrete").textContent = volatilityDiscrete.toFixed(4);
-        document.getElementById("volatilityContinuous").textContent = volatilityContinuous.toFixed(4);
-
-        document.getElementById("resultsContainer").style.display = "block";
-    }
-</script>
-</body>
+    
+        function calculateVolatility() {
+            const interval = parseInt(document.getElementById("timeInterval").value);
+            const prices = [];
+            for (let i = 1; i <= interval; i++) {
+                const price = parseFloat(document.getElementById(`price_${i}`).value);
+                if (isNaN(price)) {
+                    alert("Preencha todos os valores dos ativos.");
+                    return;
+                }
+                prices.push(price);
+            }
+        
+            const discreteReturns = [];
+            const continuousReturns = [];
+            for (let i = 1; i < prices.length; i++) {
+                const discreteReturn = (prices[i] - prices[i - 1]) / prices[i - 1];
+                const continuousReturn = Math.log(prices[i] / prices[i - 1]);
+                discreteReturns.push(discreteReturn);
+                continuousReturns.push(continuousReturn);
+            }
+        
+            const volatilityDiscrete = Math.sqrt(discreteReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / discreteReturns.length);
+            const volatilityContinuous = Math.sqrt(continuousReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / continuousReturns.length);
+        
+            const resultsTable = document.getElementById("resultsTable");
+            resultsTable.innerHTML = "";
+            for (let i = 0; i < discreteReturns.length; i++) {
+                const row = `<tr>
+                                <td>${i + 1}</td>
+                                <td>${(discreteReturns[i] * 100).toFixed(2)}%</td>
+                                <td>${(continuousReturns[i] * 100).toFixed(2)}%</td>
+                             </tr>`;
+                resultsTable.insertAdjacentHTML("beforeend", row);
+            }
+        
+            document.getElementById("volatilityDiscrete").textContent = `${(volatilityDiscrete * 100).toFixed(2)}%`;
+            document.getElementById("volatilityContinuous").textContent = `${(volatilityContinuous * 100).toFixed(2)}%`;
+        
+            document.getElementById("resultsContainer").style.display = "block";
+        }        
+    </script>
+    </body>
+    
