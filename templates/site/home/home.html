@@ -172,14 +172,14 @@
     <script>
         function updateLanguage(language) {
             $.ajax({
-                url: "{% url 'set_language' %}",  // URL to handle language update
+                url: "{% url 'set_language' %}", 
                 type: "POST",
                 data: {
                     language: language,
                     csrfmiddlewaretoken: '{{ csrf_token }}'
                 },
                 success: function () {
-                    location.reload(); // Reload page to apply language
+                    location.reload(); 
                 },
                 error: function () {
                     alert('Failed to change language.');

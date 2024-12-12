@@ -10,7 +10,6 @@ class RandomWalkNormalUseCase:
         self.paths = paths
         self.walks = self._generate_walks()
 
-    # Função privada para realizar o Random Walk
     def _generate_walks(self):
         walks = np.zeros((self.paths, self.steps))
         for i in range(self.paths):
@@ -19,7 +18,6 @@ class RandomWalkNormalUseCase:
                 walks[i, t] = walks[i, t - 1] + epsilon
         return walks
 
-    # Função para calcular as estatísticas descritivas
     def calculate_statistics(self, data):
         minimum = np.min(data)
         maximum = np.max(data)
