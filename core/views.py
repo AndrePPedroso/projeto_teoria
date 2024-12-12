@@ -23,7 +23,7 @@ def custom_admin_login(request):
             else:
                 return redirect("/home")
         else:
-            error_message = "Usuário ou senha incorretos."
+            error_message = "Incorrect username or password."
 
     else:
         form = AuthenticationForm()
