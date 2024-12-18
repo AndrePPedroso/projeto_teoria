@@ -11,6 +11,10 @@ from estocasticos.use_cases.cadeia_markov_use_case import CadeiaMarkovUseCase
 from estocasticos.use_cases.random_walk_use_case import RandomWalkUseCase
 
 
+def pagina_inicial(request):
+    return render(request, "admin/login.html")
+
+
 def custom_admin_login(request):
     error_message = None
     if request.method == "POST":

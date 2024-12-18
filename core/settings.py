@@ -75,7 +75,7 @@ AUTHENTICATION_BACKENDS = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-database_url = config("DATABASE_URL", default=None)
+database_url = None
 if database_url:
     DATABASES = {"default": dj_database_url.parse(database_url)}
 else:
@@ -155,3 +155,16 @@ ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_USERNAME_REQUIRED = True
 AUTH_PASSWORD_VALIDATORS = []
+
+# email settings
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", default="")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
+
+# Uso da API V3 do Sendgrid
+# SENDGRID_URL_BASE = config('SENDGRID_URL_BASE', default='https://api.sendgrid.com/v3')
+# SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')

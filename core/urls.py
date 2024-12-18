@@ -15,7 +15,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("admin/login/", custom_admin_login),
+    path("", pagina_inicial),
+    path("admin/login/", custom_admin_login, name="login-customizado"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path(
