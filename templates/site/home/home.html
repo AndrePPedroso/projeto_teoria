@@ -7,6 +7,7 @@
     <title>Home</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -146,9 +147,45 @@
                 <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">
                     {% if request.session.language == 'en' %}Return and volatility: <span class="fs-6">discrete and continuous</span>{% else %}Retorno e volatilidade: <span class="fs-6">discreto e contínuo</span> {% endif %}
                 </a>
+
+
+                <!-- Copeland & Antikarov Method -->
+                <a href="{% url 'copeland_antikarov_volatility' %}" class="nav-link" data-url="{% url 'copeland_antikarov_volatility' %}">
+                    {% if request.session.language == 'en' %}Copeland & Antikarov Method{% else %}Método de Copeland & Antikarov{% endif %}
+                </a>
+                
+                <!-- Herath & Park Method -->
+                <a href="{% url 'herath_park_volatility' %}" class="nav-link" data-url="{% url 'herath_park_volatility' %}">
+                    {% if request.session.language == 'en' %}Herath & Park Method{% else %}Método de Herath & Park{% endif %}
+                </a>
+
+{#                <!-- Brandão, Dyer & Hahn Method -->#}
+{#                <a href="{% url 'brandao_dyer_hahn_volatility' %}" class="nav-link" data-url="{% url 'brandao_dyer_hahn_volatility' %}">#}
+{#                    {% if request.session.language == 'en' %}Brandão, Dyer & Hahn Method{% else %}Método de Brandão, Dyer & Hahn{% endif %}#}
+{#                </a>#}
+{##}
+{#                <!-- Markowitz Mean-Variance Method -->#}
+{#                <a href="{% url 'markowitz_mean_variance_volatility' %}" class="nav-link" data-url="{% url 'markowitz_mean_variance_volatility' %}">#}
+{#                    {% if request.session.language == 'en' %}Markowitz Mean-Variance Method{% else %}Método de Média-Variância de Markowitz{% endif %}#}
+{#                </a>#}
+{##}
+{#                <!-- Lewis et al. Method -->#}
+{#                <a href="{% url 'lewis_irr_volatility' %}" class="nav-link" data-url="{% url 'lewis_irr_volatility' %}">#}
+{#                    {% if request.session.language == 'en' %}Lewis IRR Variation Method{% else %}Método da Variação da TIR de Lewis{% endif %}#}
+{#                </a>#}
+{##}
+{#                <!-- VaR-based Method -->#}
+{#                <a href="{% url 'var_based_volatility' %}" class="nav-link" data-url="{% url 'var_based_volatility' %}">#}
+{#                    {% if request.session.language == 'en' %}Value-at-Risk (VaR) Based Method{% else %}Método Baseado no Valor em Risco (VaR){% endif %}#}
+{#                </a>#}
+{##}
+{#                <!-- Consolidated Comparison -->#}
+{#                <a href="{% url 'volatility_comparison' %}" class="nav-link" data-url="{% url 'volatility_comparison' %}">#}
+{#                    {% if request.session.language == 'en' %}Volatility Methods Comparison{% else %}Comparação de Métodos de Volatilidade{% endif %}#}
+{#                </a>#}
             </div>
         </div>
-        <div class="mt-auto px-2">
+                <div class="mt-auto px-2">
             <select id="languageSelect" class="form-control px-2" onchange="updateLanguage(this.value)">
                 <option class="" value="pt" {% if request.session.language == 'pt' %}selected{% endif %}>Portuguese</option>
                 <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
