@@ -1,0 +1,382 @@
+<div class="container mt-5">
+    <h1>
+        {% if request.session.language == 'en' %}Binomial Model for Real Options{% else %}Modelo Binomial para Opções Reais{% endif %}
+    </h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Method Description{% else %}Descrição do Método{% endif %}
+        </div>
+        <div class="card-body">
+            <p>
+                {% if request.session.language == 'en' %}
+                The binomial model, developed by Cox, Ross, and Rubinstein, provides a discrete-time framework for valuing real options. It models the evolution of the underlying asset value through a lattice structure, where at each time step, the asset value can move up or down by specific factors.
+                {% else %}
+                O modelo binomial, desenvolvido por Cox, Ross e Rubinstein, fornece uma estrutura de tempo discreto para avaliar opções reais. Ele modela a evolução do valor do ativo subjacente através de uma estrutura em treliça, onde em cada passo de tempo, o valor do ativo pode subir ou descer por fatores específicos.
+                {% endif %}
+            </p>
+            <p>
+                {% if request.session.language == 'en' %}
+                <strong>Key Parameters:</strong> Up factor (u), Down factor (d), Risk-neutral probability (p), and Risk-free rate (r)
+                {% else %}
+                <strong>Parâmetros Principais:</strong> Fator de subida (u), Fator de descida (d), Probabilidade neutra ao risco (p), e Taxa livre de risco (r)
+                {% endif %}
+            </p>
+            <p>
+                {% if request.session.language == 'en' %}
+                The model calculates the option value through backward induction, starting from the terminal nodes and working back to the present.
+                {% else %}
+                O modelo calcula o valor da opção por indução retroativa, começando pelos nós terminais e retrocedendo até o presente.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <form id="binomialForm" onsubmit="event.preventDefault(); calculateOptions();">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Project Parameters{% else %}Parâmetros do Projeto{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="initialValue">
+                                {% if request.session.language == 'en' %}Initial Project Value (V₀):{% else %}Valor Inicial do Projeto (V₀):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="initialValue" class="form-control" min="1" value="1000000" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="strikePrice">
+                                {% if request.session.language == 'en' %}Strike Price (Investment Cost):{% else %}Preço de Exercício (Custo do Investimento):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="strikePrice" class="form-control" min="1" value="900000" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="timeToMaturity">
+                                {% if request.session.language == 'en' %}Time to Maturity (years):{% else %}Tempo até o Vencimento (anos):{% endif %}
+                            </label>
+                            <input type="number" id="timeToMaturity" class="form-control" min="0.1" step="0.1" value="5" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="riskFreeRate">
+                                {% if request.session.language == 'en' %}Risk-Free Rate:{% else %}Taxa Livre de Risco:{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="riskFreeRate" class="form-control" min="0" max="100" step="0.1" value="5" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Volatility and Lattice Parameters{% else %}Parâmetros de Volatilidade e Treliça{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="volatility">
+                                {% if request.session.language == 'en' %}Annual Volatility (σ):{% else %}Volatilidade Anual (σ):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="volatility" class="form-control" min="1" max="100" step="0.1" value="20" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="steps">
+                                {% if request.session.language == 'en' %}Number of Time Steps:{% else %}Número de Passos de Tempo:{% endif %}
+                            </label>
+                            <input type="number" id="steps" class="form-control" min="1" max="50" value="5" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="optionType">
+                                {% if request.session.language == 'en' %}Option Type:{% else %}Tipo de Opção:{% endif %}
+                            </label>
+                            <select id="optionType" class="form-select">
+                                <option value="call">{% if request.session.language == 'en' %}Call Option (Option to Invest){% else %}Opção de Compra (Opção de Investir){% endif %}</option>
+                                <option value="put">{% if request.session.language == 'en' %}Put Option (Option to Abandon){% else %}Opção de Venda (Opção de Abandonar){% endif %}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="exerciseStyle">
+                                {% if request.session.language == 'en' %}Exercise Style:{% else %}Estilo de Exercício:{% endif %}
+                            </label>
+                            <select id="exerciseStyle" class="form-select">
+                                <option value="european">{% if request.session.language == 'en' %}European (Exercise at maturity only){% else %}Europeia (Exercício apenas no vencimento){% endif %}</option>
+                                <option value="american">{% if request.session.language == 'en' %}American (Exercise at any time){% else %}Americana (Exercício a qualquer momento){% endif %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mb-4">
+                    <button type="submit" class="btn btn-primary">
+                        {% if request.session.language == 'en' %}Calculate Option Value{% else %}Calcular Valor da Opção{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <div id="resultsContainer" class="card mb-4" style="display: none;">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Option Valuation Results{% else %}Resultados da Avaliação da Opção{% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Real Option Value{% else %}Valor da Opção Real{% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h3 class="text-center" id="optionValue">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Model Parameters{% else %}Parâmetros do Modelo{% endif %}
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>{% if request.session.language == 'en' %}Up Factor (u):{% else %}Fator de Subida (u):{% endif %}</td>
+                                        <td id="upFactor">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% if request.session.language == 'en' %}Down Factor (d):{% else %}Fator de Descida (d):{% endif %}</td>
+                                        <td id="downFactor">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% if request.session.language == 'en' %}Risk-Neutral Probability (p):{% else %}Probabilidade Neutra ao Risco (p):{% endif %}</td>
+                                        <td id="probability">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% if request.session.language == 'en' %}Time Step (Δt):{% else %}Passo de Tempo (Δt):{% endif %}</td>
+                                        <td id="deltaT">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Comparative Values{% else %}Valores Comparativos{% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>{% if request.session.language == 'en' %}METRIC{% else %}MÉTRICA{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}VALUE{% else %}VALOR{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Traditional NPV (without flexibility){% else %}VPL Tradicional (sem flexibilidade){% endif %}</td>
+                                    <td id="traditionalNPV">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Expanded NPV (with option value){% else %}VPL Expandido (com valor da opção){% endif %}</td>
+                                    <td id="expandedNPV">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Value of Flexibility{% else %}Valor da Flexibilidade{% endif %}</td>
+                                    <td id="flexibilityValue">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Option Value / Investment Cost Ratio{% else %}Razão Valor da Opção / Custo de Investimento{% endif %}</td>
+                                    <td id="optionRatio">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h5>{% if request.session.language == 'en' %}Binomial Lattice Visualization{% else %}Visualização da Treliça Binomial{% endif %}</h5>
+                <div id="latticeContainer" class="text-center overflow-auto" style="min-height: 300px;"></div>
+            </div>
+            
+            <div class="text-center">
+                <button type="button" class="btn btn-primary" onclick="calculateOptions()">
+                    {% if request.session.language == 'en' %}Recalculate{% else %}Recalcular{% endif %}
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                    {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateOptions() {
+        // Get input parameters
+        const S0 = parseFloat(document.getElementById('initialValue').value);
+        const K = parseFloat(document.getElementById('strikePrice').value);
+        const T = parseFloat(document.getElementById('timeToMaturity').value);
+        const r = parseFloat(document.getElementById('riskFreeRate').value) / 100;
+        const sigma = parseFloat(document.getElementById('volatility').value) / 100;
+        const N = parseInt(document.getElementById('steps').value);
+        const optionType = document.getElementById('optionType').value;
+        const exerciseStyle = document.getElementById('exerciseStyle').value;
+        
+        const dt = T / N;
+        
+        const u = Math.exp(sigma * Math.sqrt(dt));
+        const d = 1 / u;
+        
+        // Calculate risk-neutral probability
+        const p = (Math.exp(r * dt) - d) / (u - d);
+        
+        const stockTree = Array(N + 1).fill().map(() => Array(N + 1).fill(0));
+        stockTree[0][0] = S0;
+        
+        // Fill in the stock price tree
+        for (let i = 1; i <= N; i++) {
+            for (let j = 0; j <= i; j++) {
+                stockTree[i][j] = stockTree[0][0] * Math.pow(u, j) * Math.pow(d, i - j);
+            }
+        }
+        
+        const optionTree = Array(N + 1).fill().map(() => Array(N + 1).fill(0));
+        
+        // Fill in terminal option values
+        for (let j = 0; j <= N; j++) {
+            if (optionType === 'call') {
+                optionTree[N][j] = Math.max(0, stockTree[N][j] - K);
+            } else { // put option
+                optionTree[N][j] = Math.max(0, K - stockTree[N][j]);
+            }
+        }
+        
+        // Calculate option values via backward induction
+        for (let i = N - 1; i >= 0; i--) {
+            for (let j = 0; j <= i; j++) {
+                // Expected option value (discounted)
+                const expectedValue = Math.exp(-r * dt) * (p * optionTree[i + 1][j + 1] + (1 - p) * optionTree[i + 1][j]);
+                
+                if (exerciseStyle === 'american') {
+                    // For American options, check for early exercise
+                    const exerciseValue = optionType === 'call' 
+                        ? Math.max(0, stockTree[i][j] - K)
+                        : Math.max(0, K - stockTree[i][j]);
+                    optionTree[i][j] = Math.max(expectedValue, exerciseValue);
+                } else {
+                    // For European options, just use the expected value
+                    optionTree[i][j] = expectedValue;
+                }
+            }
+        }
+        
+        // Calculate the traditional NPV
+        const traditionalNPV = S0 - K;
+        
+        // Calculate the expanded NPV (traditional NPV + option value)
+        const expandedNPV = traditionalNPV + optionTree[0][0];
+        
+        // Calculate value of flexibility
+        const flexibilityValue = optionTree[0][0];
+        
+        // Calculate option value / investment cost ratio
+        const optionRatio = optionTree[0][0] / K;
+        
+        // Display results
+        document.getElementById('optionValue').textContent = '$' + optionTree[0][0].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('upFactor').textContent = u.toFixed(4);
+        document.getElementById('downFactor').textContent = d.toFixed(4);
+        document.getElementById('probability').textContent = (p * 100).toFixed(2) + '%';
+        document.getElementById('deltaT').textContent = dt.toFixed(4);
+        
+        document.getElementById('traditionalNPV').textContent = '$' + traditionalNPV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('expandedNPV').textContent = '$' + expandedNPV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('flexibilityValue').textContent = '$' + flexibilityValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('optionRatio').textContent = optionRatio.toFixed(4);
+        
+        // Visualize binomial lattice
+        visualizeLattice(stockTree, optionTree, N);
+        
+        // Show results
+        document.getElementById('resultsContainer').style.display = 'block';
+    }
+    
+    function visualizeLattice(stockTree, optionTree, N) {
+        const container = document.getElementById('latticeContainer');
+        container.innerHTML = '';
+        
+        // Create lattice visualization HTML
+        let html = '<div class="binomial-lattice">';
+        
+        // Add table for the lattice
+        html += '<table class="table table-bordered table-sm">';
+        
+        // Add headers
+        html += '<thead><tr><th>Time Step</th>';
+        for (let t = 0; t <= N; t++) {
+            html += `<th>t=${t}</th>`;
+        }
+        html += '</tr></thead><tbody>';
+        
+        // Add stock price and option value rows
+        for (let j = N; j >= 0; j--) {
+            // Stock price row
+            html += '<tr><td>Stock Price (Node ' + j + ')</td>';
+            for (let t = 0; t <= N; t++) {
+                if (t >= j) {
+                    const index = t - j;
+                    html += `<td>$${stockTree[t][index].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>`;
+                } else {
+                    html += '<td>-</td>';
+                }
+            }
+            html += '</tr>';
+            
+            // Option value row
+            html += '<tr class="table-light"><td>Option Value (Node ' + j + ')</td>';
+            for (let t = 0; t <= N; t++) {
+                if (t >= j) {
+                    const index = t - j;
+                    html += `<td>$${optionTree[t][index].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>`;
+                } else {
+                    html += '<td>-</td>';
+                }
+            }
+            html += '</tr>';
+        }
+        
+        html += '</tbody></table></div>';
+        
+        container.innerHTML = html;
+    }
+    
+    function resetForm() {
+        document.getElementById('binomialForm').reset();
+        document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('latticeContainer').innerHTML = '';
+    }
+</script>

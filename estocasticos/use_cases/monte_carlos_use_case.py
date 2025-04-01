@@ -37,9 +37,9 @@ class MonteCarloUseCase:
         fig, ax = plt.subplots(figsize=(8, 6))
         for i in range(self.num_simulations):
             ax.plot(self.prices[i], lw=0.8, alpha=0.6)
-        ax.set_title("Evolução dos Preços - Simulação de Monte Carlo")
+        ax.set_title("Price Evolution - Monte Carlo Simulation")
         ax.set_xlabel(f"{self.time_unit}(s)")
-        ax.set_ylabel("Preço da ação")
+        ax.set_ylabel("Share price")
 
         buffer = io.BytesIO()
         plt.savefig(buffer, format="png")
@@ -53,9 +53,9 @@ class MonteCarloUseCase:
         final_prices = self.prices[:, -1]
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.hist(final_prices, bins=30, alpha=0.7, color="green", edgecolor="black")
-        ax.set_title("Distribuição dos Preços Finais")
-        ax.set_xlabel("Preço da ação")
-        ax.set_ylabel("Frequência")
+        ax.set_title("Distribution of Final Prices")
+        ax.set_xlabel("Share price")
+        ax.set_ylabel("Frequency")
 
         buffer = io.BytesIO()
         plt.savefig(buffer, format="png")
@@ -68,10 +68,10 @@ class MonteCarloUseCase:
     def get_statistics(self):
         final_prices = self.prices[:, -1]
         stats = {
-            "Média": np.mean(final_prices),
+            "Mean": np.mean(final_prices),
             "Desvio Padrão": np.std(final_prices),
-            "Variância": np.var(final_prices),
-            "Mínimo": np.min(final_prices),
-            "Máximo": np.max(final_prices),
+            "Standard Deviation": np.var(final_prices),
+            "Minimum": np.min(final_prices),
+            "Maximum": np.max(final_prices),
         }
         return stats

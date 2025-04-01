@@ -132,6 +132,30 @@
             </div>
         </div>
         <div class="accordion-section">
+            <input type="checkbox" id="accordion-2" class="accordion-checkbox">
+            <label class="accordion-label d-flex justify-content-between" for="accordion-2">
+                <div>
+                    {% if request.session.language == 'en' %}Finantial options theory{% else %}Opções financeiras{% endif %}
+                </div>
+                <div class="d-flex justify-content-center align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </label>
+            <div class="accordion-content">
+                <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">
+                    {% if request.session.language == 'en' %}Black-Scholes-Merton model{% else %}Modelo black-Scholes-Merton{% endif %}
+                </a>
+                <a href="{% url 'random_walk_template' %}" class="nav-link" data-url="{% url 'random_walk_template' %}">
+                    Cox-Ross-Rubinstein
+                </a>
+                <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">
+                    {% if request.session.language == 'en' %}Return and volatility: <span class="fs-6">discrete and continuous</span>{% else %}Retorno e volatilidade: <span class="fs-6">discreto e contínuo</span> {% endif %}
+                </a>
+            </div>
+        </div>
+        <div class="accordion-section">
             <input type="checkbox" id="accordion-3" class="accordion-checkbox">
             <label class="accordion-label d-flex justify-content-between" for="accordion-3">
                 <div>
@@ -144,10 +168,9 @@
                 </div>
             </label>
             <div class="accordion-content">
-                <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">
-                    {% if request.session.language == 'en' %}Return and volatility: <span class="fs-6">discrete and continuous</span>{% else %}Retorno e volatilidade: <span class="fs-6">discreto e contínuo</span> {% endif %}
+                <a href="{% url 'binomial_model' %}" class="nav-link" data-url="{% url 'binomial_model' %}">
+                    {% if request.session.language == 'en' %}Binomial model{% else %}Modelo binomial{% endif %}
                 </a>
-
 
                 <!-- Copeland & Antikarov Method -->
                 <a href="{% url 'copeland_antikarov_volatility' %}" class="nav-link" data-url="{% url 'copeland_antikarov_volatility' %}">
@@ -190,7 +213,10 @@
                 <option class="" value="pt" {% if request.session.language == 'pt' %}selected{% endif %}>Portuguese</option>
                 <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
             </select>
-            <a href="{% url 'admin:logout' %}" class="mt-auto">Sair</a> 
+            
+            <a href="{% url 'admin:logout' %}" class="mt-auto">
+                {% if request.session.language == 'en' %}log-out{% else %}Sair{% endif %}
+                </a> 
         </div>
     </div>
     <div class="content">

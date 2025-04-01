@@ -1,43 +1,70 @@
 
 <div class="container mt-5">
-    <h1>Simulação de Monte Carlo para Preços de Ações</h1>
+        {% if request.session.language == 'en' %}
+        <h1>Monte Carlo Simulation for Stock Prices</h1>
+        {% else %}
+        <h1>Simulação de Monte Carlo para Preços de Ações</h1>
+        {% endif %}
     <form id="monteCarloForm" method="post" action="{% url 'monte_carlos_simulator' %}">
         {% csrf_token %}
         <div class="form-group">
-            <label for="S0">Preço Inicial (S0):</label>
+            <label for="S0">
+                {% if request.session.language == 'en' %}Initial Price (S0):{% else %}Preço Inicial (S0):{% endif %}
+            </label>
             <input type="number" class="form-control" id="S0" name="S0" value="100" min="1" step="0.01" required>
         </div>
         <div class="form-group">
-            <label for="mu">Retorno Anual (mu):</label>
+            <label for="mu">
+                {% if request.session.language == 'en' %}Annual Return (mu):{% else %}Retorno Anual (mu):{% endif %}
+            </label>
             <input type="number" class="form-control" id="mu" name="mu" value="0.15" step="0.0001" max="1" required>
         </div>
         <div class="form-group">
-            <label for="sigma">Volatilidade (sigma):</label>
+            <label for="sigma">
+                {% if request.session.language == 'en' %}Volatility (sigma):{% else %}Volatilidade (sigma):{% endif %}
+            </label>
             <input type="number" class="form-control" id="sigma" name="sigma" value="0.3" step="0.0001" max="1" required>
         </div>
         <div class="form-group">
-            <label for="time_unit">Unidade de Tempo:</label>
+            <label for="time_unit">
+                {% if request.session.language == 'en' %}Time Unit:{% else %}Unidade de Tempo:{% endif %}
+            </label>
             <select class="form-control" id="time_unit" name="time_unit" required>
+                {% if request.session.language == 'en' %}
+                <option value="Dia">Day</option>
+                <option value="Semana">Week</option>
+                <option value="Mês">Month</option>
+                <option value="Ano">Year</option>
+                {% else %}
                 <option value="Dia">Dia</option>
                 <option value="Semana">Semana</option>
                 <option value="Mês">Mês</option>
                 <option value="Ano">Ano</option>
+                {% endif %}
             </select>
         </div>
         <div class="form-group">
-            <label for="num_periods">Número de Períodos:</label>
+            <label for="num_periods">
+                {% if request.session.language == 'en' %}Number of Periods:{% else %}Número de Períodos:{% endif %}
+            </label>
             <input type="number" class="form-control" id="num_periods" name="num_periods" value="10" min="1" required>
         </div>
         <div class="form-group">
-            <label for="num_simulations">Número de Simulações:</label>
+            <label for="num_simulations">
+                {% if request.session.language == 'en' %}Number of Simulations:{% else %}Número de Simulações:{% endif %}
+            </label>
             <input type="number" class="form-control" id="num_simulations" name="num_simulations" value="100" min="1" required>
         </div>
-        <button type="button" class="btn btn-primary" onclick="submitMonteCarloForm()">Executar Simulação</button>
+        <button type="button" class="btn btn-primary" onclick="submitMonteCarloForm()">
+            {% if request.session.language == 'en' %}Run Simulation{% else %}Executar Simulação{% endif %}
+        </button>
     </form>
 
     <!-- Result Section -->
     <div class="result-section" id="resultSection" style="display: none;">
-        <h3>Resultados da Simulação</h3>
+        <h3>
+            {% if request.session.language == 'en' %}Simulation Results{% else %}Resultados da Simulação{% endif %}
+        </h3>
         <div class="row">
             <div class="col-md-6">
                 <img id="pricePlot" class="img-fluid" alt="Gráfico de Preço">
@@ -46,7 +73,9 @@
                 <img id="distributionPlot" class="img-fluid" alt="Distribuição dos Preços Finais">
             </div>
         </div>
-        <h4>Estatísticas Descritivas</h4>
+        <h4>
+            {% if request.session.language == 'en' %}Statistics{% else %}Estatísticas Descritivas{% endif %}
+        </h4>
         <table class="table table-bordered" id="statisticsTable"></table>
     </div>
 </div>

@@ -27,16 +27,15 @@ class RandomWalkUseCase:
         rw_discrete = self.random_walk(dist_type="discrete")
 
         plt.figure(figsize=(10, 6))
-        plt.plot(rw_normal, label="Distribuição Normal")
-        plt.plot(rw_uniform, label="Distribuição Uniforme")
-        plt.plot(rw_discrete, label="Distribuição Discreta {-1, 1}")
-        plt.title("Random Walk com diferentes distribuições")
-        plt.xlabel("Passos")
-        plt.ylabel("Valor de X")
+        plt.plot(rw_normal, label="Normal distribution")
+        plt.plot(rw_uniform, label="Uniform Distribution")
+        plt.plot(rw_discrete, label="Discrete Distribution  {-1, 1}")
+        plt.title("Random Walk with different distributions")
+        plt.xlabel("Steps")
+        plt.ylabel("X value")
         plt.legend()
         plt.grid(True)
 
-        # Salvar o gráfico em um formato base64 para exibir em uma página web
         buffer = io.BytesIO()
         plt.savefig(buffer, format="png")
         buffer.seek(0)

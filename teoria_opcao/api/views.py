@@ -1,5 +1,10 @@
 from django.shortcuts import render
-
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import numpy as np
+import math
+import json
 
 def volatilidade_template(request):
     return render(request, "site/teoria/volatilidade.html")
@@ -91,3 +96,116 @@ def volatility_comparison(request):
         "description": "Compare results from different volatility estimation methods for the same investment project.",
     }
     return render(request, "site/teoria/volatility/comparison.html", context)
+
+
+
+def binomial_model_view(request):
+    """
+    View function to render the binomial model template.
+    """
+    return render(request, 'site/teoria/binomial_model.html')
+
+
+@require_http_methods(["POST"])
+def calculate_binomial_option(request):
+    """
+    API endpoint to calculate binomial option values.
+    This could be used if you want to implement AJAX calls instead of client-side calculations.
+    """
+    try:
+        # Parse JSON data from request
+        data = json.loads(request.body)
+        
+        # Extract parameters
+        S0 = float(data.get('initialValue', 1000000))
+        K = float(data.get('strikePrice', 900000))
+        T = float(data.get('timeToMaturity', 5))
+        r = float(data.get('riskFreeRate', 5)) / 100
+        sigma = float(data.get('volatility', 20)) / 100
+        N = int(data.get('steps', 5))
+        option_type = data.get('optionType', 'call')
+        exercise_style = data.get('exerciseStyle', 'european')
+        
+        # Calculate option value using binomial model
+        option_value, details = calculate_binomial_model(
+            S0, K, T, r, sigma, N, option_type, exercise_style
+        )
+        
+        # Return JSON response with results
+        return JsonResponse({
+            'success': True,
+            'optionValue': option_value,
+            'details': details
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+def calculate_binomial_model(S0, K, T, r, sigma, N, option_type='call', exercise_style='european'):
+
+    dt = T / N
+    
+    u = math.exp(sigma * math.sqrt(dt))
+    d = 1 / u
+    
+    p = (math.exp(r * dt) - d) / (u - d)
+    
+    stock_tree = np.zeros((N + 1, N + 1))
+    option_tree = np.zeros((N + 1, N + 1))
+    
+    stock_tree[0, 0] = S0
+    
+    for i in range(1, N + 1):
+        stock_tree[i, 0] = stock_tree[i-1, 0] * d
+        for j in range(1, i + 1):
+            stock_tree[i, j] = stock_tree[i-1, j-1] * u
+    
+    for j in range(N + 1):
+        if option_type == 'call':
+            option_tree[N, j] = max(0, stock_tree[N, j] - K)
+        else:  # put option
+            option_tree[N, j] = max(0, K - stock_tree[N, j])
+    
+    for i in range(N - 1, -1, -1):
+        for j in range(i + 1):
+            expected_value = math.exp(-r * dt) * (p * option_tree[i+1, j+1] + (1 - p) * option_tree[i+1, j])
+            
+            if exercise_style == 'american':
+                if option_type == 'call':
+                    exercise_value = max(0, stock_tree[i, j] - K)
+                else:
+                    exercise_value = max(0, K - stock_tree[i, j])
+                option_tree[i, j] = max(expected_value, exercise_value)
+            else:
+                option_tree[i, j] = expected_value
+    
+    traditional_npv = S0 - K  
+    option_value = option_tree[0, 0]
+    expanded_npv = traditional_npv + option_value
+    flexibility_value = option_value
+    option_ratio = option_value / K if K != 0 else 0
+    
+    # Prepare lattice data for visualization
+    lattice_data = {
+        'stockTree': stock_tree.tolist(),
+        'optionTree': option_tree.tolist()
+    }
+    
+    # Compile results
+    details = {
+        'upFactor': u,
+        'downFactor': d,
+        'probability': p,
+        'deltaT': dt,
+        'traditionalNPV': traditional_npv,
+        'expandedNPV': expanded_npv,
+        'flexibilityValue': flexibility_value,
+        'optionRatio': option_ratio,
+        'lattice': lattice_data
+    }
+    
+    return option_value, details

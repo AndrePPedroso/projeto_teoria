@@ -25,4 +25,5 @@ urlpatterns = [
     path("volatility/lewis-irr/", lewis_irr_volatility, name="lewis_irr_volatility"),
     path("volatility/var-based/", var_based_volatility, name="var_based_volatility"),
     path("volatility/comparison/", volatility_comparison, name="volatility_comparison"),
+    path("volatility/binomial-model/", binomial_model_view, name="binomial_model"),
 ]
