@@ -1,0 +1,456 @@
+{% load static %}
+<div class="container mt-5">
+    <h1>
+        {% if request.session.language == 'en' %}Cox-Ross-Rubinstein Binomial Tree Model{% else %}Modelo de Árvore Binomial de Cox-Ross-Rubinstein{% endif %}
+    </h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Method Description{% else %}Descrição do Método{% endif %}
+        </div>
+        <div class="card-body">
+            <p>
+                {% if request.session.language == 'en' %}
+                The Cox-Ross-Rubinstein (CRR) model, also known as the Binomial Options Pricing Model, is a discrete-time approach to options pricing. This model builds a binomial tree of possible future stock prices and works backward through the tree to determine option values at each node.
+                {% else %}
+                O modelo de Cox-Ross-Rubinstein (CRR), também conhecido como Modelo Binomial de Precificação de Opções, é uma abordagem de tempo discreto para a precificação de opções. Este modelo constrói uma árvore binomial de possíveis preços futuros de ações e trabalha retrospectivamente através da árvore para determinar os valores das opções em cada nó.
+                {% endif %}
+            </p>
+            <p>
+                {% if request.session.language == 'en' %}
+                <strong>Key Parameters:</strong> Underlying asset price (S), Strike price (K), Time to expiration (T), Risk-free rate (r), Volatility (σ), Dividend yield (q), and Number of steps (n)
+                {% else %}
+                <strong>Parâmetros Principais:</strong> Preço do ativo subjacente (S), Preço de exercício (K), Tempo até o vencimento (T), Taxa livre de risco (r), Volatilidade (σ), Rendimento de dividendos (q), e Número de passos (n)
+                {% endif %}
+            </p>
+            <p>
+                {% if request.session.language == 'en' %}
+                The CRR model can value both European and American options and provides a visual representation of how option prices evolve over time.
+                {% else %}
+                O modelo CRR pode avaliar tanto opções europeias quanto americanas e fornece uma representação visual de como os preços das opções evoluem ao longo do tempo.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <form id="coxRossRubinsteinForm">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Option Parameters{% else %}Parâmetros da Opção{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="option_type">
+                                {% if request.session.language == 'en' %}Option Type:{% else %}Tipo de Opção:{% endif %}
+                            </label>
+                            <div class="d-flex">
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" name="option_type" id="callOptionCRR" value="call" checked>
+                                    <label class="form-check-label" for="callOptionCRR">
+                                        {% if request.session.language == 'en' %}Call Option (Right to Buy){% else %}Opção de Compra (Direito de Comprar){% endif %}
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="option_type" id="putOptionCRR" value="put">
+                                    <label class="form-check-label" for="putOptionCRR">
+                                        {% if request.session.language == 'en' %}Put Option (Right to Sell){% else %}Opção de Venda (Direito de Vender){% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="asset_price">
+                                {% if request.session.language == 'en' %}Underlying Asset Price (S):{% else %}Preço do Ativo Subjacente (S):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="asset_price" name="asset_price" class="form-control" min="0.01" step="0.01" value="100" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="exercise_price">
+                                {% if request.session.language == 'en' %}Strike Price (K):{% else %}Preço de Exercício (K):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="exercise_price" name="exercise_price" class="form-control" min="0.01" step="0.01" value="100" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="time_to_expiration">
+                                {% if request.session.language == 'en' %}Time to Expiration (days):{% else %}Tempo até o Vencimento (dias):{% endif %}
+                            </label>
+                            <input type="number" id="time_to_expiration" name="time_to_expiration" class="form-control" min="1" step="1" value="30" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Market Parameters{% else %}Parâmetros de Mercado{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="interest_rate">
+                                {% if request.session.language == 'en' %}Risk-Free Interest Rate:{% else %}Taxa de Juros Livre de Risco:{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="interest_rate" name="interest_rate" class="form-control" min="0" max="100" step="0.01" value="5" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="volatility">
+                                {% if request.session.language == 'en' %}Volatility (σ):{% else %}Volatilidade (σ):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="volatility" name="volatility" class="form-control" min="0.1" max="200" step="0.1" value="30" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="dividend_yield">
+                                {% if request.session.language == 'en' %}Dividend Yield:{% else %}Rendimento de Dividendos:{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="dividend_yield" name="dividend_yield" class="form-control" min="0" max="100" step="0.01" value="0" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="steps">
+                                {% if request.session.language == 'en' %}Number of Steps:{% else %}Número de Passos:{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="steps" name="steps" class="form-control" min="1" max="10" step="1" value="3" required>
+                                <div class="form-text">
+                                    {% if request.session.language == 'en' %}
+                                    For tree visualization, max 10 steps (3-5 recommended for clarity)
+                                    {% else %}
+                                    Para visualização da árvore, máximo 10 passos (3-5 recomendados para clareza)
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mb-4">
+                    <button type="button" class="btn btn-secondary me-2" onclick="resetCoxRossRubinsteinForm()">
+                        {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
+                    </button>
+                    <button type="button" class="btn btn-primary" id="calculateBtnCRR" onclick="handleCRRSubmit()">
+                        {% if request.session.language == 'en' %}Calculate Option Value{% else %}Calcular Valor da Opção{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Loading spinner -->
+    <div id="loadingSpinnerCRR" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <div id="coxRossRubinsteinResults" class="card mb-4" style="display: none;">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Option Pricing Results{% else %}Resultados do Apreçamento da Opção{% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Option Value{% else %}Valor da Opção{% endif %}
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 id="optionPriceCRR">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Greeks (Sensitivity Measures){% else %}Gregas (Medidas de Sensibilidade){% endif %}
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Delta:</td>
+                                        <td id="deltaMeasureCRR">-</td>
+                                        <td>{% if request.session.language == 'en' %}Price sensitivity to underlying asset{% else %}Sensibilidade do preço ao ativo subjacente{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gamma:</td>
+                                        <td id="gammaMeasureCRR">-</td>
+                                        <td>{% if request.session.language == 'en' %}Rate of change of delta{% else %}Taxa de variação do delta{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Theta:</td>
+                                        <td id="thetaMeasureCRR">-</td>
+                                        <td>{% if request.session.language == 'en' %}Time decay per day{% else %}Decaimento do tempo por dia{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vega:</td>
+                                        <td id="vegaMeasureCRR">-</td>
+                                        <td>{% if request.session.language == 'en' %}Sensitivity to volatility{% else %}Sensibilidade à volatilidade{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rho:</td>
+                                        <td id="rhoMeasureCRR">-</td>
+                                        <td>{% if request.session.language == 'en' %}Sensitivity to interest rate{% else %}Sensibilidade à taxa de juros{% endif %}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Binomial Model Parameters{% else %}Parâmetros do Modelo Binomial{% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>{% if request.session.language == 'en' %}PARAMETER{% else %}PARÂMETRO{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}VALUE{% else %}VALOR{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}DESCRIPTION{% else %}DESCRIÇÃO{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>u</td>
+                                    <td id="upFactorCRR">-</td>
+                                    <td>{% if request.session.language == 'en' %}Up movement factor{% else %}Fator de movimento para cima{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>d</td>
+                                    <td id="downFactorCRR">-</td>
+                                    <td>{% if request.session.language == 'en' %}Down movement factor{% else %}Fator de movimento para baixo{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>p</td>
+                                    <td id="probCRR">-</td>
+                                    <td>{% if request.session.language == 'en' %}Risk-neutral probability{% else %}Probabilidade neutra ao risco{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>dt</td>
+                                    <td id="dtCRR">-</td>
+                                    <td>{% if request.session.language == 'en' %}Time step (in years){% else %}Passo de tempo (em anos){% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Break-Even Point{% else %}Ponto de Equilíbrio{% endif %}</td>
+                                    <td id="breakEvenValueCRR">-</td>
+                                    <td>{% if request.session.language == 'en' %}Asset price where option investment breaks even at expiration{% else %}Preço do ativo onde o investimento na opção atinge o equilíbrio no vencimento{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Maximum Loss{% else %}Perda Máxima{% endif %}</td>
+                                    <td id="maxLossValueCRR">-</td>
+                                    <td>{% if request.session.language == 'en' %}Maximum potential loss for the option buyer{% else %}Perda potencial máxima para o comprador da opção{% endif %}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Real Options Analysis{% else %}Análise de Opções Reais{% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>{% if request.session.language == 'en' %}METRIC{% else %}MÉTRICA{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}VALUE{% else %}VALOR{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Traditional NPV (without flexibility){% else %}VPL Tradicional (sem flexibilidade){% endif %}</td>
+                                    <td id="traditionalNPV">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Expanded NPV (with option value){% else %}VPL Expandido (com valor da opção){% endif %}</td>
+                                    <td id="expandedNPV">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Value of Flexibility{% else %}Valor da Flexibilidade{% endif %}</td>
+                                    <td id="flexibilityValue">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Option Value / Investment Cost Ratio{% else %}Razão Valor da Opção / Custo de Investimento{% endif %}</td>
+                                    <td id="optionRatio">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Binomial Lattice Visualization -->
+            <div class="mb-4">
+                <h5>{% if request.session.language == 'en' %}Binomial Lattice Visualization{% else %}Visualização da Treliça Binomial{% endif %}</h5>
+                <div id="latticeContainerCRR" class="text-center overflow-auto" style="min-height: 300px;"></div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Interpretation of Results{% else %}Interpretação dos Resultados{% endif %}
+                </div>
+                <div class="card-body">
+                    <div id="interpretationCRR">
+                        <!-- Interpretation will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="button" class="btn btn-primary" id="recalculateBtnCRR" onclick="handleCRRSubmit()">
+                    {% if request.session.language == 'en' %}Recalculate{% else %}Recalcular{% endif %}
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetCoxRossRubinsteinForm()">
+                    {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Define the handleCRRSubmit function globally
+    function handleCRRSubmit() {
+        // Get fresh references to the DOM elements each time
+        const loadingSpinner = document.getElementById('loadingSpinnerCRR');
+        const resultsContainer = document.getElementById('coxRossRubinsteinResults');
+        const form = document.getElementById('coxRossRubinsteinForm');
+        const latticeContainer = document.getElementById('latticeContainerCRR');
+        
+        // Check if elements exist before using them
+        if (!loadingSpinner || !resultsContainer || !form || !latticeContainer) {
+            console.error('Required DOM elements not found:', {
+                loadingSpinner: !!loadingSpinner,
+                resultsContainer: !!resultsContainer,
+                form: !!form,
+                latticeContainer: !!latticeContainer
+            });
+            alert('An error occurred. Please refresh the page and try again.');
+            return;
+        }
+        
+        loadingSpinner.style.display = 'block';
+        resultsContainer.style.display = 'none';
+        
+        // Get form data
+        const formData = new FormData(form);
+        
+        // Log form data for debugging
+        console.log('Submitting CRR form data:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+        
+        // Send AJAX request to backend
+        fetch('{% url "cox_ross_rubinstein_api" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading spinner
+            loadingSpinner.style.display = 'none';
+            
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            // Update option price and Greeks
+            document.getElementById('optionPriceCRR').textContent = '$' + data.option_price;
+            document.getElementById('deltaMeasureCRR').textContent = data.greeks.delta;
+            document.getElementById('gammaMeasureCRR').textContent = data.greeks.gamma;
+            document.getElementById('thetaMeasureCRR').textContent = data.greeks.theta;
+            document.getElementById('vegaMeasureCRR').textContent = data.greeks.vega;
+            document.getElementById('rhoMeasureCRR').textContent = data.greeks.rho;
+            
+            // Update binomial model parameters
+            document.getElementById('upFactorCRR').textContent = data.u;
+            document.getElementById('downFactorCRR').textContent = data.d;
+            document.getElementById('probCRR').textContent = data.p;
+            document.getElementById('dtCRR').textContent = data.dt;
+            document.getElementById('breakEvenValueCRR').textContent = '$' + data.break_even;
+            document.getElementById('maxLossValueCRR').textContent = '$' + data.max_loss;
+            
+            // Update real options analysis
+            document.getElementById('traditionalNPV').textContent = '$' + data.traditional_npv.toFixed(2);
+            document.getElementById('expandedNPV').textContent = '$' + data.expanded_npv.toFixed(2);
+            document.getElementById('flexibilityValue').textContent = '$' + data.flexibility_value.toFixed(2);
+            document.getElementById('optionRatio').textContent = data.option_ratio.toFixed(4);
+            
+            // Update lattice visualization
+            latticeContainer.innerHTML = data.lattice_html;
+            
+            // Update interpretation
+            document.getElementById('interpretationCRR').innerHTML = data.interpretation;
+            
+            // Show results
+            resultsContainer.style.display = 'block';
+            
+            // Scroll to results
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingSpinner.style.display = 'none';
+            alert('An error occurred while processing your request.');
+        });
+    }
+    
+    // Function to reset the form
+    function resetCoxRossRubinsteinForm() {
+        document.getElementById('coxRossRubinsteinForm').reset();
+        document.getElementById('coxRossRubinsteinResults').style.display = 'none';
+        document.getElementById('latticeContainerCRR').innerHTML = '';
+    }
+    
+    // Initialize when DOM is loaded - just for checking elements exist
+    document.addEventListener('DOMContentLoaded', function() {
+        const crrForm = document.getElementById('coxRossRubinsteinForm');
+        const crrLoadingSpinner = document.getElementById('loadingSpinnerCRR');
+        const crrResultsContainer = document.getElementById('coxRossRubinsteinResults');
+        const calculateCRRBtn = document.getElementById('calculateBtnCRR');
+        const recalculateCRRBtn = document.getElementById('recalculateBtnCRR');
+        const latticeContainer = document.getElementById('latticeContainerCRR');
+        
+        console.log('DOM fully loaded - CRR Elements check:', {
+            form: crrForm ? 'Found' : 'Not found',
+            loadingSpinner: crrLoadingSpinner ? 'Found' : 'Not found',
+            resultsContainer: crrResultsContainer ? 'Found' : 'Not found',
+            calculateBtn: calculateCRRBtn ? 'Found' : 'Not found',
+            recalculateBtn: recalculateCRRBtn ? 'Found' : 'Not found',
+            latticeContainer: latticeContainer ? 'Found' : 'Not found'
+        });
+    });
+</script>

@@ -1,0 +1,399 @@
+{% load static %}
+<div class="container mt-5">
+    <h1>
+        {% if request.session.language == 'en' %}Black-Scholes-Merton Model for Options with Dividends{% else %}Modelo Black-Scholes-Merton para Opções com Dividendos{% endif %}
+    </h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Method Description{% else %}Descrição do Método{% endif %}
+        </div>
+        <div class="card-body">
+            <p>
+                {% if request.session.language == 'en' %}
+                The Black-Scholes-Merton model expands on the classic Black-Scholes by incorporating dividend yields. Developed by Robert Merton, this extension handles dividend-paying stocks by adjusting the underlying asset price to account for the expected dividends during the option's lifetime.
+                {% else %}
+                O modelo Black-Scholes-Merton expande o clássico Black-Scholes ao incorporar rendimentos de dividendos. Desenvolvido por Robert Merton, esta extensão trata de ações com pagamento de dividendos ajustando o preço do ativo subjacente para considerar os dividendos esperados durante a vida da opção.
+                {% endif %}
+            </p>
+            <p>
+                {% if request.session.language == 'en' %}
+                <strong>Key Parameters:</strong> Underlying asset price (S), Strike price (K), Time to expiration (T), Risk-free rate (r), Volatility (σ), and Dividend yield (q)
+                {% else %}
+                <strong>Parâmetros Principais:</strong> Preço do ativo subjacente (S), Preço de exercício (K), Tempo até o vencimento (T), Taxa livre de risco (r), Volatilidade (σ), e Rendimento de dividendos (q)
+                {% endif %}
+            </p>
+            <p>
+                {% if request.session.language == 'en' %}
+                This model is particularly useful for valuing options on dividend-paying stocks, indices, and other assets with continuous yield.
+                {% else %}
+                Este modelo é particularmente útil para avaliar opções sobre ações que pagam dividendos, índices e outros ativos com rendimento contínuo.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <form id="blackScholesMertonForm">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Option Parameters{% else %}Parâmetros da Opção{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="option_type">
+                                {% if request.session.language == 'en' %}Option Type:{% else %}Tipo de Opção:{% endif %}
+                            </label>
+                            <div class="d-flex">
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" name="option_type" id="callOption" value="call" checked>
+                                    <label class="form-check-label" for="callOption">
+                                        {% if request.session.language == 'en' %}Call Option (Right to Buy){% else %}Opção de Compra (Direito de Comprar){% endif %}
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="option_type" id="putOption" value="put">
+                                    <label class="form-check-label" for="putOption">
+                                        {% if request.session.language == 'en' %}Put Option (Right to Sell){% else %}Opção de Venda (Direito de Vender){% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="asset_price">
+                                {% if request.session.language == 'en' %}Underlying Asset Price (S):{% else %}Preço do Ativo Subjacente (S):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="asset_price" name="asset_price" class="form-control" min="0.01" step="0.01" value="100" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="exercise_price">
+                                {% if request.session.language == 'en' %}Strike Price (K):{% else %}Preço de Exercício (K):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="exercise_price" name="exercise_price" class="form-control" min="0.01" step="0.01" value="100" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="time_to_expiration">
+                                {% if request.session.language == 'en' %}Time to Expiration (days):{% else %}Tempo até o Vencimento (dias):{% endif %}
+                            </label>
+                            <input type="number" id="time_to_expiration" name="time_to_expiration" class="form-control" min="1" step="1" value="30" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Market Parameters{% else %}Parâmetros de Mercado{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="interest_rate">
+                                {% if request.session.language == 'en' %}Risk-Free Interest Rate:{% else %}Taxa de Juros Livre de Risco:{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="interest_rate" name="interest_rate" class="form-control" min="0" max="100" step="0.01" value="5" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="volatility">
+                                {% if request.session.language == 'en' %}Volatility (σ):{% else %}Volatilidade (σ):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="volatility" name="volatility" class="form-control" min="0.1" max="200" step="0.1" value="30" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="dividend_yield">
+                                {% if request.session.language == 'en' %}Dividend Yield:{% else %}Rendimento de Dividendos:{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="dividend_yield" name="dividend_yield" class="form-control" min="0" max="100" step="0.01" value="2" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mb-4">
+                    <button type="button" class="btn btn-secondary me-2" onclick="resetBlackScholesMertonForm()">
+                        {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
+                    </button>
+                    <button type="button" class="btn btn-primary" id="calculateBtn" onclick="handleMertonSubmit()">
+                        {% if request.session.language == 'en' %}Calculate Option Value{% else %}Calcular Valor da Opção{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Loading spinner -->
+    <div id="loadingSpinnerMerton" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <div id="blackScholesMertonResults" class="card mb-4" style="display: none;">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Option Pricing Results{% else %}Resultados do Apreçamento da Opção{% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Option Value{% else %}Valor da Opção{% endif %}
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 id="optionPriceMerton">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Greeks (Sensitivity Measures){% else %}Gregas (Medidas de Sensibilidade){% endif %}
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Delta:</td>
+                                        <td id="deltaMeasureMerton">-</td>
+                                        <td>{% if request.session.language == 'en' %}Price sensitivity to underlying asset{% else %}Sensibilidade do preço ao ativo subjacente{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gamma:</td>
+                                        <td id="gammaMeasureMerton">-</td>
+                                        <td>{% if request.session.language == 'en' %}Rate of change of delta{% else %}Taxa de variação do delta{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Theta:</td>
+                                        <td id="thetaMeasureMerton">-</td>
+                                        <td>{% if request.session.language == 'en' %}Time decay per day{% else %}Decaimento do tempo por dia{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vega:</td>
+                                        <td id="vegaMeasureMerton">-</td>
+                                        <td>{% if request.session.language == 'en' %}Sensitivity to volatility{% else %}Sensibilidade à volatilidade{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rho:</td>
+                                        <td id="rhoMeasureMerton">-</td>
+                                        <td>{% if request.session.language == 'en' %}Sensitivity to interest rate{% else %}Sensibilidade à taxa de juros{% endif %}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Key Metrics{% else %}Métricas Chave{% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>{% if request.session.language == 'en' %}METRIC{% else %}MÉTRICA{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}VALUE{% else %}VALOR{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}DESCRIPTION{% else %}DESCRIÇÃO{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>d₁</td>
+                                    <td id="d1ValueMerton">-</td>
+                                    <td>{% if request.session.language == 'en' %}First parameter in the Black-Scholes-Merton formula{% else %}Primeiro parâmetro na fórmula de Black-Scholes-Merton{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>d₂</td>
+                                    <td id="d2ValueMerton">-</td>
+                                    <td>{% if request.session.language == 'en' %}Second parameter in the Black-Scholes-Merton formula{% else %}Segundo parâmetro na fórmula de Black-Scholes-Merton{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Break-Even Point{% else %}Ponto de Equilíbrio{% endif %}</td>
+                                    <td id="breakEvenValueMerton">-</td>
+                                    <td>{% if request.session.language == 'en' %}Asset price where option investment breaks even at expiration{% else %}Preço do ativo onde o investimento na opção atinge o equilíbrio no vencimento{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Maximum Loss{% else %}Perda Máxima{% endif %}</td>
+                                    <td id="maxLossValueMerton">-</td>
+                                    <td>{% if request.session.language == 'en' %}Maximum potential loss for the option buyer{% else %}Perda potencial máxima para o comprador da opção{% endif %}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Option Price vs. Underlying Asset Price{% else %}Preço da Opção vs. Preço do Ativo Subjacente{% endif %}
+                        </div>
+                        <div class="card-body">
+                            <img id="priceChartMerton" src="" class="img-fluid" alt="Price vs. Underlying Asset Chart">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Profit/Loss at Expiration{% else %}Lucro/Prejuízo no Vencimento{% endif %}
+                        </div>
+                        <div class="card-body">
+                            <img id="payoffChartMerton" src="" class="img-fluid" alt="Payoff Chart">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Interpretation of Results{% else %}Interpretação dos Resultados{% endif %}
+                </div>
+                <div class="card-body">
+                    <div id="interpretationMerton">
+                        <!-- Interpretation will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="button" class="btn btn-primary" id="recalculateBtnMerton" onclick="handleMertonSubmit()">
+                    {% if request.session.language == 'en' %}Recalculate{% else %}Recalcular{% endif %}
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetBlackScholesMertonForm()">
+                    {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Define the handleMertonSubmit function globally
+    function handleMertonSubmit() {
+        // Get fresh references to the DOM elements each time
+        const loadingSpinner = document.getElementById('loadingSpinnerMerton');
+        const resultsContainer = document.getElementById('blackScholesMertonResults');
+        const form = document.getElementById('blackScholesMertonForm');
+        
+        // Check if elements exist before using them
+        if (!loadingSpinner || !resultsContainer || !form) {
+            console.error('Required DOM elements not found:', {
+                loadingSpinner: !!loadingSpinner,
+                resultsContainer: !!resultsContainer,
+                form: !!form
+            });
+            alert('An error occurred. Please refresh the page and try again.');
+            return;
+        }
+        
+        loadingSpinner.style.display = 'block';
+        resultsContainer.style.display = 'none';
+        
+        // Get form data
+        const formData = new FormData(form);
+        
+        // Log form data for debugging
+        console.log('Submitting Merton form data:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+        
+        // Send AJAX request to backend
+        fetch('{% url "black_scholes_merton_api" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading spinner
+            loadingSpinner.style.display = 'none';
+            
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            // Update option price and Greeks
+            document.getElementById('optionPriceMerton').textContent = '$' + data.option_price;
+            document.getElementById('deltaMeasureMerton').textContent = data.greeks.delta;
+            document.getElementById('gammaMeasureMerton').textContent = data.greeks.gamma;
+            document.getElementById('thetaMeasureMerton').textContent = data.greeks.theta;
+            document.getElementById('vegaMeasureMerton').textContent = data.greeks.vega;
+            document.getElementById('rhoMeasureMerton').textContent = data.greeks.rho;
+            
+            // Update metrics
+            document.getElementById('d1ValueMerton').textContent = data.d1;
+            document.getElementById('d2ValueMerton').textContent = data.d2;
+            document.getElementById('breakEvenValueMerton').textContent = '$' + data.break_even;
+            document.getElementById('maxLossValueMerton').textContent = '$' + data.max_loss;
+            
+            // Update charts
+            document.getElementById('priceChartMerton').src = 'data:image/png;base64,' + data.price_plot;
+            document.getElementById('payoffChartMerton').src = 'data:image/png;base64,' + data.payoff_plot;
+            
+            // Update interpretation
+            document.getElementById('interpretationMerton').innerHTML = data.interpretation;
+            
+            // Show results
+            resultsContainer.style.display = 'block';
+            
+            // Scroll to results
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingSpinner.style.display = 'none';
+            alert('An error occurred while processing your request.');
+        });
+    }
+    
+    // Function to reset the form
+    function resetBlackScholesMertonForm() {
+        document.getElementById('blackScholesMertonForm').reset();
+        document.getElementById('blackScholesMertonResults').style.display = 'none';
+    }
+    
+    // Initialize when DOM is loaded - just for checking elements exist
+    document.addEventListener('DOMContentLoaded', function() {
+        const mertonForm = document.getElementById('blackScholesMertonForm');
+        const mertonLoadingSpinner = document.getElementById('loadingSpinnerMerton');
+        const mertonResultsContainer = document.getElementById('blackScholesMertonResults');
+        const calculateMertonBtn = document.getElementById('calculateBtn');
+        const recalculateMertonBtn = document.getElementById('recalculateBtnMerton');
+        
+        console.log('DOM fully loaded - Merton Elements check:', {
+            form: mertonForm ? 'Found' : 'Not found',
+            loadingSpinner: mertonLoadingSpinner ? 'Found' : 'Not found',
+            resultsContainer: mertonResultsContainer ? 'Found' : 'Not found',
+            calculateBtn: calculateMertonBtn ? 'Found' : 'Not found',
+            recalculateBtn: recalculateMertonBtn ? 'Found' : 'Not found'
+        });
+    });
+</script>

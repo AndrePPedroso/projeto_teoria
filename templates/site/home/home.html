@@ -144,10 +144,13 @@
                 </div>
             </label>
             <div class="accordion-content">
-                <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">
+                <a href="{% url 'black_scholes' %}" class="nav-link" data-url="{% url 'black_scholes' %}">
+                    {% if request.session.language == 'en' %}Black-Scholes model{% else %}Modelo black-Scholes{% endif %}
+                </a>
+                <a href="{% url 'black_scholes_merton' %}" class="nav-link" data-url="{% url 'black_scholes_merton' %}">
                     {% if request.session.language == 'en' %}Black-Scholes-Merton model{% else %}Modelo black-Scholes-Merton{% endif %}
                 </a>
-                <a href="{% url 'random_walk_template' %}" class="nav-link" data-url="{% url 'random_walk_template' %}">
+                <a href="{% url 'cox_ross_rubinstein' %}" class="nav-link" data-url="{% url 'cox_ross_rubinstein' %}">
                     Cox-Ross-Rubinstein
                 </a>
                 <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">

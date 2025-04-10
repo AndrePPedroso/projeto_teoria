@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "core",
     "estocasticos",
     "teoria_opcao",
+    "financial_options",
     "usuario",
 ]
 
