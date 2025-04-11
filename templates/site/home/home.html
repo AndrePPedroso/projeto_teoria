@@ -1,4 +1,5 @@
 <!-- app_teoria/templates/home.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -226,11 +227,9 @@
         <div id="main-content">
             <div class="container d-flex flex-column vh-100 justify-content-center align-items-center">
                 {% if request.session.language == 'en' %}
-                <h2>Welcome to $AE-TO!</h2>
-                <p>Support system for teaching option theory.</p>
+                <img style="height:300px;width:600px;" src="{% static 'app_teoria/assets/logoEng2.png' %}" alt="Softfocus Assist">
                 {% else %}
-                <h2>Bem-vindo à $AE-TO!</h2>
-                <p>Sistema de apoio ao ensino de teoria das opções.</p>
+                <img style="height:300px;width:600px;" src="{% static 'app_teoria/assets/logo.png' %}" alt="Softfocus Assist">
                 {% endif %}
             </div>
         </div>
