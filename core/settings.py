@@ -76,7 +76,7 @@ AUTHENTICATION_BACKENDS = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-database_url = None
+database_url = config("DATABASE_URL", default=None)
 if database_url:
     DATABASES = {"default": dj_database_url.parse(database_url)}
 else:

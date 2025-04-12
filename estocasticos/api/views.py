@@ -61,33 +61,60 @@ def teoria_opcoes_reais(request):
 
 @csrf_exempt
 def markov_simulator(request):
+    """
+    View function to handle the Markov chain simulation.
+    Accepts POST requests with form data containing Markov chain parameters.
+    Returns JSON with plot image and evolution matrix.
+    """
     if request.method == "POST":
         try:
+            # Parse input parameters from the form
             num_states = int(request.POST["num_states"])
-            states = request.POST["states"].split(",")
-            transition_matrix = [
-                [
-                    float(request.POST[f"transition_matrix[{i}][{j}]"])
-                    for j in range(num_states)
-                ]
-                for i in range(num_states)
-            ]
-            initial_percentages = [
-                float(request.POST[f"initial_percentages[{i}]"])
-                for i in range(num_states)
-            ]
+            states = [s.strip() for s in request.POST["states"].split(",")]
+            
+            # Parse transition matrix
+            transition_matrix = []
+            try:
+                for i in range(num_states):
+                    row = []
+                    for j in range(num_states):
+                        prob = float(request.POST[f"transition_matrix[{i}][{j}]"])
+                        row.append(prob)
+                    transition_matrix.append(row)
+            except ValueError:
+                return JsonResponse({"error": "Invalid transition matrix values."}, status=400)
+            
+            # Parse initial percentages
+            initial_percentages = []
+            for i in range(num_states):
+                percentage = float(request.POST[f"initial_percentages[{i}]"])
+                initial_percentages.append(percentage)
+            
+            # Get number of iterations
             steps = int(request.POST["iterations"])
+            
+            # Create and run the simulation
             simulator = CadeiaMarkovUseCase(
                 num_states, states, transition_matrix, initial_percentages, steps
             )
+            
+            # Get evolution matrix and generate plot
             evolution = simulator.simulate()
             plot = simulator.generate_plot(evolution)
-
-            return JsonResponse({"plot": plot})
+            
+            # Return JSON response with both the plot and evolution matrix
+            return JsonResponse({
+                "plot": plot, 
+                "evolution": evolution,
+                "states": states,
+                "iterations": steps
+            })
 
         except Exception as e:
+            # Return error if anything goes wrong
             return JsonResponse({"error": str(e)}, status=500)
 
+    # For GET requests, render the form template
     return render(request, "markov.html")
 
 
