@@ -1,4 +1,4 @@
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
@@ -51,3 +51,8 @@ def set_language(request):
             request.session["language"] = language
             return JsonResponse({"success": True})
     return JsonResponse({"success": False}, status=400)
+
+
+def custom_logout(request):
+    auth_logout(request)
+    return redirect('login-customizado')

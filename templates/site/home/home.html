@@ -218,9 +218,9 @@
                 <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
             </select>
             
-            <a href="{% url 'admin:logout' %}" class="mt-auto">
+            <a href="{% url 'custom-logout' %}" class="mt-auto">
                 {% if request.session.language == 'en' %}log-out{% else %}Sair{% endif %}
-                </a> 
+            </a> 
         </div>
     </div>
     <div class="content">
