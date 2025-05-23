@@ -11,7 +11,6 @@ def sing_up_template(request):
     return render(request, "site/usuario/cadastro.html")
 
 
-@login_required(login_url='/admin/login/')
 def singup_view(request):
     if request.method == "POST":
         username = request.POST["username"]
