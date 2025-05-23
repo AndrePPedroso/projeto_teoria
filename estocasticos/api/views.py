@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from estocasticos.use_cases.mbg_ito_use_case import GeneralizedBrownianMotionUseCase
 from estocasticos.use_cases.modelo_reversao_media_use_case import ReversaoMediaUseCase
 from estocasticos.use_cases.monte_carlos_use_case import MonteCarloUseCase
@@ -9,6 +10,7 @@ from estocasticos.use_cases.cadeia_markov_use_case import CadeiaMarkovUseCase
 from estocasticos.use_cases.random_walk_use_case import RandomWalkUseCase
 
 
+@login_required(login_url='/admin/login/')
 def processos_home(request):
     return render(request, "site/processos-estocasticos/processos_home.html")
 
@@ -40,6 +42,7 @@ def mbg_ito(request):
     return render(request, "site/processos-estocasticos/mbg_ito.html")
 
 
+@login_required(login_url='/admin/login/')
 def mbg_teoria(request):
     return render(request, "site/teoria/mbg.html")
 
@@ -48,10 +51,12 @@ def modelo_reversao_media(request):
     return render(request, "site/processos-estocasticos/modelo_media.html")
 
 
+@login_required(login_url='/admin/login/')
 def teoria_opcoes_financeiras(request):
     return render(request, "partials/teoria_opcoes_financeiras.html")
 
 
+@login_required(login_url='/admin/login/')
 def teoria_opcoes_reais(request):
     return render(request, "partials/teoria_opcoes_reais.html")
 

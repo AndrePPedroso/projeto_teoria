@@ -173,3 +173,10 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
 # Uso da API V3 do Sendgrid
 # SENDGRID_URL_BASE = config('SENDGRID_URL_BASE', default='https://api.sendgrid.com/v3')
 # SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
+
+# Session settings
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 3600  # 1 hour in seconds

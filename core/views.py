@@ -3,6 +3,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from estocasticos.use_cases.mbg_ito_use_case import GeneralizedBrownianMotionUseCase
 from estocasticos.use_cases.modelo_reversao_media_use_case import ReversaoMediaUseCase
 from estocasticos.use_cases.monte_carlos_use_case import MonteCarloUseCase
@@ -37,10 +38,12 @@ def custom_admin_login(request):
     )
 
 
+@login_required(login_url='/admin/login/')
 def home_view(request):
     return render(request, "site/home/home.html")
 
 
+@csrf_exempt
 def set_language(request):
     if request.method == "POST":
         language = request.POST.get("language")

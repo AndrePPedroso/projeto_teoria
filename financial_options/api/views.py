@@ -1,17 +1,21 @@
 import json
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 from estocasticos.use_cases.financial_options.black_scholes_merton_use_case import BlackScholesMertonUseCase
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
 
+@login_required(login_url='/admin/login/')
 def black_scholes_template(request):
     return render(request, "site/financeiros/black-sholes.html")
 
+@login_required(login_url='/admin/login/')
 def black_scholes_merton_template(request):
     return render(request, "site/financeiros/black-scholes-merton.html")
 
+@login_required(login_url='/admin/login/')
 def cox_ross_rubinstein_template(request):
     return render(request, "site/financeiros/cox-ross-rubinstein.html")
 

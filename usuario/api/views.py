@@ -4,12 +4,14 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth.views import PasswordResetConfirmView
 from allauth.account.views import PasswordResetFromKeyView
+from django.contrib.auth.decorators import login_required
 
 
 def sing_up_template(request):
     return render(request, "site/usuario/cadastro.html")
 
 
+@login_required(login_url='/admin/login/')
 def singup_view(request):
     if request.method == "POST":
         username = request.POST["username"]

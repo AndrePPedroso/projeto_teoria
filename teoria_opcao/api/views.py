@@ -2,14 +2,17 @@ from django.shortcuts import render
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 import numpy as np
 import math
 import json
 
+@login_required(login_url='/admin/login/')
 def volatilidade_template(request):
     return render(request, "site/teoria/volatilidade.html")
 
 
+@login_required(login_url='/admin/login/')
 def log_cf_volatility(request):
     """
     Deterministic volatility estimation approach using Logarithm Cash Flow Return.
@@ -22,6 +25,7 @@ def log_cf_volatility(request):
     return render(request, "site/teoria/volatility/log_cf.html", context)
 
 
+@login_required(login_url='/admin/login/')
 def copeland_antikarov_volatility(request):
     """
     Stochastic approach for volatility estimation using Copeland & Antikarov method.
@@ -30,10 +34,12 @@ def copeland_antikarov_volatility(request):
     return render(request, "site/teoria/copeland-antikarov-template.html")
 
 
+@login_required(login_url='/admin/login/')
 def herath_park_volatility(request):
     return render(request, "site/teoria/herath_park.html")
 
 
+@login_required(login_url='/admin/login/')
 def brandao_dyer_hahn_volatility(request):
     """
     Stochastic approach for volatility estimation using Brandão, Dyer & Hahn method.
@@ -46,6 +52,7 @@ def brandao_dyer_hahn_volatility(request):
     return render(request, "site/teoria/volatility/brandao_dyer_hahn.html", context)
 
 
+@login_required(login_url='/admin/login/')
 def markowitz_mean_variance_volatility(request):
     """
     Stochastic approach for volatility estimation using Markowitz Mean-Variance method.
@@ -61,6 +68,7 @@ def markowitz_mean_variance_volatility(request):
     )
 
 
+@login_required(login_url='/admin/login/')
 def lewis_irr_volatility(request):
     """
     Stochastic approach for volatility estimation using Lewis et al. method.
@@ -74,6 +82,7 @@ def lewis_irr_volatility(request):
     return render(request, "site/teoria/volatility/lewis_irr.html", context)
 
 
+@login_required(login_url='/admin/login/')
 def var_based_volatility(request):
     """
     New stochastic approach proposed by the authors for volatility estimation.
@@ -87,6 +96,7 @@ def var_based_volatility(request):
     return render(request, "site/teoria/volatility/var_based.html", context)
 
 
+@login_required(login_url='/admin/login/')
 def volatility_comparison(request):
     """
     Comprehensive view for comparing all volatility estimation methods.
@@ -99,6 +109,7 @@ def volatility_comparison(request):
 
 
 
+@login_required(login_url='/admin/login/')
 def binomial_model_view(request):
     """
     View function to render the binomial model template.
