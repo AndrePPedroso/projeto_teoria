@@ -151,6 +151,9 @@
                 <a href="{% url 'black_scholes_merton' %}" class="nav-link" data-url="{% url 'black_scholes_merton' %}">
                     {% if request.session.language == 'en' %}Black-Scholes-Merton model{% else %}Modelo black-Scholes-Merton{% endif %}
                 </a>
+                <a href="{% url 'precificar_opcao' %}" class="nav-link" data-url="{% url 'precificar_opcao' %}">
+                    {% if request.session.language == 'en' %}Monte Carlo Option Pricing{% else %}Precificação de Opções por Monte Carlo{% endif %}
+                </a>
                 <a href="{% url 'cox_ross_rubinstein' %}" class="nav-link" data-url="{% url 'cox_ross_rubinstein' %}">
                     Cox-Ross-Rubinstein
                 </a>

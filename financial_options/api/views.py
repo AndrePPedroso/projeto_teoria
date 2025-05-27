@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from estocasticos.use_cases.financial_options.black_scholes_merton_use_case import BlackScholesMertonUseCase
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
+from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
 
 @login_required(login_url='/admin/login/')
 def black_scholes_template(request):
@@ -313,3 +314,85 @@ def cox_ross_rubinstein_view(request):
     
     # If not POST, just render the template
     return render(request, 'site/financeiros/cox-ross-rubinstein.html')
+
+
+
+def precificar_opcao_view(request):
+    if request.method == 'POST':
+        errors = {}
+        # Captura e valida os dados manualmente
+        try:
+            S0 = float(request.POST.get('S0'))
+            if S0 <= 0.01:
+                errors['S0'] = 'Preço Atual do Ativo (S0) deve ser maior que 0.'
+        except (ValueError, TypeError):
+            errors['S0'] = 'Preço Atual do Ativo (S0) inválido.'
+
+        try:
+            K = float(request.POST.get('K'))
+            if K <= 0.01:
+                errors['K'] = 'Preço de Exercício (K) deve ser maior que 0.'
+        except (ValueError, TypeError):
+            errors['K'] = 'Preço de Exercício (K) inválido.'
+
+        try:
+            T = float(request.POST.get('T'))
+            if T <= 0.01:
+                errors['T'] = 'Tempo até o Vencimento (T) deve ser maior que 0.'
+        except (ValueError, TypeError):
+            errors['T'] = 'Tempo até o Vencimento (T) inválido.'
+
+        try:
+            r = float(request.POST.get('r'))
+            if not (0.0 <= r <= 1.0):
+                errors['r'] = 'Taxa de Juros Livre de Risco (r) deve estar entre 0 e 1.'
+        except (ValueError, TypeError):
+            errors['r'] = 'Taxa de Juros Livre de Risco (r) inválida.'
+
+        try:
+            sigma = float(request.POST.get('sigma'))
+            if not (0.01 <= sigma <= 1.0):
+                errors['sigma'] = 'Volatilidade (sigma) deve estar entre 0.01 e 1.'
+        except (ValueError, TypeError):
+            errors['sigma'] = 'Volatilidade (sigma) inválida.'
+
+        try:
+            num_simulacoes = int(request.POST.get('num_simulacoes'))
+            if not (1000 <= num_simulacoes <= 1000000):
+                errors['num_simulacoes'] = 'Número de Simulações deve estar entre 1.000 e 1.000.000.'
+        except (ValueError, TypeError):
+            errors['num_simulacoes'] = 'Número de Simulações inválido.'
+
+        if errors:
+            return JsonResponse({'errors': errors}, status=400) # Retorna erros de validação
+
+        try:
+            preco_opcao, ST_array, statistics = option_price_use_case(S0, K, T, r, sigma, num_simulacoes)
+
+            price_plot_base64, distribution_plot_base64 = create_plots(ST_array)
+
+            formatted_stats = {k: f"{v:.4f}" for k, v in statistics.items()}
+
+            return JsonResponse({
+                'preco_estimado': f'{preco_opcao:.4f}',
+                'price_plot': price_plot_base64,
+                'distribution_plot': distribution_plot_base64,
+                'statistics': formatted_stats,
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400) # Erros inesperados
+
+    else:
+        initial_data = {
+            'S0': 100.0,
+            'K': 100.0,
+            'T': 1.0,
+            'r': 0.05,
+            'sigma': 0.20,
+            'num_simulacoes': 100000,
+        }
+        context = {
+            'initial_data': initial_data,
+            'language': request.session.get('language', 'pt')
+        }
+        return render(request, 'site/financeiros/options_price_mcs.html', context)
