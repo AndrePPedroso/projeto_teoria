@@ -26,7 +26,8 @@ def option_price_use_case(S0, K, T, r, sigma, num_simulacoes):
     """
     # Gerar números aleatórios da distribuição normal padrão
     z = np.random.standard_normal(num_simulacoes)
-
+    r = r/100
+    sigma= sigma/100
     # Simular os preços do ativo subjacente no vencimento (ST)
     ST = S0 * np.exp((r - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * z)
 
@@ -66,16 +67,6 @@ def create_plots(ST_array, num_periods_placeholder=None):
     plt.close()
     data_dist = base64.b64encode(buf_dist.getvalue()).decode('utf-8')
 
-    # Para o "price_plot", como não temos caminhos ao longo do tempo,
-    # podemos criar um gráfico de payoff ou apenas um placeholder.
-    # Por simplicidade, vamos criar um gráfico de barras simples do payoff médio vs. zero
-    # ou podemos simplesmente não usar este plot se ele não se encaixa.
-    # Por enquanto, vamos criar um plot vazio ou um que não seja exatamente "price_plot".
-    # A melhor abordagem aqui é criar um gráfico de payoff se o K for passado.
-    # Como não temos K na função de plot, vamos criar um gráfico simples que seja um placeholder
-    # ou focar apenas na distribuição.
-    # Para o template, vamos criar um plot simples de exemplo para "price_plot"
-    # que não representa caminhos de preço, mas pode ser um placeholder.
     plt.figure(figsize=(8, 6))
     plt.plot([0, len(ST_array)], [np.mean(ST_array), np.mean(ST_array)], 'r--')
     plt.text(len(ST_array)/2, np.mean(ST_array) * 1.05, f'Média de ST: {np.mean(ST_array):.2f}', horizontalalignment='center')

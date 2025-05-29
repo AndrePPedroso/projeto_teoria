@@ -30,17 +30,23 @@
         </div>
         <div class="form-group">
             <label for="r">
-                {% if language == 'en' %}Risk-Free Rate (r):{% else %}Taxa de Juros Livre de Risco (r):{% endif %}
+                {% if language == 'en' %}Risk-Free Rate (r, %):{% else %}Taxa de Juros Livre de Risco (r, %):{% endif %}
             </label>
-            <input type="number" class="form-control" id="r" name="r" value="{{ initial_data.r }}" min="0.0" max="1.0" step="0.0001" required>
+            <div class="input-group">
+            <input type="number" class="form-control" id="r" name="r" value="{{ initial_data.r }}" min="0" max="100" step="0.01" value="5" required>
+            <span class="input-group-text">%</span>
+            </div>
             <ul class="errorlist" id="r_errors"></ul>
         </div>
         <div class="form-group">
             <label for="sigma">
-                {% if language == 'en' %}Volatility (sigma):{% else %}Volatilidade (sigma):{% endif %}
+                {% if language == 'en' %}Volatility (σ, %):{% else %}Volatilidade (σ, %):{% endif %}
             </label>
-            <input type="number" class="form-control" id="sigma" name="sigma" value="{{ initial_data.sigma }}" min="0.01" max="1.0" step="0.0001" required>
-            <ul class="errorlist" id="sigma_errors"></ul>
+            <div class="input-group">
+                <input type="number" class="form-control" id="sigma" name="sigma" value="{{ initial_data.sigma }}" min="0.1" max="200" step="0.1" value="20" required>
+                <span class="input-group-text">%</span>
+                <ul class="errorlist" id="sigma_errors"></ul>
+            </div>
         </div>
         <div class="form-group">
             <label for="num_simulacoes">
@@ -74,54 +80,86 @@
     </div>
     </div>
 
-<script>
-    function clearErrors() {
-        $('.errorlist').empty(); 
-    }
-
-    function displayErrors(errors) {
-        clearErrors();
-        for (const field in errors) {
-            const errorList = $(`#${field}_errors`);
-            errors[field].forEach(error => {
-                errorList.append(`<li>${error}</li>`);
+    <script>
+        function clearErrors() {
+            $('.errorlist').empty(); 
+        }
+    
+        function displayErrors(errors) {
+            clearErrors();
+    
+            if (typeof errors !== 'object' || errors === null) {
+                console.error("Expected 'errors' to be an object, but got:", errors);
+                alert("Ocorreu um erro inesperado ao processar os erros. Por favor, tente novamente.");
+                return;
+            }
+    
+            for (const field in errors) {
+                if (errors.hasOwnProperty(field)) {
+                    const errorList = $(`#${field}_errors`);
+    
+                    if (errorList.length === 0) {
+                        console.warn(`No errorlist element found for field: ${field}. Looking for #${field}_errors`);
+                        continue; 
+                    }
+    
+                    let fieldErrors = errors[field];
+                    if (typeof fieldErrors === 'string') {
+                        fieldErrors = [fieldErrors];
+                    }
+    
+                    if (Array.isArray(fieldErrors)) {
+                        fieldErrors.forEach(error => {
+                            errorList.append(`<li>${error}</li>`);
+                        });
+                    } else {
+                        console.warn(`Unexpected non-array/non-string error format for field '${field}':`, fieldErrors);
+                        errorList.append(`<li>${fieldErrors}</li>`); // Display it as is, better than nothing
+                    }
+                }
+            }
+        }
+    
+        function submitMonteCarloForm() {
+            clearErrors(); 
+            const form = $('#precificacaoOpcaoForm');
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: form.serialize(),
+                success: function(data) {
+                    $('#resultSection').show();
+                    $('#estimatedPrice').text(data.preco_estimado);
+                    $('#pricePlot').attr('src', 'data:image/png;base64,' + data.price_plot);
+                    $('#distributionPlot').attr('src', 'data:image/png;base64,' + data.distribution_plot);
+                
+                    const statsTable = $('#statisticsTable');
+                    statsTable.empty();
+                    statsTable.append('<thead><tr><th>Estatística</th><th>Valor</th></tr></thead>');
+                    const tbody = $('<tbody></tbody>');
+                    for (const [key, value] of Object.entries(data.statistics)) {
+                        tbody.append(`<tr><td>${key}</td><td>${value}</td></tr>`);
+                    }
+                    statsTable.append(tbody);
+                },
+                error: function(xhr, status, error) {
+                    let errorMessage = "Erro na simulação. Por favor, verifique os dados inseridos.";
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.errors) {
+                            displayErrors(xhr.responseJSON.errors);
+                            errorMessage = "Erro de validação. Verifique os campos marcados.";
+                        } else if (xhr.responseJSON.error) {
+                            errorMessage = "Erro na simulação: " + xhr.responseJSON.error;
+                        } else {
+                            errorMessage = "Erro desconhecido na simulação.";
+                            console.log("Unexpected error response JSON:", xhr.responseJSON);
+                        }
+                    } else {
+                        errorMessage = `Erro na comunicação com o servidor: ${error || 'Verifique sua conexão.'}`;
+                    }
+                    console.log("Final error message:", errorMessage);
+                    alert(errorMessage); 
+                }
             });
         }
-    }
-
-    function submitMonteCarloForm() {
-        clearErrors(); // Limpa erros antes de cada nova submissão
-        const form = $('#precificacaoOpcaoForm');
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(data) {
-                $('#resultSection').show();
-                $('#estimatedPrice').text(data.preco_estimado);
-                $('#pricePlot').attr('src', 'data:image/png;base64,' + data.price_plot);
-                $('#distributionPlot').attr('src', 'data:image/png;base64,' + data.distribution_plot);
-            
-                // Exibir estatísticas
-                const statsTable = $('#statisticsTable');
-                statsTable.empty();
-                statsTable.append('<thead><tr><th>Estatística</th><th>Valor</th></tr></thead>');
-                const tbody = $('<tbody></tbody>');
-                for (const [key, value] of Object.entries(data.statistics)) {
-                    tbody.append(`<tr><td>${key}</td><td>${value}</td></tr>`);
-                }
-                statsTable.append(tbody);
-            },
-            error: function(xhr, status, error) {
-                let errorMessage = "Erro na simulação. Por favor, verifique os dados inseridos.";
-                if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    displayErrors(xhr.responseJSON.errors); // Exibe erros específicos do campo
-                    errorMessage = "Erro de validação. Verifique os campos marcados.";
-                } else if (xhr.responseJSON && xhr.responseJSON.error) {
-                    errorMessage = "Erro na simulação: " + xhr.responseJSON.error;
-                }
-                alert(errorMessage); // Alerta uma mensagem geral, os erros específicos estarão no formulário
-            }
-        });
-    }
-</script>
+    </script>

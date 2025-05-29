@@ -344,14 +344,14 @@ def precificar_opcao_view(request):
 
         try:
             r = float(request.POST.get('r'))
-            if not (0.0 <= r <= 1.0):
+            if not (0.0 <= r <= 100):
                 errors['r'] = 'Taxa de Juros Livre de Risco (r) deve estar entre 0 e 1.'
         except (ValueError, TypeError):
             errors['r'] = 'Taxa de Juros Livre de Risco (r) inválida.'
 
         try:
             sigma = float(request.POST.get('sigma'))
-            if not (0.01 <= sigma <= 1.0):
+            if not (0.1 <= sigma <= 100):
                 errors['sigma'] = 'Volatilidade (sigma) deve estar entre 0.01 e 1.'
         except (ValueError, TypeError):
             errors['sigma'] = 'Volatilidade (sigma) inválida.'
@@ -387,8 +387,8 @@ def precificar_opcao_view(request):
             'S0': 100.0,
             'K': 100.0,
             'T': 1.0,
-            'r': 0.05,
-            'sigma': 0.20,
+            'r': 5,
+            'sigma': 20,
             'num_simulacoes': 100000,
         }
         context = {

@@ -1,19 +1,19 @@
 {% load static %}
 <div class="container mt-5">
     <h1>
-        {% if request.session.language == 'en' %}Black-Scholes-Merton Model for Options with Dividends{% else %}Modelo Black-Scholes-Merton para Opções com Dividendos{% endif %}
+        {% if request.session.language == 'en' %}Black-Scholes-Merton Model{% else %}Modelo Black-Scholes-Merton{% endif %}
     </h1>
     
     <div class="card mb-4">
         <div class="card-header">
-            {% if request.session.language == 'en' %}Method Description{% else %}Descrição do Método{% endif %}
+            {% if request.session.language == 'en' %}Description{% else %}Descrição{% endif %}
         </div>
         <div class="card-body">
             <p>
                 {% if request.session.language == 'en' %}
                 The Black-Scholes-Merton model expands on the classic Black-Scholes by incorporating dividend yields. Developed by Robert Merton, this extension handles dividend-paying stocks by adjusting the underlying asset price to account for the expected dividends during the option's lifetime.
                 {% else %}
-                O modelo Black-Scholes-Merton expande o clássico Black-Scholes ao incorporar rendimentos de dividendos. Desenvolvido por Robert Merton, esta extensão trata de ações com pagamento de dividendos ajustando o preço do ativo subjacente para considerar os dividendos esperados durante a vida da opção.
+                O modelo Black-Scholes-Merton expande o clássico Black-Scholes ao incorporar na precificação o rendimentos de dividendos. Desenvolvido por Robert Merton, esta extensão avalia ações com pagamento de dividendos ajustando o preço do ativo subjacente para considerar os dividendos esperados durante a vida da opção.
                 {% endif %}
             </p>
             <p>
@@ -64,7 +64,7 @@
                         
                         <div class="form-group mb-3">
                             <label for="asset_price">
-                                {% if request.session.language == 'en' %}Underlying Asset Price (S):{% else %}Preço do Ativo Subjacente (S):{% endif %}
+                                {% if request.session.language == 'en' %}Underlying current Asset Price (So):{% else %}Preço atual do Ativo Subjacente (So):{% endif %}
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
@@ -100,7 +100,7 @@
                     <div class="card-body">
                         <div class="form-group mb-3">
                             <label for="interest_rate">
-                                {% if request.session.language == 'en' %}Risk-Free Interest Rate:{% else %}Taxa de Juros Livre de Risco:{% endif %}
+                                {% if request.session.language == 'en' %}Risk-Free Interest Rate (r, %):{% else %}Taxa de Juros Livre de Risco (r, %):{% endif %}
                             </label>
                             <div class="input-group">
                                 <input type="number" id="interest_rate" name="interest_rate" class="form-control" min="0" max="100" step="0.01" value="5" required>
@@ -110,7 +110,7 @@
                         
                         <div class="form-group mb-3">
                             <label for="volatility">
-                                {% if request.session.language == 'en' %}Volatility (σ):{% else %}Volatilidade (σ):{% endif %}
+                                {% if request.session.language == 'en' %}Volatility (σ, %):{% else %}Volatilidade (σ, %):{% endif %}
                             </label>
                             <div class="input-group">
                                 <input type="number" id="volatility" name="volatility" class="form-control" min="0.1" max="200" step="0.1" value="30" required>
@@ -120,7 +120,7 @@
                         
                         <div class="form-group mb-3">
                             <label for="dividend_yield">
-                                {% if request.session.language == 'en' %}Dividend Yield:{% else %}Rendimento de Dividendos:{% endif %}
+                                {% if request.session.language == 'en' %}Dividend Yield (q, %):{% else %}Rendimento de Dividendos (q, %):{% endif %}
                             </label>
                             <div class="input-group">
                                 <input type="number" id="dividend_yield" name="dividend_yield" class="form-control" min="0" max="100" step="0.01" value="2" required>
