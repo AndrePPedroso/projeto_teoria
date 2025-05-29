@@ -21,7 +21,6 @@ def cox_ross_rubinstein_template(request):
     return render(request, "site/financeiros/cox-ross-rubinstein.html")
 
 def black_scholes_view(request):
-    print(request)
     if request.method == 'POST':
         try:
             S = float(request.POST.get('asset_price', 0))
@@ -33,8 +32,8 @@ def black_scholes_view(request):
             # Validate inputs
             if S <= 0 or E <= 0 or T <= 0 or sigma <= 0:
                 return JsonResponse({'error': 'All values must be positive.'})
-            
             model = BlackScholesModelUseCase(S, E, r, sigma, T, option_type)
+
             d1, d2 = model.calculate_d1_d2()
             option_price = model.calculate_price()
             greeks = model.calculate_greeks()

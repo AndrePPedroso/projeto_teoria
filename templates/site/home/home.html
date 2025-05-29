@@ -92,6 +92,17 @@
         .accordion-content a:hover {
             background-color: #6c757d;
         }
+        .footnote-section {
+            margin-top: 40px; /* Add some space above the footnote */
+            padding: 10px 0; /* Adjust padding as needed */
+            border-top: 1px solid #e9ecef;
+            font-size: 0.85em;
+            color: #6c757d;
+            text-align: center;
+        }
+        .footnote-section p {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -188,31 +199,6 @@
                 <a href="{% url 'herath_park_volatility' %}" class="nav-link" data-url="{% url 'herath_park_volatility' %}">
                     {% if request.session.language == 'en' %}Herath & Park Method{% else %}Método de Herath & Park{% endif %}
                 </a>
-
-{#                <!-- Brandão, Dyer & Hahn Method -->#}
-{#                <a href="{% url 'brandao_dyer_hahn_volatility' %}" class="nav-link" data-url="{% url 'brandao_dyer_hahn_volatility' %}">#}
-{#                    {% if request.session.language == 'en' %}Brandão, Dyer & Hahn Method{% else %}Método de Brandão, Dyer & Hahn{% endif %}#}
-{#                </a>#}
-{##}
-{#                <!-- Markowitz Mean-Variance Method -->#}
-{#                <a href="{% url 'markowitz_mean_variance_volatility' %}" class="nav-link" data-url="{% url 'markowitz_mean_variance_volatility' %}">#}
-{#                    {% if request.session.language == 'en' %}Markowitz Mean-Variance Method{% else %}Método de Média-Variância de Markowitz{% endif %}#}
-{#                </a>#}
-{##}
-{#                <!-- Lewis et al. Method -->#}
-{#                <a href="{% url 'lewis_irr_volatility' %}" class="nav-link" data-url="{% url 'lewis_irr_volatility' %}">#}
-{#                    {% if request.session.language == 'en' %}Lewis IRR Variation Method{% else %}Método da Variação da TIR de Lewis{% endif %}#}
-{#                </a>#}
-{##}
-{#                <!-- VaR-based Method -->#}
-{#                <a href="{% url 'var_based_volatility' %}" class="nav-link" data-url="{% url 'var_based_volatility' %}">#}
-{#                    {% if request.session.language == 'en' %}Value-at-Risk (VaR) Based Method{% else %}Método Baseado no Valor em Risco (VaR){% endif %}#}
-{#                </a>#}
-{##}
-{#                <!-- Consolidated Comparison -->#}
-{#                <a href="{% url 'volatility_comparison' %}" class="nav-link" data-url="{% url 'volatility_comparison' %}">#}
-{#                    {% if request.session.language == 'en' %}Volatility Methods Comparison{% else %}Comparação de Métodos de Volatilidade{% endif %}#}
-{#                </a>#}
             </div>
         </div>
                 <div class="mt-auto px-2">
@@ -236,6 +222,11 @@
                 {% endif %}
             </div>
         </div>
+        <footer class="footnote-section">
+            <p id="footnote1">
+                **Observação:** Prezad@ usuári@, as informações apresentadas não devem ser interpretadas como recomendação de qualquer natureza, para quaisquer tipos de investimentos, estratégias ou transações comerciais. <br> A única finalidade é a didática, ou seja, apoiar o processo de ensino-aprendizagem-avaliação de tópicos de análise de investimentos.
+            </p>
+        </footer>
     </div>
     <script>
         function updateLanguage(language) {

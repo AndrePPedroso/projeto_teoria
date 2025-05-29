@@ -1,61 +1,91 @@
 <div class="container mt-5">
     <h1>Random Walk</h1>
-    <p>
-        Introduza o número de caminhos e o número de passos para gerar o Random Walk.
-    </p>
 
     <form id="randomWalkForm" method="post" action="{% url 'simulate_random_walk_normal' %}">
         {% csrf_token %}
-        
+
         <div class="form-group">
-            <label for="paths">Número de Caminhos:</label>
+            <label for="paths">{% if request.session.language == 'en' %}Number of paths{% else %}Número de Caminhos:{% endif %}</label>
+
             <input type="number" class="form-control" id="paths" name="paths" required min="1" placeholder="Exemplo: 5">
         </div>
-        
+
         <div class="form-group">
-            <label for="steps">Número de Passos:</label>
-            <input type="number" class="form-control" id="steps" name="steps" required min="1" placeholder="Exemplo: 100">
+            <label for="steps">{% if request.session.language == 'en' %}Number of steps{% else %}Número de Passos:{% endif %}</label>
+            <input type="number" class="form-control" id="steps" name="steps" required min="4" placeholder="Exemplo: 100">
         </div>
 
-        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkForm()">Gerar</button>
+        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkForm()">
+            {% if request.session.language == 'en' %}Run{% else %}Gerar{% endif %}
+        </button>
     </form>
+
 </div>
 
 <script>
     function submitRandomWalkForm() {
         const form = document.getElementById('randomWalkForm');
         const formData = new FormData(form);
+        const resultsDiv = document.getElementById('randomWalkResults'); // Get the results container
+
+        // Clear previous results and show a loading message
+        resultsDiv.innerHTML = `
+            <p>Gerando simulação, aguarde...</p>
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        `;
+
 
         fetch(form.action, {
             method: 'POST',
             body: formData,
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert("Erro: " + data.error);
-            } else {
-                const resultWindow = window.open('', 'Random Walk Result', 'width=800,height=600');
-                resultWindow.document.write('<html><head><title>Random Walk Result</title></head><body>');
-                resultWindow.document.write('<h3>Resultado da Simulação</h3>');
-                resultWindow.document.write(`<img src="data:image/png;base64,${data.walk_plot}" alt="Random Walk Evolution" class="img-fluid">`);
-                resultWindow.document.write('<h3>Distribuição e Estatísticas</h3>');
-                resultWindow.document.write(`<img src="data:image/png;base64,${data.histograms_plot}" alt="Distribuição dos Caminhos" class="img-fluid">`);
-                
-                resultWindow.document.write('<h4>Estatísticas Descritivas</h4>');
-                data.statistics.forEach(stat => {
-                    resultWindow.document.write(`<h5>${stat[0]}</h5>`);
-                    resultWindow.document.write('<ul>');
-                    for (const [key, value] of Object.entries(stat[1])) {
-                        resultWindow.document.write(`<li><strong>${key}:</strong> ${value.toFixed(2)}</li>`);
-                    }
-                    resultWindow.document.write('</ul>');
-                });
-
-                resultWindow.document.write('</body></html>');
-                resultWindow.document.close();
+        .then(response => {
+            // Check if the HTTP response itself was not OK (e.g., 400, 500)
+            if (!response.ok) {
+                // Try to parse JSON first. If it fails, read as plain text for a more generic error.
+                return response.json()
+                    .catch(() => response.text().then(text => ({ error: `Erro do servidor (${response.status}): ${text}` })))
+                    .then(errorData => {
+                        // Throw an error with the specific message from the server or a fallback
+                        throw new Error(errorData.error || `Erro desconhecido do servidor (${response.status})`);
+                    });
             }
+            return response.json(); // If response is OK, parse as JSON
         })
-        .catch(error => alert("Ocorreu um erro: " + error));
+        .then(data => {
+            // Server-side error handling: if Django returned JSON with an 'error' key
+            if (data.error) {
+                resultsDiv.innerHTML = `<p style="color: red;">Erro: ${data.error}</p>`; // Basic error display
+                return;
+            }
+
+            // Construct the HTML content for results
+            let htmlContent = '<h3>Resultado da Simulação</h3>';
+            htmlContent += `<img src="data:image/png;base64,${data.walk_plot}" alt="Random Walk Evolution" style="max-width: 100%; height: auto;">`; // Inline style for img fluid
+            htmlContent += '<h3>Distribuição e Estatísticas</h3>';
+            htmlContent += `<img src="data:image/png;base64,${data.histograms_plot}" alt="Distribuição dos Caminhos" style="max-width: 100%; height: auto;">`; // Inline style for img fluid
+
+            htmlContent += '<h4>Estatísticas Descritivas</h4>';
+            data.statistics.forEach(statSet => {
+                const [label, stats] = statSet;
+                htmlContent += `<h5>${label}</h5><ul>`;
+                for (const [key, value] of Object.entries(stats)) {
+                    // Safety check for toFixed: only call on numbers and not NaN
+                    const formattedValue = typeof value === 'number' && !isNaN(value) ? value.toFixed(2) : String(value);
+                    htmlContent += `<li><strong>${key}:</strong> ${formattedValue}</li>`;
+                }
+                htmlContent += '</ul>';
+            });
+
+            // Inject the generated HTML into the results div
+            resultsDiv.innerHTML = htmlContent;
+        })
+        .catch(error => {
+            // Catch any network errors or errors thrown earlier in the .then() chain
+            console.error("Ocorreu um erro na requisição Fetch:", error); // Log to console for debugging
+            resultsDiv.innerHTML = `<p style="color: red;">Ocorreu um erro: ${error.message || "Erro desconhecido. Por favor, tente novamente."}</p>`; // Basic error display
+        });
     }
 </script>
