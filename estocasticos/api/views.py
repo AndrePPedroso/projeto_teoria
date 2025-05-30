@@ -125,15 +125,33 @@ def markov_simulator(request):
 
 def random_walk_normal_view(request):
     if request.method == "POST":
-        steps = int(request.POST["steps"])
-        paths = int(request.POST["paths"])
+        current_language = request.session["language"]
+
+        steps = request.POST["steps"]
+        paths = request.POST["paths"]
+
+        if not steps or not paths:
+            if current_language == 'pt':
+                return JsonResponse({"error": "Parâmetros de entrada inválidos."}, status=200)
+            else: 
+                return JsonResponse({"error": "Invalid input parameters."}, status=200)
+            
+        steps = int(steps)
+        paths = int(paths)
+
+        if steps > 100 or paths > 20:
+            if current_language == 'pt':
+                return JsonResponse(
+                    {"error": "O número de passos deve ser <= 100 e o número de caminhos <= 20."}, status=200
+                )
+            else:
+                return JsonResponse(
+                    {"error": "Number of steps must be <= 100 and paths <= 20."}, status=200
+                )
 
         simulator = RandomWalkNormalUseCase(steps, paths)
 
-        # Gerar o gráfico dos caminhos do Random Walk
         walk_plot = simulator.plot_walks()
-
-        # Gerar os histogramas e obter as estatísticas
         histograms_plot, statistics = simulator.plot_histograms_and_statistics()
 
         return JsonResponse(
@@ -141,10 +159,9 @@ def random_walk_normal_view(request):
                 "walk_plot": walk_plot,
                 "histograms_plot": histograms_plot,
                 "statistics": statistics,
+                "language": current_language,
             }
         )
-
-    return render(request, "random_walk.html")
 
 
 def random_walk_view(request):

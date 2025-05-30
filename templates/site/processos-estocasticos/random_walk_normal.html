@@ -19,6 +19,9 @@
             {% if request.session.language == 'en' %}Run{% else %}Gerar{% endif %}
         </button>
     </form>
+    <div id="randomWalkResults" class="mt-4">
+    </div>
+
 
 </div>
 
@@ -26,66 +29,82 @@
     function submitRandomWalkForm() {
         const form = document.getElementById('randomWalkForm');
         const formData = new FormData(form);
-        const resultsDiv = document.getElementById('randomWalkResults'); // Get the results container
-
-        // Clear previous results and show a loading message
-        resultsDiv.innerHTML = `
-            <p>Gerando simulação, aguarde...</p>
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        `;
-
-
+        const resultsDiv = document.getElementById('randomWalkResults'); 
         fetch(form.action, {
             method: 'POST',
             body: formData,
         })
         .then(response => {
-            // Check if the HTTP response itself was not OK (e.g., 400, 500)
+            console.log("Fetch response received. Status:", response.status, "OK:", response.ok);
+            console.log(response)
             if (!response.ok) {
-                // Try to parse JSON first. If it fails, read as plain text for a more generic error.
                 return response.json()
                     .catch(() => response.text().then(text => ({ error: `Erro do servidor (${response.status}): ${text}` })))
                     .then(errorData => {
-                        // Throw an error with the specific message from the server or a fallback
                         throw new Error(errorData.error || `Erro desconhecido do servidor (${response.status})`);
                     });
             }
-            return response.json(); // If response is OK, parse as JSON
+            return response.json(); 
         })
         .then(data => {
-            // Server-side error handling: if Django returned JSON with an 'error' key
+            console.log(data)
             if (data.error) {
-                resultsDiv.innerHTML = `<p style="color: red;">Erro: ${data.error}</p>`; // Basic error display
+                resultsDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
                 return;
             }
 
-            // Construct the HTML content for results
-            let htmlContent = '<h3>Resultado da Simulação</h3>';
-            htmlContent += `<img src="data:image/png;base64,${data.walk_plot}" alt="Random Walk Evolution" style="max-width: 100%; height: auto;">`; // Inline style for img fluid
-            htmlContent += '<h3>Distribuição e Estatísticas</h3>';
-            htmlContent += `<img src="data:image/png;base64,${data.histograms_plot}" alt="Distribuição dos Caminhos" style="max-width: 100%; height: auto;">`; // Inline style for img fluid
+            let htmlContent = data.language == 'pt' ?
+                '<h3>Resultado da Simulação</h3>' :
+                '<h3>Simulation Result</h3>';
 
-            htmlContent += '<h4>Estatísticas Descritivas</h4>';
+            htmlContent += `<img src="data:image/png;base64,${data.walk_plot}" alt="${data.language == 'pt' ? 'Evolução do Caminho Aleatório' : 'Random Walk Evolution'}" style="max-width: 100%; height: auto;">`;
+
+            htmlContent += data.language == 'pt' ?
+                '<h3>Distribuição e Estatísticas</h3>' :
+                '<h3>Distribution and Statistics</h3>';
+
+            htmlContent += `<img src="data:image/png;base64,${data.histograms_plot}" alt="${data.language == 'pt' ? 'Distribuição dos Caminhos' : 'Distribution of Paths'}" style="max-width: 100%; height: auto;">`;
+
+            htmlContent += data.language == 'pt' ?
+                '<h4>Estatísticas Descritivas</h4>' :
+                '<h4>Descriptive Statistics</h4>';
+
             data.statistics.forEach(statSet => {
                 const [label, stats] = statSet;
-                htmlContent += `<h5>${label}</h5><ul>`;
+                let translatedLabel = label;
+                if (data.language == 'pt') {
+                    if (label === 'End Positions') translatedLabel = 'Posições Finais';
+                    else if (label === 'Maximum Positions') translatedLabel = 'Posições Máximas';
+                    else if (label === 'Minimum Positions') translatedLabel = 'Posições Mínimas';
+                }
+                htmlContent += `<h5>${translatedLabel}</h5><ul>`;
+
                 for (const [key, value] of Object.entries(stats)) {
-                    // Safety check for toFixed: only call on numbers and not NaN
+                    let translatedKey = key;
+                    if (data.language == 'pt') {
+                        if (key === 'Mean') translatedKey = 'Média';
+                        else if (key === 'Median') translatedKey = 'Mediana';
+                        else if (key === 'Standard Deviation') translatedKey = 'Desvio Padrão';
+                        else if (key === 'Variance') translatedKey = 'Variância';
+                        else if (key === 'Min') translatedKey = 'Mínimo';
+                        else if (key === 'Max') translatedKey = 'Máximo';
+                        else if (key === 'Range') translatedKey = 'Amplitude';
+                    }
+
                     const formattedValue = typeof value === 'number' && !isNaN(value) ? value.toFixed(2) : String(value);
-                    htmlContent += `<li><strong>${key}:</strong> ${formattedValue}</li>`;
+                    htmlContent += `<li><strong>${translatedKey}:</strong> ${formattedValue}</li>`;
                 }
                 htmlContent += '</ul>';
             });
 
-            // Inject the generated HTML into the results div
             resultsDiv.innerHTML = htmlContent;
         })
         .catch(error => {
-            // Catch any network errors or errors thrown earlier in the .then() chain
-            console.error("Ocorreu um erro na requisição Fetch:", error); // Log to console for debugging
-            resultsDiv.innerHTML = `<p style="color: red;">Ocorreu um erro: ${error.message || "Erro desconhecido. Por favor, tente novamente."}</p>`; // Basic error display
+            console.error("Ocorreu um erro na requisição Fetch:", error);
+            resultsDiv.innerHTML = `<p style="color: red;">${data.language == 'pt' ?
+                'Ocorreu um erro' : 'An error occurred'}: ${error.message || (data.language == 'pt' ?
+                'Erro desconhecido. Por favor, tente novamente.' :
+                'Unknown error. Please try again.')}</p>`;
         });
     }
 </script>
