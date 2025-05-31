@@ -1,0 +1,254 @@
+{% comment %}
+File: financial_options_basic_concepts.html (content fragment)
+Description: Displays a calculator for basic option payoffs (Call/Put).
+To be loaded into the #main-content div of base.html.
+{% endcomment %}
+
+<style>
+    /* Specific styles for the option payoff calculator */
+    .payoff-calculator-container {
+        padding: 20px;
+        background-color: #f8f9fa; /* Light background for the container */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .payoff-calculator-container h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        color: #343a40; /* Darker heading */
+    }
+    .form-section {
+        background-color: #e9ecef; /* Lighter background for form inputs area */
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .form-section label {
+        font-weight: 500;
+    }
+    .results-table th {
+        background-color: #343a40; /* Dark header for table */
+        color: white;
+    }
+    .btn-calculate {
+        background-color: #28a745; /* Green for calculate */
+        border-color: #28a745;
+        color: white;
+    }
+    .btn-calculate:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-clear {
+        background-color: #ffc107; /* Amber for clear */
+        border-color: #ffc107;
+        color: #212529;
+    }
+    .btn-clear:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+    .input-group-text {
+        min-width: 40px; /* For Q, E, n labels */
+        justify-content: center;
+    }
+</style>
+
+<div class="payoff-calculator-container container mt-3">
+    <h1>{% if request.session.language == 'en' %}Option Payoff Calculator{% else %}Calculadora de Payoff de Opções{% endif %}</h1>
+
+    <div class="form-section">
+        <form id="payoffForm">
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label class="form-label">{% if request.session.language == 'en' %}Simulation Type{% else %}Tipo de Simulação{% endif %}:</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="simulationType" id="simTypeBuy" value="buy" checked>
+                            <label class="form-check-label" for="simTypeBuy">{% if request.session.language == 'en' %}Buy (Holder){% else %}Compra (Titular){% endif %}</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="simulationType" id="simTypeSell" value="sell">
+                            <label class="form-check-label" for="simTypeSell">{% if request.session.language == 'en' %}Sell (Writer){% else %}Venda (Lançador){% endif %}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 col-lg-2 mb-3">
+                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity{% else %}Quantidade{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" id="quantity" value="100" placeholder="100">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-2 mb-3">
+                    <label for="strikePrice" class="form-label">{% if request.session.language == 'en' %}Strike Price{% else %}Preço de Exercício{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">E</span>
+                        <input type="number" class="form-control" id="strikePrice" value="100" placeholder="100">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3 mb-3">
+                    {% comment %} Corrected Label Below {% endcomment %}
+                    <label for="initialValue" class="form-label">{% if request.session.language == 'en' %}Initial Stock Price{% else %}Valor Inicial da Ação{% endif %}</label>
+                    <input type="number" class="form-control" id="initialValue" value="95" placeholder="95">
+                </div>
+                <div class="col-md-6 col-lg-3 mb-3">
+                    {% comment %} Corrected Label Below {% endcomment %}
+                    <label for="finalValue" class="form-label">{% if request.session.language == 'en' %}Final Stock Price{% else %}Valor Final da Ação{% endif %}</label>
+                    <input type="number" class="form-control" id="finalValue" value="100" placeholder="100" max="1000">
+                </div>
+                <div class="col-md-6 col-lg-2 mb-3">
+                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Steps{% else %}Divisões{% endif %}</label>
+                     <div class="input-group">
+                        <span class="input-group-text">n</span>
+                        <input type="number" class="form-control" id="divisions" value="10" placeholder="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <button type="button" id="clearButton" class="btn btn-clear me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
+                    <button type="button" id="calculateButton" class="btn btn-calculate">{% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-4 table-responsive">
+        <table class="table table-bordered table-striped table-hover results-table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>{% if request.session.language == 'en' %}Stock Price at Expiration{% else %}Valor Ação no Vencimento{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Holder's Payoff{% else %}Resultado do Titular{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Writer's Payoff{% else %}Resultado do Lançador{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <tr><td colspan="3" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function() {
+    const calculateBtn = document.getElementById('calculateButton');
+    const clearBtn = document.getElementById('clearButton');
+    const resultsBody = document.getElementById('resultsBody');
+    const form = document.getElementById('payoffForm');
+    const simTypeBuyRadio = document.getElementById('simTypeBuy'); // If checked, implies Call Option
+    const simTypeSellRadio = document.getElementById('simTypeSell'); // If checked, implies Put Option
+
+    if (calculateBtn) {
+        calculateBtn.addEventListener('click', function() {
+            const simTypeBuy = document.getElementById('simTypeBuy').checked;
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const strikePrice = parseFloat(document.getElementById('strikePrice').value) || 0;
+            const initialStockPrice = parseFloat(document.getElementById('initialValue').value) || 0; // This is the start of the range
+            const finalStockPrice = parseFloat(document.getElementById('finalValue').value) || 0;   // This is the end of the range
+            const divisions = parseInt(document.getElementById('divisions').value) || 1;
+
+            if (quantity < 1 || quantity > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Quantity must be a number between 1 and 100,000.\
+                    {% else %}A Quantidade deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return;
+            }
+
+
+            else if (strikePrice < 1 || strikePrice > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Strike Price must be a number between 1 and 100,000.\
+                    {% else %}O Preço de Exercício deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return; 
+                }
+
+            else if (initialStockPrice < 1 || initialStockPrice > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Initial Stock Price must be a number between 1 and 100,000.\
+                    {% else %}O Valor Inicial da Ação deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return; 
+            }
+            else if (finalStockPrice < 1 || finalStockPrice > 100000) {
+                    resultsBody.innerHTML = 
+                    '<tr><td colspan="3" class="text-center text-danger">\
+                        {% if request.session.language == "en" %}\
+                        Final Stock Price must be a number between 1 and 100,000.\
+                        {% else %}O Valor Final da Ação deve ser um número entre 1 e 100.000.\
+                        {% endif %}</td></tr>';
+                        return; 
+            }
+
+            else if (divisions < 5 || divisions > 50) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Steps (Divisions) must be an integer between 5 and 50.\
+                    {% else %}Divisões (n) deve ser um número inteiro entre 5 e 50.\
+                    {% endif %}</td></tr>';
+                    return;            
+                }
+            
+
+            const stockPrices = [];
+            const step = (finalStockPrice - initialStockPrice) / (divisions - 1);
+            for (let i = 0; i < divisions; i++) {
+                stockPrices.push(initialStockPrice + (i * step));
+            }
+
+            resultsBody.innerHTML = ''; 
+
+            const isPutOption = simTypeSellRadio.checked;
+
+            stockPrices.forEach(S => {
+                let holderPayoffPerShare = 0;
+                
+                if (isPutOption) {
+                    holderPayoffPerShare = Math.max(0, strikePrice - S);
+                } else {
+                    holderPayoffPerShare = Math.max(0, S - strikePrice);
+                }
+                
+                let holderTotalPayoff = holderPayoffPerShare * quantity;
+                let writerTotalPayoff = -holderTotalPayoff;
+
+                const row = resultsBody.insertRow();
+                const currentLocale ='en-US';
+
+                row.insertCell().textContent = S.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+                row.insertCell().textContent = holderTotalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+                row.insertCell().textContent = writerTotalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+            });
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            form.reset(); 
+            if (simTypeBuyRadio) { 
+                simTypeBuyRadio.checked = true;
+            }
+            
+            const initialMessage = 
+                "{% if request.session.language == "en" %}\
+                Enter parameters and click 'Calculate' to see results.\
+                {% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.\
+                {% endif %}"
+            resultsBody.innerHTML = `<tr><td colspan="3" class="text-center">${initialMessage}</td></tr>`;
+        });
+    }
+})();
+</script>

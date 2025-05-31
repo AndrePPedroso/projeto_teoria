@@ -35,5 +35,6 @@ urlpatterns = [
     path("teoria/", include("teoria_opcao.urls")),
     path("estocasticos/", include("estocasticos.urls")),
     path("financial_options/", include("financial_options.urls")),
+    path("references/", reference_view, name="references"),
     path("set_language/", set_language, name="set_language"),
 ]

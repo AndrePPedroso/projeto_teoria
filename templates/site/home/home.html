@@ -156,11 +156,14 @@
                 </div>
             </label>
             <div class="accordion-content">
+                <a href="{% url 'financial_options_basic_concepts' %}" class="nav-link" data-url="{% url 'financial_options_basic_concepts' %}">
+                    {% if request.session.language == 'en' %}Basic Concepts{% else %}Conceitos Básicos{% endif %}
+                </a>
                 <a href="{% url 'black_scholes' %}" class="nav-link" data-url="{% url 'black_scholes' %}">
-                    {% if request.session.language == 'en' %}Black-Scholes model{% else %}Modelo black-Scholes{% endif %}
+                    {% if request.session.language == 'en' %}Black-Scholes model{% else %}Modelo Black-Scholes{% endif %}
                 </a>
                 <a href="{% url 'black_scholes_merton' %}" class="nav-link" data-url="{% url 'black_scholes_merton' %}">
-                    {% if request.session.language == 'en' %}Black-Scholes-Merton model{% else %}Modelo black-Scholes-Merton{% endif %}
+                    {% if request.session.language == 'en' %}Black-Scholes-Merton model{% else %}Modelo Black-Scholes-Merton{% endif %}
                 </a>
                 <a href="{% url 'precificar_opcao' %}" class="nav-link" data-url="{% url 'precificar_opcao' %}">
                     {% if request.session.language == 'en' %}Monte Carlo Option Pricing{% else %}Precificação de Opções por Monte Carlo{% endif %}
@@ -223,8 +226,17 @@
             </div>
         </div>
         <footer class="footnote-section">
+            <p>
+                <a href="{% url 'references' %}" class="nav-link" data-url="{% url 'references' %}">
+                    {% if request.session.language == 'en' %}References and further reading{% else %}Referências e leituras adicionais{% endif %}
+                </a>
+            </p>
             <p id="footnote1">
-                **Observação:** Prezad@ usuári@, as informações apresentadas não devem ser interpretadas como recomendação de qualquer natureza, para quaisquer tipos de investimentos, estratégias ou transações comerciais. <br> A única finalidade é a didática, ou seja, apoiar o processo de ensino-aprendizagem-avaliação de tópicos de análise de investimentos.
+                {% if request.session.language == 'en' %}
+                <strong>Note:</strong> Dear user, the information presented should not be interpreted as a recommendation of any kind, for any type of investment, strategy, or commercial transaction. <br> The sole purpose is didactic, i.e., to support the teaching-learning-assessment process of investment analysis topics.
+                {% else %}
+                <strong>Observação:</strong> Prezad@ usuári@, as informações apresentadas não devem ser interpretadas como recomendação de qualquer natureza, para quaisquer tipos de investimentos, estratégias ou transações comerciais. <br> A única finalidade é a didática, ou seja, apoiar o processo de ensino-aprendizagem-avaliação de tópicos de análise de investimentos.
+                {% endif %}
             </p>
         </footer>
     </div>

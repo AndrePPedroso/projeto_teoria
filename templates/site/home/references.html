@@ -1,0 +1,87 @@
+{% comment %}
+File: references.html (content fragment)
+Description: Displays a list of academic references and further reading.
+To be loaded into the #main-content div of base.html.
+{% endcomment %}
+
+<style>
+    /* Styles specific to the references content */
+    .references-container {
+        width: 95%;
+        max-width: 900px; /* Optional: constrain max width for readability */
+        margin: 20px auto; /* Add some top/bottom margin */
+        overflow: hidden;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px; /* Optional: soften edges */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Optional: subtle shadow */
+    }
+    .references-container h1 {
+        color: #333;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        font-size: 1.75rem; /* Consistent with typical Bootstrap heading sizes */
+        margin-bottom: 1rem;
+    }
+    .references-container p {
+        margin-bottom: 1em;
+        font-size: 0.95rem; /* Slightly smaller for better readability of text blocks */
+        line-height: 1.7;
+    }
+    .references-container ul.references-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .references-container ul.references-list li {
+        margin-bottom: 1.2em;
+        padding-left: 1.7em; /* Increased padding for the custom bullet */
+        position: relative;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    .references-container ul.references-list li::before {
+        content: "\2022"; /* Unicode bullet character */
+        color: #007bff; /* Using a Bootstrap primary-like color */
+        font-weight: bold;
+        display: inline-block;
+        width: 1em;
+        margin-left: -1.7em; /* Adjust to align with new padding */
+        position: absolute;
+        left: 0.7em; /* Position bullet */
+    }
+    .references-container em { /* For journal and book titles */
+        font-style: italic;
+        color: #495057; /* Slightly subdued color for titles */
+    }
+</style>
+
+<div class="references-container">
+    <h1>{% if request.session.language == 'en' %}References and further reading{% else %}Referências e leituras adicionais{% endif %}</h1>
+    
+    <h3>{% if request.session.language == 'en' %}Financial Options{% else %}Opções Financeiras{% endif %}</h3>
+
+    <p>{% if request.session.language == 'en' %}For better understanding read the original papers of Black and Scholes (1973), Merton (1973), and Cox, Ross, and Rubinstein (1979).{% else %}Para melhor compreensão leia os artigos originais de Black and Scholes (1973), Merton (1973), e Cox, Ross, and Rubinstein (1979).{% endif %}</p>
+
+
+    <ul class="references-list">
+        <li>
+            Black, F.; Scholes, M. (1973). The pricing of options and corporate liabilities. <em>Journal of Political Economy</em>, v. 81, n. 3, p. 637-654.
+        </li>
+        <li>
+            Merton, R. C. (1973). Theory of rational option pricing. <em>Bell Journal of Economics and Management Science</em>, v. 4, n. 1, p. 141–183.
+        </li>
+        <li>
+            Cox, J. C.; Ross, S. A.; Rubinstein, M. (1979). Option pricing: a simplified approach. <em>Journal of Financial Economics</em>, v. 7, n. 3, p. 229-263.
+        </li>
+        <li>
+            Hull, J. C. (2021). <em>Options, Futures, and Other Derivatives</em>. 11. ed. Pearson.
+        </li>
+    </ul>
+
+    <p>{% if request.session.language == 'en' %}For a more mathematical treatment of many aspects of finance, see Merton (1990).{% else %}Para um tratamento matemático mais aprofundado de muitos aspectos das finanças, consulte Merton (1990).{% endif %}</p>
+    <ul class="references-list">
+        <li>
+            Merton, R. C. (1990). <em>Continuous-Time Finance</em>. Blackwell.
+        </li>
+    </ul>
+</div>

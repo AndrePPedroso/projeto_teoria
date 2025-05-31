@@ -7,6 +7,10 @@ from estocasticos.use_cases.financial_options.black_scholes_merton_use_case impo
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
 from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
+@login_required(login_url='/admin/login/')
+def finantial_options_basic_concepts(request):
+    return render(request, "site/financeiros/financial-options-basic-concepts.html")
+
 
 @login_required(login_url='/admin/login/')
 def black_scholes_template(request):
@@ -113,40 +117,91 @@ def black_scholes_merton_view(request):
             greeks = model.calculate_greeks()
             price_plot = model.plot_price_vs_underlying()
             payoff_plot = model.plot_payoff_at_expiration()
-            
-            # Calculate break-even point
+            current_language = request.session.get('language')  
+
+            d_interpretation = ""
+            if current_language == 'pt':
+                d_interpretation = """
+                <p>Nos modelos de Black-Scholes-Merton, os termos intermediários **d1, N(d1), d2 e N(d2)** ajudam a determinar o valor de opções europeias de compra ou venda (Black e Scholes, 1973). Uma interpretação básica é:</p>
+                <ul>
+                    <li>(i) o termo **d1** representa a posição do preço do ativo-objeto em relação ao preço de exercício, considerando o tempo e a volatilidade;</li>
+                    <li>(ii) o termo **d2** é uma adaptação de d1;</li>
+                    <li>(iii) o termo **N(d1)** determina a probabilidade de a opção ser exercida, ou seja, ficar "in the money" na data de vencimento;</li>
+                    <li>(iv) e o termo **N(d2)** não é tão fácil de interpretar (Hull, 2021).</li>
+                </ul>
+                """
+            else: # Default to English
+                d_interpretation = """
+                <p>In Black-Scholes-Merton models, the intermediate terms **d1, N(d1), d2, and N(d2)** help determine the value of European call or put options (Black and Scholes, 1973). A basic interpretation is:</p>
+                <ul>
+                    <li>(i) the term **d1** represents the position of the underlying asset price relative to the strike price, considering time and volatility;</li>
+                    <li>(ii) the term **d2** is an adaptation of d1;</li>
+                    <li>(iii) the term **N(d1)** determines the probability that the option will be exercised, i.e., be "in the money" at expiration;</li>
+                    <li>(iv) and the term **N(d2)** is not as straightforward to interpret (Hull, 2021).</li>
+                </ul>
+                """
+            # Existing interpretation text
+            interpretation = ""
             if option_type == 'call':
                 break_even = round(E + option_price, 2)
-                interpretation = f"""
-                <h4>Interpretação dos Resultados:</h4>
-                <p>O preço teórico da opção de compra é <strong>R$ {option_price}</strong>.</p>
-                <p><strong>Delta de {greeks['delta']}</strong> significa que para cada R$ 1,00 de aumento no preço do ativo subjacente, 
-                o preço da opção aumentará aproximadamente R$ {greeks['delta']}.</p>
-                <p><strong>Gamma de {greeks['gamma']}</strong> indica quanto o delta mudará para cada R$ 1,00 de movimento no preço do ativo subjacente.</p>
-                <p><strong>Theta de {greeks['theta']}</strong> mostra quanto valor a opção perde por dia apenas com a passagem do tempo.</p>
-                <p><strong>Vega de {greeks['vega']}</strong> representa quanto o preço da opção mudará para cada 1% de alteração na volatilidade.</p>
-                <p><strong>Rho de {greeks['rho']}</strong> indica a sensibilidade do preço da opção em relação a mudanças na taxa de juros livre de risco.</p>
-                <p>O rendimento de dividendos de <strong>{dividend_yield}%</strong> reduz o valor da opção de compra em comparação com um ativo sem dividendos.</p>
-                <p>Seu <strong>ponto de equilíbrio</strong> é quando o ativo subjacente atinge R$ {break_even} no vencimento.</p>
-                <p>Seu <strong>risco máximo</strong> é o prêmio pago pela opção: R$ {option_price}.</p>
-                <p>Seu <strong>ganho potencial é teoricamente ilimitado</strong> se o preço do ativo subjacente subir significativamente.</p>
-                """
-            else:
+                if current_language == 'pt':
+                    interpretation = f"""
+                    <h4>Interpretação dos Resultados:</h4>
+                    {d_interpretation}
+                    <p>O preço teórico da opção de compra é <strong>R$ {option_price:.2f}</strong>.</p>
+                    <p><strong>Delta de {greeks['delta']:.4f}</strong> significa que para cada R$ 1,00 de aumento no preço do ativo subjacente,
+                    o preço da opção aumentará aproximadamente R$ {greeks['delta']:.4f}.</p>
+                    <p><strong>Gamma de {greeks['gamma']:.4f}</strong> indica quanto o delta mudará para cada R$ 1,00 de movimento no preço do ativo subjacente.</p>
+                    <p><strong>Theta de {greeks['theta']:.4f}</strong> mostra quanto valor a opção perde por dia apenas com a passagem do tempo.</p>
+                    <p><strong>Vega de {greeks['vega']:.4f}</strong> representa quanto o preço da opção mudará para cada 1% de alteração na volatilidade.</p>
+                    <p>Seu <strong>ponto de equilíbrio</strong> é quando o ativo subjacente atinge R$ {break_even} no vencimento.</p>
+                    <p>Seu <strong>risco máximo</strong> é o prêmio pago pela opção: R$ {option_price:.2f}.</p>
+                    <p>Seu <strong>ganho potencial é teoricamente ilimitado</strong> se o preço do ativo subjacente subir significativamente.</p>
+                    """
+                else:
+                     interpretation = f"""
+                    <h4>Interpretation of Results:</h4>
+                    {d_interpretation}
+                    <p>The theoretical price of the call option is <strong>$ {option_price:.2f}</strong>.</p>
+                    <p>A **Delta of {greeks['delta']:.4f}** means that for every $1.00 increase in the underlying asset price,
+                    the option's price will increase by approximately $ {greeks['delta']:.4f}.</p>
+                    <p>A **Gamma of {greeks['gamma']:.4f}** indicates how much the delta will change for every $1.00 movement in the underlying asset price.</p>
+                    <p>A **Theta of {greeks['theta']:.4f}** shows how much value the option loses per day due to the passage of time alone.</p>
+                    <p>A **Vega of {greeks['vega']:.4f}** represents how much the option price will change for every 1% change in volatility.</p>
+                    <p>Your **break-even point** is when the underlying asset reaches $ {break_even} at expiration.</p>
+                    <p>Your **maximum risk** is the premium paid for the option: $ {option_price:.2f}.</p>
+                    <p>Your **potential gain is theoretically unlimited** if the underlying asset price rises significantly.</p>
+                    """
+            else: # Put option
                 break_even = round(E - option_price, 2)
-                interpretation = f"""
-                <h4>Interpretação dos Resultados:</h4>
-                <p>O preço teórico da opção de venda é <strong>R$ {option_price}</strong>.</p>
-                <p><strong>Delta de {greeks['delta']}</strong> significa que para cada R$ 1,00 de aumento no preço do ativo subjacente, 
-                o preço da opção diminuirá aproximadamente R$ {abs(greeks['delta'])}.</p>
-                <p><strong>Gamma de {greeks['gamma']}</strong> indica quanto o delta mudará para cada R$ 1,00 de movimento no preço do ativo subjacente.</p>
-                <p><strong>Theta de {greeks['theta']}</strong> mostra quanto valor a opção perde por dia apenas com a passagem do tempo.</p>
-                <p><strong>Vega de {greeks['vega']}</strong> representa quanto o preço da opção mudará para cada 1% de alteração na volatilidade.</p>
-                <p><strong>Rho de {greeks['rho']}</strong> indica a sensibilidade do preço da opção em relação a mudanças na taxa de juros livre de risco.</p>
-                <p>O rendimento de dividendos de <strong>{dividend_yield}%</strong> aumenta o valor da opção de venda em comparação com um ativo sem dividendos.</p>
-                <p>Seu <strong>ponto de equilíbrio</strong> é quando o ativo subjacente atinge R$ {break_even} no vencimento.</p>
-                <p>Seu <strong>risco máximo</strong> é o prêmio pago pela opção: R$ {option_price}.</p>
-                <p>Seu <strong>ganho potencial máximo</strong> é de R$ {break_even} se o preço do ativo subjacente cair para zero.</p>
-                """
+                if current_language == 'pt':
+                    interpretation = f"""
+                    <h4>Interpretação dos Resultados:</h4>
+                    {d_interpretation}
+                    <p>O preço teórico da opção de venda é <strong>R$ {option_price:.2f}</strong>.</p>
+                    <p><strong>Delta de {greeks['delta']:.4f}</strong> significa que para cada R$ 1,00 de aumento no preço do ativo subjacente,
+                    o preço da opção diminuirá aproximadamente R$ {abs(greeks['delta']):.4f}.</p>
+                    <p><strong>Gamma de {greeks['gamma']:.4f}</strong> indica quanto o delta mudará para cada R$ 1,00 de movimento no preço do ativo subjacente.</p>
+                    <p><strong>Theta de {greeks['theta']:.4f}</strong> mostra quanto valor a opção perde por dia apenas com a passagem do tempo.</p>
+                    <p><strong>Vega de {greeks['vega']:.4f}</strong> representa quanto o preço da opção mudará para cada 1% de alteração na volatilidade.</p>
+                    <p>Seu <strong>ponto de equilíbrio</strong> é quando o ativo subjacente atinge R$ {break_even} no vencimento.</p>
+                    <p>Seu <strong>risco máximo</strong> é o prêmio pago pela opção: R$ {option_price:.2f}.</p>
+                    <p>Seu <strong>ganho potencial máximo</strong> é de R$ {break_even} se o preço do ativo subjacente cair para zero.</p>
+                    """
+                else:
+                    interpretation = f"""
+                    <h4>Interpretation of Results:</h4>
+                    {d_interpretation}
+                    <p>The theoretical price of the put option is <strong>$ {option_price:.2f}</strong>.</p>
+                    <p>A **Delta of {greeks['delta']:.4f}** means that for every $1.00 increase in the underlying asset price,
+                    the option's price will decrease by approximately $ {abs(greeks['delta']):.4f}.</p>
+                    <p>A **Gamma of {greeks['gamma']:.4f}** indicates how much the delta will change for every $1.00 movement in the underlying asset price.</p>
+                    <p>A **Theta of {greeks['theta']:.4f}** shows how much value the option loses per day due to the passage of time alone.</p>
+                    <p>A **Vega of {greeks['vega']:.4f}** represents how much the option price will change for every 1% change in volatility.</p>
+                    <p>Your **break-even point** is when the underlying asset reaches $ {break_even} at expiration.</p>
+                    <p>Your **maximum risk** is the premium paid for the option: $ {option_price:.2f}.</p>
+                    <p>Your **maximum potential gain** is $ {break_even} if the underlying asset price falls to zero.</p>
+                    """
             
             # Return JSON response with calculations
             return JsonResponse({

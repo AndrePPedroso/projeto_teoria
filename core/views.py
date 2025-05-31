@@ -56,3 +56,7 @@ def set_language(request):
 def custom_logout(request):
     auth_logout(request)
     return redirect('login-customizado')
+
+@login_required(login_url='/admin/login/')
+def reference_view(request):
+    return render(request, "site/home/references.html")
