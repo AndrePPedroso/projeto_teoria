@@ -1,0 +1,113 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="telephone=no" name="format-detection">
+    <title>{% trans "Confirm Your E-mail Address" %}</title>
+    <style>
+        body {
+            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+            background-color: #f6f6f6;
+            padding: 2rem;
+            margin: 0;
+            color: #333333; /* Default text color for better accessibility */
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #00C5CC; /* Your brand color */
+            color: #ffffff;
+            padding: 2rem;
+            text-align: center;
+        }
+        .header img { /* Optional: if you have a logo */
+            max-width: 150px;
+            margin-bottom: 1rem;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem; /* Adjusted font size */
+        }
+        .body {
+            padding: 2rem;
+            color: #333333;
+        }
+        .body p {
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+        .body .button-link { /* Changed class name for clarity */
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #00C5CC; /* Your brand color */
+            color: #ffffff !important; /* Ensure text color contrasts with background */
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 1rem;
+            text-align: center; /* Center text in button */
+        }
+        .body .button-link:hover {
+            background-color: #008e90; /* Darker shade of your brand color */
+            color: #ffffff !important;
+        }
+        .footer {
+            background-color: #00C5CC; /* Your brand color */
+            color: #ffffff;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        .footer p {
+            margin: 0;
+        }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            .header, .body {
+                padding: 1.5rem;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="header">
+            <h1>{% trans "Confirm Your E-mail Address" %}</h1>
+        </div>
+        <div class="body">
+            {% autoescape off %}
+            <p>{% blocktrans with user_display_name=user.get_username %}Hi {{ user_display_name }},{% endblocktrans %}</p>
+
+            <p>{% blocktrans with site_name=current_site.name %}Thank you for signing up for {{ site_name }}! To complete your registration and activate your account, please click the button below to confirm your email address:{% endblocktrans %}</p>
+
+            <a href="{{ activate_url }}" class="button-link" target="_blank">{% trans "Confirm Email Address" %}</a>
+
+            <p>{% trans "If you did not sign up for an account on this site, please ignore this email." %}</p>
+
+            <p>{% blocktrans %}Thank you,{% endblocktrans %}<br>
+            {% blocktrans with site_name=current_site.name %}The {{ site_name }} Team{% endblocktrans %}</p>
+            {% endautoescape %}
+        </div>
+        <div class="footer">
+             <p>&copy; {% now "Y" %} {{ current_site.name }}. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+</body>
+</html>
