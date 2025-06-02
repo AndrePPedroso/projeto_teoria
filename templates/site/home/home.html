@@ -114,7 +114,7 @@
             <input type="checkbox" id="accordion-1" class="accordion-checkbox">
             <label class="accordion-label d-flex justify-content-between" for="accordion-1">
                 <div>
-                    {% if request.session.language == 'en' %}Stochastic Processes (SPs){% else %}Processos Estocásticos (PEs){% endif %}
+                    {% if request.session.language == 'en' %}Stochastic Processes {% else %}Processos Estocásticos{% endif %}
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,7 +147,7 @@
             <input type="checkbox" id="accordion-2" class="accordion-checkbox">
             <label class="accordion-label d-flex justify-content-between" for="accordion-2">
                 <div>
-                    {% if request.session.language == 'en' %}Finantial options theory{% else %}Opções financeiras{% endif %}
+                    {% if request.session.language == 'en' %}Finantial Options {% else %}Opções Financeiras{% endif %}
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,7 +180,7 @@
             <input type="checkbox" id="accordion-3" class="accordion-checkbox">
             <label class="accordion-label d-flex justify-content-between" for="accordion-3">
                 <div>
-                    {% if request.session.language == 'en' %}Real options theory{% else %}Teoria das opções reais{% endif %}
+                    {% if request.session.language == 'en' %}Real Options{% else %}Opções Reais{% endif %}
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -238,6 +238,17 @@
                 <strong>Observação:</strong> Prezad@ usuári@, as informações apresentadas não devem ser interpretadas como recomendação de qualquer natureza, para quaisquer tipos de investimentos, estratégias ou transações comerciais. <br> A única finalidade é a didática, ou seja, apoiar o processo de ensino-aprendizagem-avaliação de tópicos de análise de investimentos.
                 {% endif %}
             </p>
+            <div class="image-footer mt-3">
+                <a href="https://www.gov.br/cnpq/pt-br" target="_blank">
+                    <img style="height:150px; width:300px; object-fit: contain;" src="{% static 'app_teoria/assets/cnpq.png' %}" alt="Saeto logo">
+                </a>
+                <a href="https://www.utfpr.edu.br/campus/patobranco/home" target="_blank">
+                    <img style="height:150px; width:300px; object-fit: contain;" src="{% static 'app_teoria/assets/utfpr.png' %}" alt="Saeto logo">
+                </a>
+                <a href="https://www.gov.br/capes/pt-br" target="_blank">
+                    <img style="height:150px; width:300px; object-fit: contain;" src="{% static 'app_teoria/assets/capes.png' %}" alt="Saeto logo">
+                </a>
+            </div>
         </footer>
     </div>
     <script>

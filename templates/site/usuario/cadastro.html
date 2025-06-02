@@ -14,6 +14,7 @@
             align-items: center;
             height: 100vh;
             background-color: #f0f2f5;
+            position: relative; /* Add this to the body so the absolute positioning of the footer works relative to it */
         }
         .signup-container {
             background-color: #ffffff;
@@ -23,6 +24,22 @@
         }
         .btn-custom {
             margin-top: 15px;
+        }
+        .image-footer {
+            position: absolute;
+            bottom: 0; /* Aligns to the bottom of the parent (body) */
+            left: 50%; /* Moves the left edge to the horizontal center */
+            transform: translateX(-50%); /* Shifts it back by half its width to truly center it */
+            width: 100%; /* Ensure it spans the full width to center its content */
+            display: flex;
+            justify-content: center; /* Centers the images themselves */
+            padding: 15px 0; /* Add some padding if needed */
+        }
+        .image-footer img {
+            height: 100px;
+            width: 200px;
+            object-fit: contain; /* Prevents distortion */
+            margin: 0 10px; /* Adds some space between the images */
         }
     </style>
 </head>
@@ -58,6 +75,17 @@
             <div class="d-flex justify-content-center align-items-center mt-3">
                 Already have an account? <a href="{% url 'admin:logout' %}"class="btn btn-link"> Log in</a>
             </div>
+        </div>
+        <div class="image-footer">
+            <a href="https://www.gov.br/cnpq/pt-br" target="_blank">
+                <img style="height:150px; width:300px; object-fit: contain;" src="{% static 'app_teoria/assets/cnpq.png' %}" alt="Saeto logo">
+            </a>
+            <a href="https://www.utfpr.edu.br/campus/patobranco/home" target="_blank">
+                <img style="height:150px; width:300px; object-fit: contain;" src="{% static 'app_teoria/assets/utfpr.png' %}" alt="Saeto logo">
+            </a>
+            <a href="https://www.gov.br/capes/pt-br" target="_blank">
+                <img style="height:150px; width:300px; object-fit: contain;" src="{% static 'app_teoria/assets/capes.png' %}" alt="Saeto logo">
+            </a>
         </div>
     </div>
 </div>
