@@ -33,6 +33,12 @@
         </div>
     </div>
 
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#blackScholesMertonExplanationModal">
+            {% if request.session.language == 'en' %}Learn More {% else %}Saiba Mais{% endif %}
+        </button>
+    </div>
+
     <form id="blackScholesMertonForm">
         {% csrf_token %}
         <div class="row">
@@ -142,7 +148,6 @@
         </div>
     </form>
 
-    <!-- Loading spinner -->
     <div id="loadingSpinnerMerton" class="text-center my-4" style="display: none;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -275,8 +280,7 @@
                 </div>
                 <div class="card-body">
                     <div id="interpretationMerton">
-                        <!-- Interpretation will be inserted here -->
-                    </div>
+                        </div>
                 </div>
             </div>
             
@@ -291,6 +295,106 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="blackScholesMertonExplanationModal" tabindex="-1" aria-labelledby="blackScholesMertonExplanationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable"> {# modal-lg for a larger modal, modal-dialog-scrollable for long content #}
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="blackScholesMertonExplanationModalLabel">
+            {% if request.session.language == 'en' %}Diving Deeper into Black-Scholes-Merton{% else %}Aprofundando no Black-Scholes-Merton{% endif %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if request.session.language == 'en' %}
+        <p>
+        The Black-Scholes-Merton (BSM) model is an extension of the classic Black-Scholes model, specifically designed to value European-style options on assets that provide a continuous dividend yield. Developed by Robert Merton, this adjustment is crucial for accurately pricing options on dividend-paying stocks, stock indices, or currency futures, where dividends (or yields) are paid continuously over the option's life.
+        </p>
+
+        <h5>Key Differences from Black-Scholes</h5>
+        <ul>
+            <li><strong>Dividend Yield (q):</strong> The most significant addition is the dividend yield, represented by 'q'. This parameter accounts for the erosion of the underlying asset's price due to dividend payments, effectively reducing the effective asset price in the model.</li>
+            <li><strong>Adjusted Asset Price:</strong> In the BSM model, the underlying asset price (S) is adjusted by multiplying it by <i>e<sup>-qT</sup></i>, where 'e' is Euler's number, 'q' is the continuous dividend yield, and 'T' is the time to expiration. This effectively lowers the underlying price to reflect the present value of expected future dividends.</li>
+        </ul>
+
+        <h5>How it Works: The Underlying Assumptions</h5>
+        <p>The BSM model shares most assumptions with the original Black-Scholes model, with the primary difference being the inclusion of continuous dividends:</p>
+        <ul>
+            <li><strong>Continuous Dividend Yield (q):</strong> Dividends are assumed to be paid continuously at a constant rate 'q'.</li>
+            <li><strong>European-Style Option:</strong> Can only be exercised at expiration.</li>
+            <li><strong>No Arbitrage Opportunities:</strong> Markets are efficient.</li>
+            <li><strong>Constant Risk-Free Rate and Volatility:</strong> Assumed to remain constant over the option's life.</li>
+            <li><strong>Lognormal Distribution of Asset Prices:</strong> Asset returns are normally distributed, prices follow a lognormal distribution.</li>
+            <li><strong>No Transaction Costs or Taxes.</strong></li>
+        </ul>
+
+        <h5>Practical Applications</h5>
+        <p>The BSM model is particularly valuable for:</p>
+        <ul>
+            <li><strong>Valuing Options on Dividend-Paying Stocks:</strong> Directly addresses the impact of dividends, leading to more accurate valuations for stocks that regularly distribute earnings.</li>
+            <li><strong>Indexing Options:</strong> Many stock indices (like the S&P 500) have implied dividend yields that are continuous, making BSM suitable for pricing options on these indices.</li>
+            <li><strong>Foreign Currency Options:</strong> One currency's interest rate can be treated as the "dividend yield" of the other currency, making BSM applicable for FX options.</li>
+            <li><strong>Commodity Futures Options:</strong> For commodities with a storage cost or convenience yield, these can be modeled as a continuous dividend yield, allowing for BSM application.</li>
+        </ul>
+
+        <h5>Limitations</h5>
+        <p>Despite its improvements, the BSM model still inherits limitations from the original Black-Scholes, and introduces a new one:</p>
+        <ul>
+            <li><strong>Assumptions about Dividend Yield:</strong> The assumption of a constant and continuous dividend yield might not hold true in reality, as dividends can be discrete and vary over time.</li>
+            <li><strong>Input Estimation:</strong> Estimating accurate volatility and continuous dividend yield can be challenging.</li>
+            <li><strong>European-Style Only:</strong> Still limited to European options, making it less suitable for American options where early exercise is possible.</li>
+        </ul>
+        <p>The BSM model provides a more realistic valuation framework for options on dividend-paying assets, offering a significant improvement over the basic Black-Scholes model for a wider range of financial instruments.</p>
+        {% else %}
+        <p>
+        O modelo Black-Scholes-Merton (BSM) é uma extensão do modelo clássico Black-Scholes, especificamente projetado para avaliar opções do estilo europeu sobre ativos que fornecem um rendimento de dividendos contínuo. Desenvolvido por Robert Merton, este ajuste é crucial para precificar com precisão opções sobre ações que pagam dividendos, índices de ações ou futuros de moedas, onde os dividendos (ou rendimentos) são pagos continuamente durante a vida da opção.
+        </p>
+
+        <h5>Principais Diferenças do Black-Scholes</h5>
+        <ul>
+            <li><strong>Rendimento de Dividendos (q):</strong> A adição mais significativa é o rendimento de dividendos, representado por 'q'. Este parâmetro contabiliza a erosão do preço do ativo subjacente devido aos pagamentos de dividendos, reduzindo efetivamente o preço efetivo do ativo no modelo.</li>
+            <li><strong>Preço do Ativo Ajustado:</strong> No modelo BSM, o preço do ativo subjacente (S) é ajustado multiplicando-o por <i>e<sup>-qT</sup></i>, onde 'e' é o número de Euler, 'q' é o rendimento de dividendos contínuo e 'T' é o tempo até o vencimento. Isso efetivamente reduz o preço subjacente para refletir o valor presente dos dividendos futuros esperados.</li>
+        </ul>
+
+        <h5>Como Funciona: As Premissas Subjacentes</h5>
+        <p>O modelo BSM compartilha a maioria das premissas com o modelo original de Black-Scholes, com a principal diferença sendo a inclusão de dividendos contínuos:</p>
+        <ul>
+            <li><strong>Rendimento de Dividendos Contínuo (q):</strong> Os dividendos são assumidos como pagos continuamente a uma taxa constante 'q'.</li>
+            <li><strong>Opção Estilo Europeu:</strong> Pode ser exercida apenas no vencimento.</li>
+            <li><strong>Sem Oportunidades de Arbitragem:</strong> Os mercados são eficientes.</li>
+            <li><strong>Taxa Livre de Risco e Volatilidade Constantes:</strong> Assumidos como constantes durante a vida da opção.</li>
+            <li><strong>Distribuição Lognormal dos Preços dos Ativos:</strong> Os retornos dos ativos são normalmente distribuídos, os preços seguem uma distribuição lognormal.</li>
+            <li><strong>Sem Custos de Transação ou Impostos.</strong></li>
+        </ul>
+
+        <h5>Aplicações Práticas</h5>
+        <p>O modelo BSM é particularmente valioso para:</p>
+        <ul>
+            <li><strong>Avaliação de Opções sobre Ações que Pagam Dividendos:</strong> Aborda diretamente o impacto dos dividendos, levando a avaliações mais precisas para ações que distribuem lucros regularmente.</li>
+            <li><strong>Opções de Índices:</strong> Muitos índices de ações (como o S&P 500) têm rendimentos de dividendos implícitos que são contínuos, tornando o BSM adequado para precificar opções sobre esses índices.</li>
+            <li><strong>Opções de Moeda Estrangeira:</strong> A taxa de juros de uma moeda pode ser tratada como o "rendimento de dividendos" da outra moeda, tornando o BSM aplicável para opções de câmbio.</li>
+            <li><strong>Opções de Futuros de Commodities:</strong> Para commodities com custo de armazenamento ou rendimento de conveniência, estes podem ser modelados como um rendimento de dividendos contínuo, permitindo a aplicação do BSM.</li>
+        </ul>
+
+        <h5>Limitações</h5>
+        <p>Apesar de suas melhorias, o modelo BSM ainda herda limitações do Black-Scholes original e introduz uma nova:</p>
+        <ul>
+            <li><strong>Premissas sobre o Rendimento de Dividendos:</strong> A premissa de um rendimento de dividendos constante e contínuo pode não ser verdadeira na realidade, pois os dividendos podem ser discretos e variar ao longo do tempo.</li>
+            <li><strong>Estimativa de Entradas:</strong> Estimar com precisão a volatilidade e o rendimento de dividendos contínuo pode ser desafiador.</li>
+            <li><strong>Apenas Estilo Europeu:</strong> Ainda limitado a opções europeias, tornando-o menos adequado para opções americanas onde o exercício antecipado é possível.</li>
+        </ul>
+        <p>O modelo BSM fornece uma estrutura de avaliação mais realista para opções sobre ativos que pagam dividendos, oferecendo uma melhoria significativa em relação ao modelo Black-Scholes básico para uma gama mais ampla de instrumentos financeiros.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     // Define the handleMertonSubmit function globally
     function handleMertonSubmit() {
@@ -395,5 +499,7 @@
             calculateBtn: calculateMertonBtn ? 'Found' : 'Not found',
             recalculateBtn: recalculateMertonBtn ? 'Found' : 'Not found'
         });
+
+        if (recalculateMertonBtn) recalculateMertonBtn.addEventListener('click', handleMertonSubmit);
     });
 </script>

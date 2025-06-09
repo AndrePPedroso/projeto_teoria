@@ -1,3 +1,4 @@
+{% load static %}
 <div class="container mt-5">
     <h1>
         {% if request.session.language == 'en' %}Binomial Model for Real Options{% else %}Modelo Binomial para Opções Reais{% endif %}
@@ -30,6 +31,12 @@
                 {% endif %}
             </p>
         </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#binomialModelExplanationModal">
+            {% if request.session.language == 'en' %}Learn More About the Binomial Model{% else %}Saiba Mais Sobre o Modelo Binomial{% endif %}
+        </button>
     </div>
 
     <form id="binomialForm" onsubmit="event.preventDefault(); calculateOptions();">
@@ -234,149 +241,127 @@
     </div>
 </div>
 
-<script>
-    function calculateOptions() {
-        // Get input parameters
-        const S0 = parseFloat(document.getElementById('initialValue').value);
-        const K = parseFloat(document.getElementById('strikePrice').value);
-        const T = parseFloat(document.getElementById('timeToMaturity').value);
-        const r = parseFloat(document.getElementById('riskFreeRate').value) / 100;
-        const sigma = parseFloat(document.getElementById('volatility').value) / 100;
-        const N = parseInt(document.getElementById('steps').value);
-        const optionType = document.getElementById('optionType').value;
-        const exerciseStyle = document.getElementById('exerciseStyle').value;
-        
-        const dt = T / N;
-        
-        const u = Math.exp(sigma * Math.sqrt(dt));
-        const d = 1 / u;
-        
-        // Calculate risk-neutral probability
-        const p = (Math.exp(r * dt) - d) / (u - d);
-        
-        const stockTree = Array(N + 1).fill().map(() => Array(N + 1).fill(0));
-        stockTree[0][0] = S0;
-        
-        // Fill in the stock price tree
-        for (let i = 1; i <= N; i++) {
-            for (let j = 0; j <= i; j++) {
-                stockTree[i][j] = stockTree[0][0] * Math.pow(u, j) * Math.pow(d, i - j);
-            }
-        }
-        
-        const optionTree = Array(N + 1).fill().map(() => Array(N + 1).fill(0));
-        
-        // Fill in terminal option values
-        for (let j = 0; j <= N; j++) {
-            if (optionType === 'call') {
-                optionTree[N][j] = Math.max(0, stockTree[N][j] - K);
-            } else { // put option
-                optionTree[N][j] = Math.max(0, K - stockTree[N][j]);
-            }
-        }
-        
-        // Calculate option values via backward induction
-        for (let i = N - 1; i >= 0; i--) {
-            for (let j = 0; j <= i; j++) {
-                // Expected option value (discounted)
-                const expectedValue = Math.exp(-r * dt) * (p * optionTree[i + 1][j + 1] + (1 - p) * optionTree[i + 1][j]);
-                
-                if (exerciseStyle === 'american') {
-                    // For American options, check for early exercise
-                    const exerciseValue = optionType === 'call' 
-                        ? Math.max(0, stockTree[i][j] - K)
-                        : Math.max(0, K - stockTree[i][j]);
-                    optionTree[i][j] = Math.max(expectedValue, exerciseValue);
-                } else {
-                    // For European options, just use the expected value
-                    optionTree[i][j] = expectedValue;
-                }
-            }
-        }
-        
-        // Calculate the traditional NPV
-        const traditionalNPV = S0 - K;
-        
-        // Calculate the expanded NPV (traditional NPV + option value)
-        const expandedNPV = traditionalNPV + optionTree[0][0];
-        
-        // Calculate value of flexibility
-        const flexibilityValue = optionTree[0][0];
-        
-        // Calculate option value / investment cost ratio
-        const optionRatio = optionTree[0][0] / K;
-        
-        // Display results
-        document.getElementById('optionValue').textContent = '$' + optionTree[0][0].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('upFactor').textContent = u.toFixed(4);
-        document.getElementById('downFactor').textContent = d.toFixed(4);
-        document.getElementById('probability').textContent = (p * 100).toFixed(2) + '%';
-        document.getElementById('deltaT').textContent = dt.toFixed(4);
-        
-        document.getElementById('traditionalNPV').textContent = '$' + traditionalNPV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('expandedNPV').textContent = '$' + expandedNPV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('flexibilityValue').textContent = '$' + flexibilityValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('optionRatio').textContent = optionRatio.toFixed(4);
-        
-        // Visualize binomial lattice
-        visualizeLattice(stockTree, optionTree, N);
-        
-        // Show results
-        document.getElementById('resultsContainer').style.display = 'block';
-    }
-    
-    function visualizeLattice(stockTree, optionTree, N) {
-        const container = document.getElementById('latticeContainer');
-        container.innerHTML = '';
-        
-        // Create lattice visualization HTML
-        let html = '<div class="binomial-lattice">';
-        
-        // Add table for the lattice
-        html += '<table class="table table-bordered table-sm">';
-        
-        // Add headers
-        html += '<thead><tr><th>Time Step</th>';
-        for (let t = 0; t <= N; t++) {
-            html += `<th>t=${t}</th>`;
-        }
-        html += '</tr></thead><tbody>';
-        
-        // Add stock price and option value rows
-        for (let j = N; j >= 0; j--) {
-            // Stock price row
-            html += '<tr><td>Stock Price (Node ' + j + ')</td>';
-            for (let t = 0; t <= N; t++) {
-                if (t >= j) {
-                    const index = t - j;
-                    html += `<td>$${stockTree[t][index].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>`;
-                } else {
-                    html += '<td>-</td>';
-                }
-            }
-            html += '</tr>';
-            
-            // Option value row
-            html += '<tr class="table-light"><td>Option Value (Node ' + j + ')</td>';
-            for (let t = 0; t <= N; t++) {
-                if (t >= j) {
-                    const index = t - j;
-                    html += `<td>$${optionTree[t][index].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>`;
-                } else {
-                    html += '<td>-</td>';
-                }
-            }
-            html += '</tr>';
-        }
-        
-        html += '</tbody></table></div>';
-        
-        container.innerHTML = html;
-    }
-    
-    function resetForm() {
-        document.getElementById('binomialForm').reset();
-        document.getElementById('resultsContainer').style.display = 'none';
-        document.getElementById('latticeContainer').innerHTML = '';
-    }
-</script>
+<div class="modal fade" id="binomialModelExplanationModal" tabindex="-1" aria-labelledby="binomialModelExplanationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="binomialModelExplanationModalLabel">
+            {% if request.session.language == 'en' %}Diving Deeper into the Binomial Model for Real Options{% else %}Aprofundando no Modelo Binomial para Opções Reais{% endif %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if request.session.language == 'en' %}
+        <p>
+        The Binomial Model for Real Options adapts the Cox-Ross-Rubinstein (CRR) Binomial Options Pricing Model to value strategic business decisions or "real options." Unlike financial options, real options are typically choices embedded within projects or investments, offering management the flexibility to adapt to future market conditions. The binomial tree structure provides a visual and step-by-step approach to valuing this flexibility.
+        </p>
+
+        <h5>Key Concepts in Real Options Context</h5>
+        <ul>
+            <li><strong>Underlying Asset (V₀):</strong> This is the present value of the expected cash flows from the project or investment, without considering any embedded options. It's analogous to the stock price in a financial option.</li>
+            <li><strong>Strike Price (K):</strong> This represents the cost of exercising the real option, often the investment required to initiate, expand, or abandon a project.</li>
+            <li><strong>Volatility (σ):</strong> Reflects the uncertainty or risk associated with the project's future value. For real options, this is often estimated from proxies or market data for similar assets.</li>
+            <li><strong>Option Type (Call/Put):</strong>
+                <ul>
+                    <li><strong>Call Option (Option to Invest/Expand/Defer):</strong> Represents the right, but not the obligation, to make an investment or take a strategic action. Its value increases when the project's value exceeds the investment cost.</li>
+                    <li><strong>Put Option (Option to Abandon/Contract):</strong> Represents the right to sell or abandon a project for a certain salvage value, or to reduce its scale. Its value increases when the project's value falls below a certain threshold.</li>
+                </ul>
+            </li>
+            <li><strong>Exercise Style (European/American):</strong>
+                <ul>
+                    <li><strong>European:</strong> The option can only be exercised at the final maturity. Less common for real options but useful for simplified analysis.</li>
+                    <li><strong>American:</strong> The option can be exercised at any point up to and including maturity. Most real options are American-style, as management typically has the flexibility to act when conditions are favorable. The binomial model is particularly strong at valuing American options due to its backward induction process.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h5>How it Works: Valuing Flexibility</h5>
+        <p>The binomial model values real options by constructing a tree of possible project values and then working backward from the end to the present, considering the decision at each node:</p>
+        <ul>
+            <li><strong>Traditional NPV:</strong> Calculated as the difference between the initial project value (V₀) and the strike price (K). This represents the project's value without considering any management flexibility.</li>
+            <li><strong>Option Value:</strong> The value derived from the binomial tree itself. This represents the value of management's flexibility to make decisions over time.</li>
+            <li><strong>Expanded NPV (Strategic Value):</strong> The sum of the Traditional NPV and the Real Option Value. This provides a more comprehensive valuation that includes the value of strategic flexibility.
+                <ul>
+                    <li><code>Expanded NPV = Traditional NPV + Real Option Value</code></li>
+                </ul>
+            </li>
+            <li><strong>Value of Flexibility:</strong> This is simply the Real Option Value. It quantifies how much the management's ability to adapt adds to the project's overall worth.</li>
+        </ul>
+
+        <h5>Advantages for Real Options</h5>
+        <ul>
+            <li><strong>Intuitive and Visual:</strong> The tree structure makes it easy to visualize possible outcomes and decision points, aiding understanding.</li>
+            <li><strong>Handles American Options:</strong> Excellently suited for real options that can be exercised at any time, which is typical for managerial flexibility.</li>
+            <li><strong>Models Sequential Decisions:</strong> Can be extended to multi-stage projects or projects with multiple embedded options.</li>
+            <li><strong>Flexibility in Parameter Changes:</strong> Can incorporate changes in volatility or interest rates at different stages if needed (though this adds complexity).</li>
+        </ul>
+
+        <h5>Limitations in Real Options Context</h5>
+        <ul>
+            <li><strong>Input Estimation:</strong> Estimating parameters like project volatility (σ) and the "initial project value" (V₀) can be very challenging as they are often not directly observable in markets. This requires careful judgment and sometimes proxy data.</li>
+            <li><strong>Simplification:</strong> Still simplifies complex reality into discrete up/down movements. While many steps increase accuracy, it's an approximation.</li>
+            <li><strong>Discrete Time Steps:</strong> For options with very long maturities or complex decision paths, the number of steps required for accuracy can become computationally intensive.</li>
+        </ul>
+        <p>The Binomial Model for Real Options is a powerful tool for valuing the strategic flexibility embedded in investments, providing a more robust decision-making framework than traditional static NPV analysis.</p>
+        {% else %}
+        <p>
+        O Modelo Binomial para Opções Reais adapta o Modelo Binomial de Precificação de Opções de Cox-Ross-Rubinstein (CRR) para avaliar decisões de negócios estratégicas ou "opções reais". Diferente das opções financeiras, as opções reais são tipicamente escolhas incorporadas em projetos ou investimentos, oferecendo à gerência a flexibilidade de se adaptar às condições futuras do mercado. A estrutura da árvore binomial fornece uma abordagem visual e passo a passo para avaliar essa flexibilidade.
+        </p>
+
+        <h5>Conceitos Chave no Contexto de Opções Reais</h5>
+        <ul>
+            <li><strong>Ativo Subjacente (V₀):</strong> Este é o valor presente dos fluxos de caixa esperados do projeto ou investimento, sem considerar quaisquer opções incorporadas. É análogo ao preço da ação em uma opção financeira.</li>
+            <li><strong>Preço de Exercício (K):</strong> Representa o custo de exercer a opção real, frequentemente o investimento necessário para iniciar, expandir ou abandonar um projeto.</li>
+            <li><strong>Volatilidade (σ):</strong> Reflete a incerteza ou risco associado ao valor futuro do projeto. Para opções reais, isso é frequentemente estimado a partir de proxies ou dados de mercado para ativos semelhantes.</li>
+            <li><strong>Tipo de Opção (Compra/Venda):</strong>
+                <ul>
+                    <li><strong>Opção de Compra (Opção de Investir/Expandir/Adiar):</strong> Representa o direito, mas não a obrigação, de fazer um investimento ou tomar uma ação estratégica. Seu valor aumenta quando o valor do projeto excede o custo do investimento.</li>
+                    <li><strong>Opção de Venda (Opção de Abandonar/Contrair):</strong> Representa o direito de vender ou abandonar um projeto por um determinado valor de resgate, ou de reduzir sua escala. Seu valor aumenta quando o valor do projeto cai abaixo de um certo limiar.</li>
+                </ul>
+            </li>
+            <li><strong>Estilo de Exercício (Europeia/Americana):</strong>
+                <ul>
+                    <li><strong>Europeia:</strong> A opção só pode ser exercida no vencimento final. Menos comum para opções reais, mas útil para análise simplificada.</li>
+                    <li><strong>Americana:</strong> A opção pode ser exercida a qualquer momento até e incluindo o vencimento. A maioria das opções reais são do estilo americano, pois a gerência normalmente tem a flexibilidade de agir quando as condições são favoráveis. O modelo binomial é particularmente forte na avaliação de opções americanas devido ao seu processo de indução retroativa.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h5>Como Funciona: Avaliando a Flexibilidade</h5>
+        <p>O modelo binomial avalia opções reais construindo uma árvore de possíveis valores de projeto e, em seguida, trabalhando de trás para frente, do final para o presente, considerando a decisão em cada nó:</p>
+        <ul>
+            <li><strong>VPL Tradicional:</strong> Calculado como a diferença entre o valor inicial do projeto (V₀) e o preço de exercício (K). Isso representa o valor do projeto sem considerar qualquer flexibilidade gerencial.</li>
+            <li><strong>Valor da Opção:</strong> O valor derivado da própria árvore binomial. Isso representa o valor da flexibilidade da gerência para tomar decisões ao longo do tempo.</li>
+            <li><strong>VPL Expandido (Valor Estratégico):</strong> A soma do VPL Tradicional e do Valor da Opção Real. Isso fornece uma avaliação mais abrangente que inclui o valor da flexibilidade estratégica.
+                <ul>
+                    <li><code>VPL Expandido = VPL Tradicional + Valor da Opção Real</code></li>
+                </ul>
+            </li>
+            <li><strong>Valor da Flexibilidade:</strong> Este é simplesmente o Valor da Opção Real. Ele quantifica o quanto a capacidade da gerência de se adaptar adiciona ao valor geral do projeto.</li>
+        </ul>
+
+        <h5>Vantagens para Opções Reais</h5>
+        <ul>
+            <li><strong>Intuitivo e Visual:</strong> A estrutura da árvore facilita a visualização de possíveis resultados e pontos de decisão, auxiliando a compreensão.</li>
+            <li><strong>Lida com Opções Americanas:</strong> Excelente para opções reais que podem ser exercidas a qualquer momento, o que é típico da flexibilidade gerencial.</li>
+            <li><strong>Modela Decisões Sequenciais:</strong> Pode ser estendido a projetos de múltiplos estágios ou projetos com múltiplas opções incorporadas.</li>
+            <li><strong>Flexibilidade em Mudanças de Parâmetros:</strong> Pode incorporar mudanças na volatilidade ou nas taxas de juros em diferentes estágios, se necessário (embora isso adicione complexidade).</li>
+        </ul>
+
+        <h5>Limitações no Contexto de Opções Reais</h5>
+        <ul>
+            <li><strong>Estimativa de Entradas:</strong> Estimar parâmetros como a volatilidade do projeto (σ) e o "valor inicial do projeto" (V₀) pode ser muito desafiador, pois eles geralmente não são diretamente observáveis nos mercados. Isso exige julgamento cuidadoso e, às vezes, dados de proxy.</li>
+            <li><strong>Simplificação:</strong> Ainda simplifica a realidade complexa em movimentos discretos de subida/descida. Embora muitos passos aumentem a precisão, é uma aproximação.</li>
+            <li><strong>Passos de Tempo Discretos:</strong> Para opções com vencimentos muito longos ou caminhos de decisão complexos, o número de passos necessários para a precisão pode se tornar computacionalmente intensivo.</li>
+        </ul>
+        <p>O Modelo Binomial para Opções Reais é uma ferramenta poderosa para avaliar a flexibilidade estratégica incorporada em investimentos, fornecendo uma estrutura de tomada de decisão mais robusta do que a análise de VPL estática tradicional.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -33,6 +33,12 @@
         </div>
     </div>
 
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#coxRossRubinsteinExplanationModal">
+            {% if request.session.language == 'en' %}Learn More About Cox-Ross-Rubinstein{% else %}Saiba Mais Sobre Cox-Ross-Rubinstein{% endif %}
+        </button>
+    </div>
+
     <form id="coxRossRubinsteinForm">
         {% csrf_token %}
         <div class="row">
@@ -158,7 +164,6 @@
         </div>
     </form>
 
-    <!-- Loading spinner -->
     <div id="loadingSpinnerCRR" class="text-center my-4" style="display: none;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -308,7 +313,6 @@
                 </div>
             </div>
             
-            <!-- Binomial Lattice Visualization -->
             <div class="mb-4">
                 <h5>{% if request.session.language == 'en' %}Binomial Lattice Visualization{% else %}Visualização da Treliça Binomial{% endif %}</h5>
                 <div id="latticeContainerCRR" class="text-center overflow-auto" style="min-height: 300px;"></div>
@@ -320,8 +324,7 @@
                 </div>
                 <div class="card-body">
                     <div id="interpretationCRR">
-                        <!-- Interpretation will be inserted here -->
-                    </div>
+                        </div>
                 </div>
             </div>
             
@@ -336,6 +339,8 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>
     // Define the handleCRRSubmit function globally
     function handleCRRSubmit() {
@@ -454,3 +459,102 @@
         });
     });
 </script>
+
+<div class="modal fade" id="coxRossRubinsteinExplanationModal" tabindex="-1" aria-labelledby="coxRossRubinsteinExplanationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="coxRossRubinsteinExplanationModalLabel">
+            {% if request.session.language == 'en' %}Diving Deeper into Cox-Ross-Rubinstein Binomial Tree Model{% else %}Aprofundando no Modelo de Árvore Binomial de Cox-Ross-Rubinstein{% endif %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if request.session.language == 'en' %}
+        <p>
+        The Cox-Ross-Rubinstein (CRR) model, often referred to as the Binomial Options Pricing Model, is a flexible and intuitive method for valuing options. Unlike the Black-Scholes models which are continuous-time, CRR is a discrete-time model that constructs a "tree" of possible future stock prices. This approach allows for the valuation of both European and American options, providing a visual representation of how option values evolve over time.
+        </p>
+
+        <h5>How it Works: Building the Binomial Tree</h5>
+        <ul>
+            <li><strong>Nodes and Paths:</strong> The model divides the time to expiration into a series of discrete steps (nodes). At each step, the underlying asset's price can either move up (to an "up" node) or down (to a "down" node).</li>
+            <li><strong>Up (u) and Down (d) Factors:</strong> These factors determine the magnitude of price movements. They are derived from the volatility (σ) and time step (Δt) as:
+                <ul>
+                    <li><code>u = e^(σ * sqrt(Δt))</code></li>
+                    <li><code>d = 1 / u</code></li>
+                </ul>
+                Where `e` is Euler's number.</li>
+            <li><strong>Risk-Neutral Probability (p):</strong> The probability 'p' of an up movement is calculated under a risk-neutral assumption, meaning investors are indifferent to risk. It ensures that the expected return of the stock in the risk-neutral world is the risk-free rate:
+                <ul>
+                    <li><code>p = (e^((r - q) * Δt) - d) / (u - d)</code></li>
+                </ul>
+                Where 'r' is the risk-free rate and 'q' is the continuous dividend yield.</li>
+            <li><strong>Backward Induction:</strong> The valuation process starts at the option's expiration (the final nodes of the tree). The option's payoff (intrinsic value) is calculated at each final node. Then, working backward through the tree, the option's value at each earlier node is calculated by taking the risk-neutral expectation of its future values, discounted back at the risk-free rate. For American options, early exercise is considered at each node.</li>
+        </ul>
+
+        <h5>Practical Applications</h5>
+        <p>The CRR model is highly versatile and widely used for:</p>
+        <ul>
+            <li><strong>Valuing American Options:</strong> Unlike Black-Scholes, CRR can easily handle American options because it evaluates the option at each time step, allowing for the decision of early exercise.</li>
+            <li><strong>Real Options Analysis:</strong> Its flexibility to model sequential decisions and uncertainty makes it ideal for real options (e.g., option to expand, contract, abandon, or defer a project). Each node in the tree can represent a decision point.</li>
+            <li><strong>Options on Assets with Complex Features:</strong> Can be adapted for options with non-constant volatility, non-continuous dividends (by adjusting tree nodes), or other exotic features.</li>
+            <li><strong>Educational Tool:</strong> Provides a transparent, step-by-step visual representation of option valuation, making it excellent for teaching and understanding option behavior.</li>
+        </ul>
+
+        <h5>Limitations</h5>
+        <ul>
+            <li><strong>Computational Intensity:</strong> As the number of steps increases for accuracy, the computational effort grows exponentially. For very long maturities or very high numbers of steps, it can become computationally expensive.</li>
+            <li><strong>Discrete Time:</strong> The model assumes discrete time steps, which is an approximation of continuous time. While increasing steps improves accuracy, it never perfectly matches continuous-time models.</li>
+            <li><strong>Input Sensitivity:</strong> Like Black-Scholes, CRR is sensitive to inputs, especially volatility.</li>
+            <li><strong>Simplification of Reality:</strong> Assumes only two possible price movements per step, which is a simplification of continuous price changes.</li>
+        </ul>
+        <p>The CRR model is a powerful and intuitive tool for option pricing, especially when dealing with American-style options or real options scenarios where decision points and flexibility are key.</p>
+        {% else %}
+        <p>
+        O modelo de Cox-Ross-Rubinstein (CRR), frequentemente referido como Modelo Binomial de Precificação de Opções, é um método flexível e intuitivo para avaliar opções. Diferente dos modelos Black-Scholes que são de tempo contínuo, o CRR é um modelo de tempo discreto que constrói uma "árvore" de possíveis preços futuros de ações. Esta abordagem permite a avaliação de opções tanto europeias quanto americanas, fornecendo uma representação visual de como os valores das opções evoluem ao longo do tempo.
+        </p>
+
+        <h5>Como Funciona: Construindo a Árvore Binomial</h5>
+        <ul>
+            <li><strong>Nós e Caminhos:</strong> O modelo divide o tempo até o vencimento em uma série de passos discretos (nós). Em cada passo, o preço do ativo subjacente pode se mover para cima (para um nó "para cima") ou para baixo (para um nó "para baixo").</li>
+            <li><strong>Fatores de Subida (u) e Descida (d):</strong> Estes fatores determinam a magnitude dos movimentos de preço. Eles são derivados da volatilidade (σ) e do passo de tempo (Δt) como:
+                <ul>
+                    <li><code>u = e^(σ * sqrt(Δt))</code></li>
+                    <li><code>d = 1 / u</code></li>
+                </ul>
+                Onde `e` é o número de Euler.</li>
+            <li><strong>Probabilidade Neutra ao Risco (p):</strong> A probabilidade 'p' de um movimento para cima é calculada sob uma premissa neutra ao risco, o que significa que os investidores são indiferentes ao risco. Garante que o retorno esperado do estoque no mundo neutro ao risco seja a taxa livre de risco:
+                <ul>
+                    <li><code>p = (e^((r - q) * Δt) - d) / (u - d)</code></li>
+                </ul>
+                Onde 'r' é a taxa livre de risco e 'q' é o rendimento de dividendos contínuo.</li>
+            <li><strong>Indução Retroativa:</strong> O processo de avaliação começa no vencimento da opção (os nós finais da árvore). O payoff (valor intrínseco) da opção é calculado em cada nó final. Em seguida, trabalhando retrospectivamente através da árvore, o valor da opção em cada nó anterior é calculado pegando a expectativa neutra ao risco de seus valores futuros, descontados de volta à taxa livre de risco. Para opções americanas, o exercício antecipado é considerado em cada nó.</li>
+        </ul>
+
+        <h5>Aplicações Práticas</h5>
+        <p>O modelo CRR é altamente versátil e amplamente utilizado para:</p>
+        <ul>
+            <li><strong>Avaliação de Opções Americanas:</strong> Diferente do Black-Scholes, o CRR pode facilmente lidar com opções americanas porque avalia a opção em cada passo do tempo, permitindo a decisão de exercício antecipado.</li>
+            <li><strong>Análise de Opções Reais:</strong> Sua flexibilidade para modelar decisões sequenciais e incerteza o torna ideal para opções reais (por exemplo, opção de expandir, contrair, abandonar ou adiar um projeto). Cada nó na árvore pode representar um ponto de decisão.</li>
+            <li><strong>Opções sobre Ativos com Características Complexas:</strong> Pode ser adaptado para opções com volatilidade não constante, dividendos não contínuos (ajustando os nós da árvore) ou outras características exóticas.</li>
+            <li><strong>Ferramenta Educacional:</strong> Fornece uma representação visual transparente e passo a passo da avaliação de opções, tornando-o excelente para ensinar e entender o comportamento das opções.</li>
+        </ul>
+
+        <h5>Limitações</h5>
+        <ul>
+            <li><strong>Intensidade Computacional:</strong> À medida que o número de passos aumenta para maior precisão, o esforço computacional cresce exponencialmente. Para vencimentos muito longos ou um número muito alto de passos, pode se tornar computacionalmente caro.</li>
+            <li><strong>Tempo Discreto:</strong> O modelo assume passos de tempo discretos, que é uma aproximação do tempo contínuo. Embora o aumento dos passos melhore a precisão, nunca corresponde perfeitamente aos modelos de tempo contínuo.</li>
+            <li><strong>Sensibilidade de Entrada:</strong> Assim como Black-Scholes, o CRR é sensível às entradas, especialmente à volatilidade.</li>
+            <li><strong>Simplificação da Realidade:</strong> Assume apenas dois possíveis movimentos de preço por passo, o que é uma simplificação das mudanças contínuas de preço.</li>
+        </ul>
+        <p>O modelo CRR é uma ferramenta poderosa e intuitiva para precificação de opções, especialmente ao lidar com opções do estilo americano ou cenários de opções reais onde os pontos de decisão e a flexibilidade são fundamentais.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

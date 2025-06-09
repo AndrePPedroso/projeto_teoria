@@ -21,7 +21,7 @@
             placeholder="{% if request.session.language == 'en' %}Example: 1000{% else %}Exemplo: 1000{% endif %}">
         </div>
 
-        <button type="button" class="btn btn-primary mt-3" onclick="submitRandomWalkVisualizationForm()">
+        <button type="submit" class="btn btn-primary mt-3" onclick="submitRandomWalkVisualizationForm(event)">
             
             {% if request.session.language == 'en' %}Generate{% else %}Gerar{% endif %}
         </button>
@@ -32,7 +32,8 @@
 </div>
 
 <script>
-    function submitRandomWalkVisualizationForm() {
+    function submitRandomWalkVisualizationForm(event) {
+        event.preventDefault();
         const form = document.getElementById('randomWalkVisualizationForm');
         const formData = new FormData(form);
 
