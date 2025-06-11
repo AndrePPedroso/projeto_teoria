@@ -7,10 +7,6 @@ from estocasticos.use_cases.financial_options.black_scholes_merton_use_case impo
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
 from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
-@login_required(login_url='/admin/login/')
-def finantial_options_basic_concepts(request):
-    return render(request, "site/financeiros/financial-options-basic-concepts.html")
-
 
 @login_required(login_url='/admin/login/')
 def black_scholes_template(request):
@@ -23,6 +19,23 @@ def black_scholes_merton_template(request):
 @login_required(login_url='/admin/login/')
 def cox_ross_rubinstein_template(request):
     return render(request, "site/financeiros/cox-ross-rubinstein.html")
+
+@login_required(login_url='/admin/login/')
+def basic_concepts_overview_view(request):
+    return render(request, 'site/financeiros/basic_concepts_overview.html', {'title': 'Basic Concepts Overview'})
+
+@login_required(login_url='/admin/login/')
+def call_put_options_view(request):
+    return render(request, 'site/financeiros/call_put_options.html', {'title': 'Call and Put Options'})
+
+@login_required(login_url='/admin/login/')
+def asset_put_combination_view(request):
+    return render(request, 'site/financeiros/asset_put_combination.html', {'title': 'Combination - asset purchase and put option'})
+
+@login_required(login_url='/admin/login/')
+def bull_bear_spread_view(request):
+    return render(request, 'site/financeiros/bull_bear_spread.html', {'title': 'Combination - bull and bear spread'})
+
 
 def black_scholes_view(request):
     if request.method == 'POST':

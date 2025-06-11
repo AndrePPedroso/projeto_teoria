@@ -1,0 +1,55 @@
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
+    <h1 class="text-3xl font-bold mb-8 text-dark">
+        {% if request.session.language == 'en' %}Basic Concepts{% else %}Conceitos Básicos{% endif %}
+    </h1>
+
+    <div class="row w-100 mt-5 justify-content-center">
+        <div class="col-12 col-md-4 mb-4">
+            <a href="{% url 'call_put_options' %}"
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center" {# Ensure nav-link class is here #}
+               data-url="{% url 'call_put_options' %}" {# Ensure data-url is here #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Call and Put Options{% else %}Opções de compra e de venda{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Learn about the fundamentals of call and put options.{% else %}Aprenda sobre os fundamentos das opções de compra e de venda.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-4 mb-4">
+            <a href="{% url 'asset_put_combination' %}"
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center" {# ADDED nav-link class here #}
+               data-url="{% url 'asset_put_combination' %}" {# ADDED data-url attribute here #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Combination - asset purchase and put option{% else %}Combinação - compra do ativo e da opção de venda{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Explore strategies combining asset purchase with put options.{% else %}Explore estratégias que combinam a compra de um ativo com opções de venda.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        {% comment %} <div class="col-12 col-md-4 mb-4">
+            <a href="{% url 'bull_bear_spread' %}"
+               class="nav-link card bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center" {# Ensure nav-link class is here #}
+               data-url="{% url 'bull_bear_spread' %}" {# Ensure data-url is here #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Combination - bull and bear spread{% else %}Combinação - trava de alta e de baixa{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Understand bull and bear spread option strategies.{% else %}Compreenda as estratégias de opções de trava de alta e de baixa.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div> {% endcomment %}
+    </div>
+</div>

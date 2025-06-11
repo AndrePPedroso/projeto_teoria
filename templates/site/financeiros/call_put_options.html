@@ -1,0 +1,339 @@
+
+<style>
+    /* Specific styles for the option payoff calculator */
+    .payoff-calculator-container {
+        padding: 20px;
+        background-color: #f8f9fa; /* Light background for the container */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .payoff-calculator-container h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        color: #343a40; /* Darker heading */
+    }
+    .form-section {
+        background-color: #e9ecef; /* Lighter background for form inputs area */
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .form-section label {
+        font-weight: 500;
+    }
+    .results-table th {
+        background-color: #343a40; /* Dark header for table */
+        color: white;
+    }
+    .btn-calculate {
+        background-color: #28a745; /* Green for calculate */
+        border-color: #28a745;
+        color: white;
+    }
+    .btn-calculate:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-clear {
+        background-color: #ffc107; /* Amber for clear */
+        border-color: #ffc107;
+        color: #212529;
+    }
+    .btn-clear:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+    .input-group-text {
+        min-width: 40px; /* For Q, E, n labels */
+        justify-content: center;
+    }
+</style>
+
+<div class="payoff-calculator-container container mt-3">
+    
+    <h1>{% if request.session.language == 'en' %}Option Payoff Calculator{% else %}Calculadora de Payoff de Opções{% endif %}</h1>
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#callExplanationModal">
+            {% if language == 'en' %}Learn More About {{ explanation.get_base_model_display }}{% else %}Saiba Mais Sobre {{ explanation.get_base_model_display }}{% endif %}
+        </button>
+    </div>
+    <div class="form-section">
+        <form id="payoffForm">
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label class="form-label">{% if request.session.language == 'en' %}Simulation Type{% else %}Tipo de Simulação{% endif %}:</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="simulationType" id="simTypeBuy" value="buy" checked>
+                            <label class="form-check-label" for="simTypeBuy">{% if request.session.language == 'en' %}Buy (Holder){% else %}Compra (Titular){% endif %}</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="simulationType" id="simTypeSell" value="sell">
+                            <label class="form-check-label" for="simTypeSell">{% if request.session.language == 'en' %}Sell (Writer){% else %}Venda (Lançador){% endif %}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 col-lg-2 mb-3">
+                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity{% else %}Quantidade{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" id="quantity" value="100" placeholder="100">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-2 mb-3">
+                    <label for="strikePrice" class="form-label">{% if request.session.language == 'en' %}Strike Price{% else %}Preço de Exercício{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">E</span>
+                        <input type="number" class="form-control" id="strikePrice" value="100" placeholder="100">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3 mb-3">
+                    {% comment %} Corrected Label Below {% endcomment %}
+                    <label for="initialValue" class="form-label">{% if request.session.language == 'en' %}Initial Stock Price{% else %}Valor Inicial da Ação{% endif %}</label>
+                    <input type="number" class="form-control" id="initialValue" value="95" placeholder="95">
+                </div>
+                <div class="col-md-6 col-lg-3 mb-3">
+                    {% comment %} Corrected Label Below {% endcomment %}
+                    <label for="finalValue" class="form-label">{% if request.session.language == 'en' %}Final Stock Price{% else %}Valor Final da Ação{% endif %}</label>
+                    <input type="number" class="form-control" id="finalValue" value="100" placeholder="100" max="1000">
+                </div>
+                <div class="col-md-6 col-lg-2 mb-3">
+                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Steps{% else %}Divisões{% endif %}</label>
+                     <div class="input-group">
+                        <span class="input-group-text">n</span>
+                        <input type="number" class="form-control" id="divisions" value="10" placeholder="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <button type="button" id="clearButton" class="btn btn-clear me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
+                    <button type="button" id="calculateButton" class="btn btn-calculate">{% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-4 table-responsive">
+        <table class="table table-bordered table-striped table-hover results-table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>{% if request.session.language == 'en' %}Stock Price at Expiration{% else %}Valor Ação no Vencimento{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Holder's Payoff{% else %}Resultado do Titular{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Writer's Payoff{% else %}Resultado do Lançador{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <tr><td colspan="3" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="callExplanationModal" tabindex="-1" aria-labelledby="callpuExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable"> {# modal-lg for a larger modal, modal-dialog-scrollable for long content #}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="callpuExplanationModalLabel">
+            <h4>{% if request.session.language == 'en' %}Understanding Call and Put Options{% else %}Compreendendo as Opções de Compra e Venda{% endif %}</h4>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h4>{% if request.session.language == 'en' %}What are Options?{% else %}O que são Opções?{% endif %}</h4>
+            <p>
+                {% if request.session.language == 'en' %}
+                Think of an option as a special kind of contract. It gives the person who buys it (we call them the holder) the right, but not the obligation, to buy or sell something (an underlying asset) at a specific price (the strike price) by a certain date (the expiration date). For this valuable right, the buyer pays a small fee to the seller (the writer), which we call the premium.
+                {% else %}
+                Pense em uma opção como um tipo especial de contrato. Ela dá à pessoa que a compra (chamamos de titular) o direito, mas não a obrigação, de comprar ou vender algo (um ativo subjacente) a um preço específico (o preço de exercício) até uma determinada data (a data de vencimento). Por esse direito valioso, o comprador paga uma pequena taxa ao vendedor (o lançador), que chamamos de prêmio.
+                {% endif %}
+            </p>
+
+            <h5>{% if request.session.language == 'en' %}Call Options: The Right to Buy{% else %}Opções de Compra (Calls): O Direito de Comprar{% endif %}</h5>
+            <p>
+                {% if request.session.language == 'en' %}
+                A Call Option means you have the right to buy the underlying asset at the strike price.
+                <ul>
+                    <li>Buying a Call (Long Call): You hope the asset's price goes up. If it rises above your strike price plus the premium you paid, you make a profit. This is a strategy for when you're optimistic about the asset.
+                        <br>Payoff = `max(0, Final Price - Strike Price) - Premium`
+                    </li>
+                    <li>Selling a Call (Short Call): You get the premium cash right away. You make money if the asset's price stays below the strike price. However, if the price goes much higher, your potential losses can be unlimited. This is typically a strategy for when you expect the asset to stay stable or fall.
+                        <br>Payoff = `Premium - max(0, Final Price - Strike Price)`
+                    </li>
+                </ul>
+                {% else %}
+                Uma Opção de Compra (Call Option) significa que você tem o direito de comprar o ativo subjacente pelo preço de exercício.
+                <ul>
+                    <li>Comprar uma Call (Long Call): Você espera que o preço do ativo suba. Se ele subir acima do seu preço de exercício mais o prêmio que você pagou, você obtém lucro. Esta é uma estratégia para quando você está otimista em relação ao ativo.
+                        <br>Payoff = `max(0, Preço Final - Preço de Exercício) - Prêmio`
+                    </li>
+                    <li>Vender uma Call (Short Call): Você recebe o dinheiro do prêmio imediatamente. Você ganha dinheiro se o preço do ativo permanecer abaixo do preço de exercício. No entanto, se o preço subir muito, suas perdas potenciais podem ser ilimitadas. Esta é tipicamente uma estratégia para quando você espera que o ativo permaneça estável ou caia.
+                        <br>Payoff = `Prêmio - max(0, Preço Final - Preço de Exercício)`
+                    </li>
+                </ul>
+                {% endif %}
+            </p>
+
+            <h5>{% if request.session.language == 'en' %}Put Options: The Right to Sell{% else %}Opções de Venda (Puts): O Direito de Vender{% endif %}</h5>
+            <p>
+                {% if request.session.language == 'en' %}
+                A Put Option gives you the right to sell the underlying asset at the strike price.
+                <ul>
+                    <li>Buying a Put (Long Put): You hope the asset's price goes down. If it falls below your strike price minus the premium you paid, you profit. This is a strategy for when you're pessimistic about the asset.
+                        <br>Payoff = `max(0, Strike Price - Final Price) - Premium`
+                    </li>
+                    <li>Selling a Put (Short Put): You receive the premium upfront. You make money if the asset's price stays above the strike price. But if the price drops significantly, your potential losses can be substantial. This is a strategy for when you expect the asset to stay stable or rise.
+                        <br>Payoff = `Prêmio - max(0, Strike Price - Final Price)`
+                    </li>
+                </ul>
+                {% else %}
+                Uma Opção de Venda (Put Option) lhe dá o direito de vender o ativo subjacente pelo preço de exercício.
+                <ul>
+                    <li>Comprar uma Put (Long Put): Você espera que o preço do ativo caia. Se ele cair abaixo do seu preço de exercício menos o prêmio que você pagou, você lucra. Esta é uma estratégia para quando você está pessimista em relação ao ativo.
+                        <br>Payoff = `max(0, Preço de Exercício - Preço Final) - Prêmio`
+                    </li>
+                    <li>Vender uma Put (Short Put): Você recebe o prêmio adiantado. Você ganha dinheiro se o preço do ativo permanecer acima do preço de exercício. Mas se o preço cair significativamente, suas perdas potenciais podem ser substanciais. Esta é uma estratégia para quando você espera que o ativo permaneça estável ou suba.
+                        <br>Payoff = `Prêmio - max(0, Preço de Exercício - Preço Final)`
+                    </li>
+                </ul>
+                {% endif %}
+            </p>
+
+            <h5>{% if request.session.language == 'en' %}Key Terms & Concepts:{% else %}Termos e Conceitos Chave:{% endif %}</h5>
+            <ul>
+                <li>{% if request.session.language == 'en' %}Strike Price (K/E):{% else %}Preço de Exercício (K/E):{% endif %} This is the agreed-upon price at which you can buy or sell the underlying asset if you choose to exercise the option.</li>
+                <li>{% if request.session.language == 'en' %}Premium (P/C):{% else %}Prêmio (P/C):{% endif %} This is the cost the option buyer pays to the seller for having the right granted by the option contract.</li>
+                <li>{% if request.session.language == 'en' %}Expiration Date (T):{% else %}Data de Vencimento (T):{% endif %} This is the very last day the option can be exercised. If it's not used by then, it typically expires worthless.</li>
+                <li>{% if request.session.language == 'en' %}Underlying Asset:{% else %}Ativo Subjacente:{% endif %} This is the actual asset (like a stock, a commodity, or an index) that the option contract is based on.</li>
+                <li>{% if request.session.language == 'en' %}Payoff:{% else %}Payoff:{% endif %} This refers to the profit or loss you make from your option position when it expires. It's calculated by comparing the asset's final price to the strike price, and don't forget to account for the premium you paid or received!</li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+(function() {
+    const calculateBtn = document.getElementById('calculateButton');
+    const clearBtn = document.getElementById('clearButton');
+    const resultsBody = document.getElementById('resultsBody');
+    const form = document.getElementById('payoffForm');
+    const simTypeBuyRadio = document.getElementById('simTypeBuy'); // If checked, implies Call Option
+    const simTypeSellRadio = document.getElementById('simTypeSell'); // If checked, implies Put Option
+
+    if (calculateBtn) {
+        calculateBtn.addEventListener('click', function() {
+            const simTypeBuy = document.getElementById('simTypeBuy').checked;
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const strikePrice = parseFloat(document.getElementById('strikePrice').value) || 0;
+            const initialStockPrice = parseFloat(document.getElementById('initialValue').value) || 0; // This is the start of the range
+            const finalStockPrice = parseFloat(document.getElementById('finalValue').value) || 0;   // This is the end of the range
+            const divisions = parseInt(document.getElementById('divisions').value) || 1;
+
+            if (quantity < 1 || quantity > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Quantity must be a number between 1 and 100,000.\
+                    {% else %}A Quantidade deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return;
+            }
+
+
+            else if (strikePrice < 1 || strikePrice > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Strike Price must be a number between 1 and 100,000.\
+                    {% else %}O Preço de Exercício deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return; 
+                }
+
+            else if (initialStockPrice < 1 || initialStockPrice > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Initial Stock Price must be a number between 1 and 100,000.\
+                    {% else %}O Valor Inicial da Ação deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return; 
+            }
+            else if (finalStockPrice < 1 || finalStockPrice > 100000) {
+                    resultsBody.innerHTML = 
+                    '<tr><td colspan="3" class="text-center text-danger">\
+                        {% if request.session.language == "en" %}\
+                        Final Stock Price must be a number between 1 and 100,000.\
+                        {% else %}O Valor Final da Ação deve ser um número entre 1 e 100.000.\
+                        {% endif %}</td></tr>';
+                        return; 
+            }
+
+            else if (divisions < 5 || divisions > 50) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Steps (Divisions) must be an integer between 5 and 50.\
+                    {% else %}Divisões (n) deve ser um número inteiro entre 5 e 50.\
+                    {% endif %}</td></tr>';
+                    return;            
+                }
+            
+
+            const stockPrices = [];
+            const step = (finalStockPrice - initialStockPrice) / (divisions - 1);
+            for (let i = 0; i < divisions; i++) {
+                stockPrices.push(initialStockPrice + (i * step));
+            }
+
+            resultsBody.innerHTML = ''; 
+
+            const isPutOption = simTypeSellRadio.checked;
+
+            stockPrices.forEach(S => {
+                let holderPayoffPerShare = 0;
+                
+                if (isPutOption) {
+                    holderPayoffPerShare = Math.max(0, strikePrice - S);
+                } else {
+                    holderPayoffPerShare = Math.max(0, S - strikePrice);
+                }
+                
+                let holderTotalPayoff = holderPayoffPerShare * quantity;
+                let writerTotalPayoff = -holderTotalPayoff;
+
+                const row = resultsBody.insertRow();
+                const currentLocale ='en-US';
+
+                row.insertCell().textContent = S.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+                row.insertCell().textContent = holderTotalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+                row.insertCell().textContent = writerTotalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+            });
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            form.reset(); 
+            if (simTypeBuyRadio) { 
+                simTypeBuyRadio.checked = true;
+            }
+            
+            const initialMessage = 
+                "{% if request.session.language == "en" %}\
+                Enter parameters and click 'Calculate' to see results.\
+                {% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.\
+                {% endif %}"
+            resultsBody.innerHTML = `<tr><td colspan="3" class="text-center">${initialMessage}</td></tr>`;
+        });
+    }
+})();
+</script>

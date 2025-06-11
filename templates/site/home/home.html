@@ -124,22 +124,22 @@
             </label>
             <div class="accordion-content">
                 <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">
-                    {% if request.session.language == 'en' %}Markov chains{% else %}Cadeias de markov{% endif %}
+                    {% if request.session.language == 'en' %}Markov Chains{% else %}Cadeias de Markov{% endif %}
                 </a>
                 <a href="{% url 'random_walk_template' %}" class="nav-link" data-url="{% url 'random_walk_template' %}">
-                    Random walk
+                    Random Walk
                 </a>
                 <a href="{% url 'random_walk_normal' %}" class="nav-link" data-url="{% url 'random_walk_normal' %}">
-                    Random walk normal
+                    Random Walk Normal
                 </a>
                 <a href="{% url 'monte_carlos' %}" class="nav-link" data-url="{% url 'monte_carlos' %}">
                     {% if request.session.language == 'en' %}GBM - Wiener{% else %}MGB - Wiener{% endif %}
                 </a>
                 <a href="{% url 'mbg_ito' %}" class="nav-link" data-url="{% url 'mbg_ito' %}">
-                    {% if request.session.language == 'en' %}GBM - itô{% else %}MGB - itô{% endif %}
+                    {% if request.session.language == 'en' %}GBM - Itô{% else %}MGB - Itô{% endif %}
                 </a>
                 <a href="{% url 'modelo_reversao_media' %}" class="nav-link" data-url="{% url 'modelo_reversao_media' %}">
-                    {% if request.session.language == 'en' %}Mean reversion model{% else %}Modelo de reversão a média{% endif %}
+                    {% if request.session.language == 'en' %}Mean Reversion Model{% else %}Modelo de Reversão a Média{% endif %}
                 </a>
             </div>
         </div>
@@ -156,9 +156,9 @@
                 </div>
             </label>
             <div class="accordion-content">
-                <a href="{% url 'financial_options_basic_concepts' %}" class="nav-link" data-url="{% url 'financial_options_basic_concepts' %}">
+                <a href="{% url 'basic_concepts_overview' %}" class="nav-link" data-url="{% url 'basic_concepts_overview' %}">
                     {% if request.session.language == 'en' %}Basic Concepts{% else %}Conceitos Básicos{% endif %}
-                </a>
+                </a>   
                 <a href="{% url 'black_scholes' %}" class="nav-link" data-url="{% url 'black_scholes' %}">
                     {% if request.session.language == 'en' %}Black-Scholes model{% else %}Modelo Black-Scholes{% endif %}
                 </a>
@@ -271,18 +271,23 @@
         }
 
         $(document).ready(function(){
-            $('.nav-link').click(function(event){
-                event.preventDefault(); 
-                const url = $(this).data('url'); 
-                $.ajax({
-                    url: url,
-                    success: function(data) {
-                        $('#main-content').html(data);
-                    },
-                    error: function() {
-                        $('#main-content').html('<p>Erro ao carregar conteúdo. Tente novamente.</p>');
-                    }
-                });
+            $('#main-content, .sidebar').on('click', '.nav-link', function(event){
+                event.preventDefault(); // Prevent default link behavior
+                const url = $(this).data('url'); // Get the URL from the data-url attribute
+
+                if (url) { // Ensure there is a URL to fetch
+                    $.ajax({
+                        url: url,
+                        success: function(data) {
+                            $('#main-content').html(data); // Load the response into main-content
+                            // Optional: If you want to scroll to top after content loads
+                            // window.scrollTo(0, 0);
+                        },
+                        error: function() {
+                            $('#main-content').html('<p>Erro ao carregar conteúdo. Tente novamente.</p>');
+                        }
+                    });
+                }
             });
         });
     </script>

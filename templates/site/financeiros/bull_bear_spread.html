@@ -1,0 +1,229 @@
+<style>
+    /* Specific styles for the bull and bear spread calculator */
+    .spread-calculator-container {
+        padding: 20px;
+        background-color: #f8f9fa; /* Light background for the container */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .spread-calculator-container h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        color: #343a40; /* Darker heading */
+    }
+    .form-section {
+        background-color: #e6f0ff; /* Light blue background to match image */
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #cce0ff; /* Light blue border */
+    }
+    .form-section label {
+        font-weight: 500;
+        color: #343a40;
+    }
+    .results-table th {
+        background-color: #f0f8ff; /* Lightest blue for header to match image */
+        color: #343a40; /* Dark text for header */
+        border-bottom: 2px solid #a3ccff; /* Blue underline */
+    }
+    .results-table tbody tr:nth-child(even) {
+        background-color: #f7fcff; /* Slightly different background for even rows */
+    }
+    .btn-custom-blue {
+        background-color: #639dff; /* Blue from image */
+        border-color: #639dff;
+        color: white;
+    }
+    .btn-custom-blue:hover {
+        background-color: #4b8dfc;
+        border-color: #4b8dfc;
+    }
+    .btn-custom-light-blue {
+        background-color: #dae8ff; /* Lighter blue for clear */
+        border-color: #dae8ff;
+        color: #343a40; /* Dark text */
+    }
+    .btn-custom-light-blue:hover {
+        background-color: #c8d8f5;
+        border-color: #c8d8f5;
+    }
+    .input-group-text {
+        min-width: 40px; /* For Q, E, C, n labels */
+        justify-content: center;
+        background-color: #e0f2ff; /* Light blue for input group text */
+        border-color: #b3d9ff;
+        color: #343a40;
+    }
+    .form-control {
+        border-color: #b3d9ff; /* Light blue border for inputs */
+    }
+    .form-control:focus {
+        border-color: #88bbff;
+        box-shadow: 0 0 0 0.2rem rgba(99, 157, 255, 0.25);
+    }
+</style>
+
+<div class="spread-calculator-container container mt-3">
+    <h1>{% if request.session.language == 'en' %}Real Options Theory - Combining options: Bull Call Spread{% else %}Teoria das Opções Reais - Combinando opções: Trava de Alta com Calls{% endif %}</h1>
+
+    <div class="form-section">
+        <form id="spreadForm">
+            <div class="row align-items-end">
+                <div class="col-md-2 mb-3">
+                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity (Q){% else %}Quantidade (Q){% endif %}</label>
+                    <input type="number" class="form-control" id="quantity" value="100" placeholder="100">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="strikePrice1" class="form-label">{% if request.session.language == 'en' %}Buy Call Strike (E1){% else %}Strike Compra Call (E1){% endif %}</label>
+                    <input type="number" class="form-control" id="strikePrice1" value="100" placeholder="100">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="premium1" class="form-label">{% if request.session.language == 'en' %}Buy Call Premium (C1){% else %}Prêmio Compra Call (C1){% endif %}</label>
+                    <input type="number" class="form-control" id="premium1" value="1.5" step="0.01" placeholder="1.5">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="strikePrice2" class="form-label">{% if request.session.language == 'en' %}Sell Call Strike (E2){% else %}Strike Venda Call (E2){% endif %}</label>
+                    <input type="number" class="form-control" id="strikePrice2" value="105" placeholder="105">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="premium2" class="form-label">{% if request.session.language == 'en' %}Sell Call Premium (C2){% else %}Prêmio Venda Call (C2){% endif %}</label>
+                    <input type="number" class="form-control" id="premium2" value="0.5" step="0.01" placeholder="0.5">
+                </div>
+            </div>
+
+            <div class="row align-items-end mt-2">
+                <div class="col-md-3 mb-3">
+                    <label for="initialValue" class="form-label">{% if request.session.language == 'en' %}Initial Value{% else %}Valor inicial{% endif %}</label>
+                    <input type="number" class="form-control" id="initialValue" value="95" placeholder="95">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="finalValue" class="form-label">{% if request.session.language == 'en' %}Final Value{% else %}Valor final{% endif %}</label>
+                    <input type="number" class="form-control" id="finalValue" value="110" placeholder="110">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Divisions (n){% else %}Divisões (n){% endif %}</label>
+                    <input type="number" class="form-control" id="divisions" value="10" placeholder="10">
+                </div>
+                <div class="col-md-3 mb-3 text-end">
+                    <button type="button" id="clearButton" class="btn btn-custom-light-blue me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
+                    <button type="button" id="calculateButton" class="btn btn-custom-blue">{% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-4 table-responsive">
+        <table class="table table-bordered table-striped table-hover results-table">
+            <thead>
+                <tr>
+                    <th>{% if request.session.language == 'en' %}Stock Price at Expiration{% else %}Preço da Ação no Vencimento{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Payoff Bought Call{% else %}Payoff Call Comprada{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Payoff Sold Call{% else %}Payoff Call Vendida{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Total Payoff{% else %}Payoff Total{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <tr><td colspan="4" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function() {
+    const calculateBtn = document.getElementById('calculateButton');
+    const clearBtn = document.getElementById('clearButton');
+    const resultsBody = document.getElementById('resultsBody');
+    const form = document.getElementById('spreadForm');
+
+    if (calculateBtn) {
+        calculateBtn.addEventListener('click', function() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const strikePrice1 = parseFloat(document.getElementById('strikePrice1').value) || 0; // E1 (Buy Call)
+            const premium1 = parseFloat(document.getElementById('premium1').value) || 0; // C1
+            const strikePrice2 = parseFloat(document.getElementById('strikePrice2').value) || 0; // E2 (Sell Call)
+            const premium2 = parseFloat(document.getElementById('premium2').value) || 0; // C2
+            const initialValue = parseFloat(document.getElementById('initialValue').value) || 0;
+            const finalValue = parseFloat(document.getElementById('finalValue').value) || 0;
+            const divisions = parseInt(document.getElementById('divisions').value) || 1;
+
+            // --- Input Validations ---
+            const displayError = (message) => {
+                resultsBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${message}</td></tr>`;
+            };
+
+            const invalidQuantity = "{% if request.session.language == 'en' %}Quantity must be a number between 1 and 100,000.{% else %}A Quantidade deve ser um número entre 1 e 100.000.{% endif %}";
+            const invalidStrikePrice = "{% if request.session.language == 'en' %}Strike Prices must be numbers between 1 and 100,000.{% else %}Os Preços de Exercício devem ser números entre 1 e 100.000.{% endif %}";
+            const invalidPremium = "{% if request.session.language == 'en' %}Premiums must be non-negative numbers.{% else %}Os Prêmios devem ser números não negativos.{% endif %}";
+            const invalidRange = "{% if request.session.language == 'en' %}Initial and Final Values must be numbers between 1 and 100,000.{% else %}Os Valores Inicial e Final devem ser números entre 1 e 100.000.{% endif %}";
+            const invalidDivisions = "{% if request.session.language == 'en' %}Divisions (n) must be an integer between 5 and 50.{% else %}Divisões (n) deve ser um número inteiro entre 5 e 50.{% endif %}";
+            const rangeOrderError = "{% if request.session.language == 'en' %}Initial Value cannot be greater than Final Value.{% else %}O Valor Inicial não pode ser maior que o Valor Final.{% endif %}";
+            const strikeOrderError = "{% if request.session.language == 'en' %}For a Bull Call Spread, Buy Call Strike (E1) must be less than Sell Call Strike (E2).{% else %}Para uma Trava de Alta com Calls, o Strike da Call Comprada (E1) deve ser menor que o Strike da Call Vendida (E2).{% endif %}";
+
+
+            if (quantity < 1 || quantity > 100000) return displayError(invalidQuantity);
+            if (strikePrice1 < 1 || strikePrice1 > 100000 || strikePrice2 < 1 || strikePrice2 > 100000) return displayError(invalidStrikePrice);
+            if (premium1 < 0 || premium2 < 0) return displayError(invalidPremium);
+            if (initialValue < 1 || initialValue > 100000 || finalValue < 1 || finalValue > 100000) return displayError(invalidRange);
+            if (divisions < 5 || divisions > 50) return displayError(invalidDivisions);
+            if (initialValue > finalValue) return displayError(rangeOrderError);
+            if (strikePrice1 >= strikePrice2) return displayError(strikeOrderError);
+
+
+            // --- Calculation Logic ---
+            const stockPricesAtExpiration = []; // S_T values
+            const step = (finalValue - initialValue) / (divisions - 1);
+            for (let i = 0; i < divisions; i++) {
+                stockPricesAtExpiration.push(initialValue + (i * step));
+            }
+
+            resultsBody.innerHTML = '';
+            const currentLocale = 'pt-BR'; // Using pt-BR for R$ currency display
+
+            stockPricesAtExpiration.forEach(S_T => {
+                const stockPriceAtExpiration = S_T;
+
+                // Payoff for Bought Call (Option 1)
+                const payoffBoughtCallPerShare = (Math.max(0, S_T - strikePrice1) - premium1);
+
+                // Payoff for Sold Call (Option 2) - this is the inverse of the individual option's payoff
+                const payoffSoldCallPerShare = -(Math.max(0, S_T - strikePrice2) - premium2);
+
+                // Total Payoff for the spread strategy
+                const totalPayoffSpreadPerShare = payoffBoughtCallPerShare + payoffSoldCallPerShare;
+                const totalPayoff = totalPayoffSpreadPerShare * quantity;
+
+
+                const row = resultsBody.insertRow();
+                row.insertCell().textContent = stockPriceAtExpiration.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                row.insertCell().textContent = (payoffBoughtCallPerShare * quantity).toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                row.insertCell().textContent = (payoffSoldCallPerShare * quantity).toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                row.insertCell().textContent = totalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            });
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            form.reset();
+            // Reset to default values for inputs
+            document.getElementById('quantity').value = '100';
+            document.getElementById('strikePrice1').value = '100';
+            document.getElementById('premium1').value = '1.5';
+            document.getElementById('strikePrice2').value = '105';
+            document.getElementById('premium2').value = '0.5';
+            document.getElementById('initialValue').value = '95';
+            document.getElementById('finalValue').value = '110';
+            document.getElementById('divisions').value = '10';
+
+            const initialMessage =
+                "{% if request.session.language == "en" %}\
+                Enter parameters and click 'Calculate' to see results.\
+                {% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.\
+                {% endif %}"
+            resultsBody.innerHTML = `<tr><td colspan="4" class="text-center">${initialMessage}</td></tr>`;
+        });
+    }
+})();
+</script>
