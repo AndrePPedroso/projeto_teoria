@@ -62,6 +62,12 @@
         border-color: #88bbff;
         box-shadow: 0 0 0 0.2rem rgba(99, 157, 255, 0.25);
     }
+    .chart-container {
+        position: relative;
+        height: 60vh; 
+        margin-top: 2rem;
+        display: none; /* Initially hidden until calculated */
+    }
 </style>
 
 <div class="simple-combination-container container mt-3">
@@ -115,6 +121,9 @@
                 <tr><td colspan="3" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
             </tbody>
         </table>
+    </div>
+    <div id="payoffChartContainer" class="chart-container">
+        <canvas id="payoffChartCanvas"></canvas>
     </div>
 </div>
 <div class="modal fade" id="callpuExplanationModal" tabindex="-1" aria-labelledby="callpuExplanationModalLabel" aria-hidden="true">
@@ -210,6 +219,86 @@
     const resultsBody = document.getElementById('resultsBody');
     const form = document.getElementById('simpleCombinationForm');
 
+    const canvas = document.getElementById('payoffChartCanvas');
+    const chartContainer = document.getElementById('payoffChartContainer');
+
+    let payoffChart;
+
+    const lang = '{{ request.session.language | default:"en" }}';
+    const initialMessage = lang === 'en' ? "Enter parameters and click 'Calculate' to see results." : "Insira os parâmetros e clique em 'Calcular' para ver os resultados.";
+
+
+    function drawChart(assetPrices, assetValues, putValues, comboValues) {
+        if (payoffChart) {
+            payoffChart.destroy();
+        }
+        chartContainer.style.display = 'block'; 
+
+        const ctx = canvas.getContext('2d');
+        const currentLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
+        
+        payoffChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: assetPrices,
+                datasets: [{
+                    label: lang === 'en' ? 'Asset Value' : 'Valor do Ativo',
+                    data: assetValues,
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderDash: [5, 5], // Dashed line
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1,
+                }, {
+                    label: lang === 'en' ? 'Put Value' : 'Valor da Put',
+                    data: putValues,
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderDash: [5, 5], // Dashed line
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1,
+                }, {
+                    label: lang === 'en' ? 'Total Combination' : 'Combinação Total',
+                    data: comboValues,
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    tension: 0.1,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: lang === 'en' ? 'Protective Put Strategy Payoff' : 'Gráfico da Estratégia Protective Put',
+                        font: { size: 16 }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: lang === 'en' ? 'Asset Price at Expiration' : 'Preço do Ativo no Vencimento' },
+                        ticks: {
+                           callback: (val, i) => new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(assetPrices[i])
+                        }
+                    },
+                    y: {
+                        title: { display: true, text: lang === 'en' ? 'Value at Expiration' : 'Valor no Vencimento' },
+                         ticks: {
+                           callback: (val) => new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(val)
+                        }
+                    }
+                },
+            }
+        });
+    }
     if (calculateBtn) {
         calculateBtn.addEventListener('click', function() {
             const quantity = parseFloat(document.getElementById('quantity').value) || 0;
@@ -238,17 +327,29 @@
 
 
             // --- Calculation Logic ---
-            const stockPricesAtExpiration = []; // S_T values
+            const assetPrices = [];
+            const assetValues = [];
+            const putValues = [];
+            const combinationValues = [];
             const step = (finalValue - initialValue) / (divisions - 1);
+            
             for (let i = 0; i < divisions; i++) {
-                stockPricesAtExpiration.push(initialValue + (i * step));
+                const S_T = initialValue + (i * step); // S_T = Asset Price at Expiration
+                const assetValueAtExpiration = S_T * quantity;
+                const putOptionValueAtExpiration = Math.max(0, strikePriceE - S_T) * quantity;
+                const combinationValue = assetValueAtExpiration + putOptionValueAtExpiration;
+    
+                assetPrices.push(S_T);
+                assetValues.push(assetValueAtExpiration);
+                putValues.push(putOptionValueAtExpiration);
+                combinationValues.push(combinationValue);
             }
-
+            
             resultsBody.innerHTML = '';
-            const currentLocale = 'pt-BR'; // Use 'pt-BR' to match the R$ currency style in the image
-
-            stockPricesAtExpiration.forEach(S_T => {
-                // Column 1: Asset Value at Expiration (S_T)
+            const currentLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
+            const currencyOpts = { style: 'currency', currency: 'BRL' };
+    
+            assetPrices.forEach(S_T => {
                 const assetValueAtExpiration = S_T;
 
                 // Column 2: Put Option Value at Expiration (max(0, E - S_T))
@@ -262,12 +363,15 @@
                 row.insertCell().textContent = putOptionValueAtExpiration.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 row.insertCell().textContent = combinationValue.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
             });
+            drawChart(assetPrices, assetValues, putValues, combinationValues);
+
         });
     }
 
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
             form.reset();
+            chartContainer.style.display = 'none'; 
             // Set default values back if needed, as form.reset() might not restore them
             document.getElementById('quantity').value = "10";
             document.getElementById('strikePriceE').value = "110";

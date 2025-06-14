@@ -44,9 +44,16 @@
         border-color: #d39e00;
     }
     .input-group-text {
-        min-width: 40px; /* For Q, E, n labels */
+        min-width: 40px; 
         justify-content: center;
     }
+    .chart-container {
+        position: relative;
+        height: 60vh; 
+        margin-top: 2rem;
+        display:none;
+    }
+
 </style>
 
 <div class="payoff-calculator-container container mt-3">
@@ -131,6 +138,9 @@
                 <tr><td colspan="3" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
             </tbody>
         </table>
+    </div>
+    <div id="payoffChartContainer" class="chart-container">
+        <canvas id="payoffChartCanvas"></canvas>
     </div>
 </div>
 <div class="modal fade" id="callExplanationModal" tabindex="-1" aria-labelledby="callpuExplanationModalLabel" aria-hidden="true">
@@ -227,6 +237,127 @@
     const form = document.getElementById('payoffForm');
     const simTypeBuyRadio = document.getElementById('simTypeBuy'); // If checked, implies Call Option
     const simTypeSellRadio = document.getElementById('simTypeSell'); // If checked, implies Put Option
+    const canvas = document.getElementById('payoffChartCanvas');
+    const chartContainer = document.getElementById('payoffChartContainer');
+    const translations = {
+        en: {
+            quantityError: "Quantity must be a number between 1 and 100,000.",
+            strikeError: "Strike Price must be a number between 1 and 100,000.",
+            initialPriceError: "Min Price must be a number between 1 and 100,000.",
+            finalPriceError: "Max Price must be a number between 1 and 100,000.",
+            divisionsError: "Steps must be an integer between 5 and 50.",
+            initialMessage: "Enter parameters and click 'Calculate' to see results.",
+            chartTitle: "Option Payoff Diagram",
+            holderPayoff: "Holder's Payoff",
+            writerPayoff: "Writer's Payoff",
+            stockPriceAxis: "Stock Price @ Expiration",
+            payoffAxis: "Total Payoff"
+        },
+        pt: {
+            quantityError: "A Quantidade deve ser um número entre 1 e 100.000.",
+            strikeError: "O Preço de Exercício deve ser um número entre 1 e 100.000.",
+            initialPriceError: "O Preço Mínimo deve ser um número entre 1 e 100.000.",
+            finalPriceError: "O Preço Máximo deve ser um número entre 1 e 100.000.",
+            divisionsError: "Os Passos devem ser um número inteiro entre 5 e 50.",
+            initialMessage: "Insira os parâmetros e clique em 'Calcular' para ver os resultados.",
+            chartTitle: "Gráfico de Payoff da Opção",
+            holderPayoff: "Resultado do Titular",
+            writerPayoff: "Resultado do Lançador",
+            stockPriceAxis: "Preço da Ação no Vencimento",
+            payoffAxis: "Resultado Total"
+        }
+    };
+    const T = translations['{{ request.session.language | default:"en" }}' || 'en'];
+
+    let payoffChart;
+    function drawChart(stockPrices, holderPayoffs, writerPayoffs) {
+        if (payoffChart) {
+            payoffChart.destroy();
+        }
+        chartContainer.style.display = 'block'; // Show the chart container
+        const ctx = canvas.getContext('2d');
+        const currentLocale = '{{ request.session.language | default:"en" }}' === 'pt' ? 'pt-BR' : 'en-US';
+
+        payoffChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stockPrices,
+                datasets: [{
+                    label: T.holderPayoff,
+                    data: holderPayoffs,
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                }, {
+                    label: T.writerPayoff,
+                    data: writerPayoffs,
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: T.chartTitle,
+                        font: { size: 16 }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: T.stockPriceAxis
+                        },
+                        ticks: {
+                           callback: function(value, index, values) {
+                               const price = stockPrices[index];
+                               return new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(price);
+                           }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: T.payoffAxis
+                        },
+                         ticks: {
+                           callback: function(value, index, values) {
+                               return new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(value);
+                           }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+            }
+        });
+    }
 
     if (calculateBtn) {
         calculateBtn.addEventListener('click', function() {
@@ -289,6 +420,9 @@
             
 
             const stockPrices = [];
+            const holderPayoffs = [];
+            const writerPayoffs = [];
+    
             const step = (finalStockPrice - initialStockPrice) / (divisions - 1);
             for (let i = 0; i < divisions; i++) {
                 stockPrices.push(initialStockPrice + (i * step));
@@ -309,24 +443,29 @@
                 
                 let holderTotalPayoff = holderPayoffPerShare * quantity;
                 let writerTotalPayoff = -holderTotalPayoff;
-
+                holderPayoffs.push(holderTotalPayoff);
+                writerPayoffs.push(writerTotalPayoff);    
                 const row = resultsBody.insertRow();
                 const currentLocale ='en-US';
 
                 row.insertCell().textContent = S.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
                 row.insertCell().textContent = holderTotalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
                 row.insertCell().textContent = writerTotalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+                drawChart(stockPrices, holderPayoffs, writerPayoffs);
+
             });
         });
     }
-
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
             form.reset(); 
             if (simTypeBuyRadio) { 
                 simTypeBuyRadio.checked = true;
             }
-            
+            if (payoffChart) {
+                payoffChart.destroy();
+                chartContainer.style.display = 'none'; 
+            }    
             const initialMessage = 
                 "{% if request.session.language == "en" %}\
                 Enter parameters and click 'Calculate' to see results.\

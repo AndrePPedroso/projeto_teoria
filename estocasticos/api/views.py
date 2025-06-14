@@ -84,6 +84,7 @@ def markov_simulator(request):
                     row = []
                     for j in range(num_states):
                         prob = float(request.POST[f"transition_matrix[{i}][{j}]"])
+                        prob=prob/100
                         row.append(prob)
                     transition_matrix.append(row)
             except ValueError:
@@ -93,6 +94,7 @@ def markov_simulator(request):
             initial_percentages = []
             for i in range(num_states):
                 percentage = float(request.POST[f"initial_percentages[{i}]"])
+                percentage = percentage / 100  # Convert to decimal
                 initial_percentages.append(percentage)
             
             # Get number of iterations

@@ -35,7 +35,7 @@
         <!-- Transition Matrix -->
         <div class="form-group grid gap-6">
             <label >
-                {% if request.session.language == 'en' %}Transition matrix:{% else %}Matriz de transição:{% endif %}
+                {% if request.session.language == 'en' %}Transition matrix: Chance (%) of going from one state to the other{% else %}Matriz de transição: Probabilidade (%) de mudar de estado{% endif %}
             </label>
             <div id="transition_matrix_container"></div>
         </div>
@@ -100,9 +100,9 @@
                     // Create input for each transition probability
                     const input = document.createElement('input');
                     input.type = 'number';
-                    input.step = '0.01';
+                    input.step = '1';
                     input.min = '0';
-                    input.max = '1';
+                    input.max = '100';
                     input.className = 'form-control mr-4';
                     input.name = `transition_matrix[${i}][${j}]`;
                     input.placeholder = `P(${states[i]}→${states[j]})`;
@@ -110,8 +110,8 @@
                     
                     // Add event listener to enforce 0-1 range
                     input.addEventListener('input', function() {
-                        if (this.value > 1) {
-                            this.value = 1;
+                        if (this.value > 100) {
+                            this.value = 100;
                         } else if (this.value < 0) {
                             this.value = 0;
                         }
@@ -145,18 +145,18 @@
                 // Create input for each state's initial percentage
                 const input = document.createElement('input');
                 input.type = 'number';
-                input.step = '0.01';
+                input.step = '1';
                 input.min = '0';
-                input.max = '1';
+                input.max = '100';
                 input.className = 'form-control';
                 input.name = `initial_percentages[${i}]`;
-                input.placeholder = `e.g., 0.5`;
+                input.placeholder = `e.g., 50`;
                 input.style.width = '180px';
                 
                 // Add event listener to enforce 0-1 range
                 input.addEventListener('input', function() {
-                    if (this.value > 1) {
-                        this.value = 1;
+                    if (this.value > 100) {
+                        this.value = 100;
                     } else if (this.value < 0) {
                         this.value = 0;
                     }
@@ -180,7 +180,7 @@
         // Check transition matrix inputs
         transitionInputs.forEach(input => {
             const value = parseFloat(input.value);
-            if (isNaN(value) || value < 0 || value > 1) {
+            if (isNaN(value) || value < 0 || value > 100) {
                 isValid = false;
                 invalidInputs.push(input);
                 input.classList.add('is-invalid');
@@ -192,7 +192,7 @@
         // Check initial percentage inputs
         initialPercentageInputs.forEach(input => {
             const value = parseFloat(input.value);
-            if (isNaN(value) || value < 0 || value > 1) {
+            if (isNaN(value) || value < 0 || value > 100) {
                 isValid = false;
                 invalidInputs.push(input);
                 input.classList.add('is-invalid');
@@ -213,7 +213,7 @@
                 }
                 
                 // Check if row sum is approximately 1 (allowing for small floating point errors)
-                if (Math.abs(rowSum - 1) > 0.01) {
+                if (Math.abs(rowSum - 100) > 0.01) {
                     isValid = false;
                     for (let j = 0; j < numStates; j++) {
                         const inputName = `transition_matrix[${i}][${j}]`;
@@ -231,7 +231,7 @@
             initialSum += parseFloat(input.value) || 0;
         });
         
-        if (Math.abs(initialSum - 1) > 0.01) {
+        if (Math.abs(initialSum - 100) > 0.01) {
             isValid = false;
             initialPercentageInputs.forEach(input => {
                 input.classList.add('is-invalid');
