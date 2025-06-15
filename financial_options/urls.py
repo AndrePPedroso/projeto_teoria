@@ -13,5 +13,6 @@ urlpatterns = [
     path('financial_options/basic_concepts/call_put_options/', call_put_options_view, name='call_put_options'),
     path('financial_options/basic_concepts/asset_put_combination/', asset_put_combination_view, name='asset_put_combination'),
     path('financial_options/basic_concepts/bull_bear_spread/', bull_bear_spread_view, name='bull_bear_spread'),
+    path('financial_options/basic_concepts/collar_strategy_simulator/', collar_strategy_simulator_view, name='collar_strategy_simulator'),
 
 ]

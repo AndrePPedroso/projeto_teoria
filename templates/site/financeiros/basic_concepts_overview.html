@@ -1,13 +1,26 @@
-<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
-    <h1 class="text-3xl font-bold mb-8 text-dark">
-        {% if request.session.language == 'en' %}Basic Concepts{% else %}Conceitos Básicos{% endif %}
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100 py-5">
+
+    <h1 class="text-3xl font-bold mb-4 text-dark">
+        {% if request.session.language == 'en' %}Learning Modules{% else %}Módulos de Aprendizagem{% endif %}
     </h1>
 
-    <div class="row w-100 mt-5 justify-content-center">
+    <div class="text-center mb-5">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
+            {% if request.session.language == 'en' %}Modules Guide{% else %}Guia dos Módulos{% endif %}
+        </button>
+    </div>
+
+    <div class="w-100 text-center">
+        <h2 class="text-2xl font-bold mb-4 text-dark">
+            {% if request.session.language == 'en' %}Simple Options{% else %}Opções Simples{% endif %}
+        </h2>
+    </div>
+    
+    <div class="row w-100 justify-content-center">
         <div class="col-12 col-md-4 mb-4">
             <a href="{% url 'call_put_options' %}"
-               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center" {# Ensure nav-link class is here #}
-               data-url="{% url 'call_put_options' %}" {# Ensure data-url is here #}
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'call_put_options' %}"
                style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
                 <div class="card-body">
                     <h2 class="card-title h5 mb-2 text-dark">
@@ -19,11 +32,20 @@
                 </div>
             </a>
         </div>
+    </div>
 
+
+    <div class="w-100 text-center mt-5">
+        <h2 class="text-2xl font-bold mb-4 text-dark">
+            {% if request.session.language == 'en' %}Combining Options{% else %}Combinando Opções{% endif %}
+        </h2>
+    </div>
+
+    <div class="row w-100 justify-content-center">
         <div class="col-12 col-md-4 mb-4">
             <a href="{% url 'asset_put_combination' %}"
-               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center" {# ADDED nav-link class here #}
-               data-url="{% url 'asset_put_combination' %}" {# ADDED data-url attribute here #}
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'asset_put_combination' %}"
                style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
                 <div class="card-body">
                     <h2 class="card-title h5 mb-2 text-dark">
@@ -36,20 +58,92 @@
             </a>
         </div>
 
-        {% comment %} <div class="col-12 col-md-4 mb-4">
-            <a href="{% url 'bull_bear_spread' %}"
-               class="nav-link card bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center" {# Ensure nav-link class is here #}
-               data-url="{% url 'bull_bear_spread' %}" {# Ensure data-url is here #}
+        <div class="col-12 col-md-4 mb-4">
+            <a href="{% url 'collar_strategy_simulator' %}"
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'collar_strategy_simulator' %}"
                style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
                 <div class="card-body">
                     <h2 class="card-title h5 mb-2 text-dark">
-                        {% if request.session.language == 'en' %}Combination - bull and bear spread{% else %}Combinação - trava de alta e de baixa{% endif %}
+                        {% if request.session.language == 'en' %}Collar Strategy (Risk-Free Portfolio){% else %}Estratégia Collar (Portfólio Livre de Risco){% endif %}
                     </h2>
                     <p class="card-text text-secondary small">
-                        {% if request.session.language == 'en' %}Understand bull and bear spread option strategies.{% else %}Compreenda as estratégias de opções de trava de alta e de baixa.{% endif %}
+                        {% if request.session.language == 'en' %}Simulate combining a stock, a short call, and a long put to create a fixed return.{% else %}Simule a combinação de uma ação, uma call vendida e uma put comprada para criar um retorno fixo.{% endif %}
                     </p>
                 </div>
             </a>
-        </div> {% endcomment %}
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="conceptsExplanationModal" tabindex="-1" aria-labelledby="conceptsExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="conceptsExplanationModalLabel">
+            {% if request.session.language == 'en' %}Guide to Learning Modules{% else %}Guia dos Módulos de Aprendizagem{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <h4>{% if request.session.language == 'en' %}1. Simple Options{% else %}1. Opções Simples{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To study the isolated behavior of a single option. The "Call and Put Options" module allows you to simulate the result of buying or selling a call or a put individually, helping to understand the fundamental payoff of each operation.
+                {% else %}
+                Estudar o comportamento isolado de uma opção. O módulo "Opções de compra e de venda" permite simular o resultado da compra ou da venda de uma call ou de uma put isoladamente, ajudando a entender o payoff fundamental de cada operação.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}2. Combining Options{% else %}2. Combinando Opções{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To study more complex investment strategies involving options.
+                {% else %}
+                Estudar estratégias de investimentos mais complexas envolvendo opções.
+                {% endif %}
+            </p>
+            <blockquote class="blockquote fst-italic bg-light p-2 rounded">
+                {% if request.session.language == 'en' %}
+                <p class="mb-0">"a strategy in the options market can offset another strategy, resulting in risk-free returns or financing operations for its executor."</p>
+                <footer class="blockquote-footer">Correia Neto (2011, p.342)</footer>
+                {% else %}
+                <p class="mb-0">“uma estratégia no mercado de opções pode compensar outra estratégia, resultando em retornos sem riscos ou financiando operações para o seu executor.”</p>
+                <footer class="blockquote-footer">Correia Neto (2011, p.342)</footer>
+                {% endif %}
+            </blockquote>
+
+            <h5 class="mt-3">{% if request.session.language == 'en' %}2.1 Strategy 1: Purchase of the Asset and a Put Option{% else %}2.1 Estratégia 1: Compra do Ativo e da Opção de Venda{% endif %}</h5>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To simultaneously buy a put option on an asset and the asset itself. This is a classic protective strategy, where the put acts as an insurance policy against a fall in the asset's price.
+                {% else %}
+                Comprar simultaneamente uma opção de venda sobre um ativo e o próprio ativo. Trata-se de uma estratégia clássica de proteção (hedge), onde a put funciona como um seguro contra a queda no preço do ativo.
+                {% endif %}
+            </p>
+
+            <h5 class="mt-3">{% if request.session.language == 'en' %}2.2 Strategy 2: Collar Strategy{% else %}2.2 Estratégia 2: Estratégia Collar{% endif %}</h5>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To simultaneously buy a put option and the asset itself, in addition to selling a call option. In certain conditions, this strategy locks in a fixed result, demonstrating the put-call parity relationship (Correia Neto, 2011).
+                {% else %}
+                Comprar simultaneamente uma opção de venda sobre um ativo e o próprio ativo, além de uma venda de uma opção de compra. Sob certas condições, essa estratégia trava um resultado fixo, o que evidencia a relação de paridade entre opções de compra e venda (Correia Neto, 2011).
+                {% endif %}
+            </p>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
     </div>
 </div>

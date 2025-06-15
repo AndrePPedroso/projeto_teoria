@@ -1,0 +1,456 @@
+<style>
+    /* Estilos específicos para a calculadora da estratégia Collar */
+    .collar-calculator-container {
+        padding: 20px;
+        background-color: #f8f9fa; /* Fundo claro para o container */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .collar-calculator-container h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        color: #343a40; /* Título mais escuro */
+    }
+    .form-section {
+        background-color: #e9ecef; /* Fundo mais claro para a área de inputs */
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .form-section label {
+        font-weight: 500;
+    }
+    .results-table th {
+        background-color: #343a40; /* Cabeçalho escuro para a tabela */
+        color: white;
+    }
+    .btn-calculate {
+        background-color: #28a745; /* Verde para calcular */
+        border-color: #28a745;
+        color: white;
+    }
+    .btn-calculate:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-clear {
+        background-color: #ffc107; /* Amarelo para limpar */
+        border-color: #ffc107;
+        color: #212529;
+    }
+    .btn-clear:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+    .input-group-text {
+        min-width: 40px; 
+        justify-content: center;
+    }
+    .chart-container {
+        position: relative;
+        height: 60vh; 
+        margin-top: 2rem;
+        display:none; /* Inicia oculto */
+    }
+</style>
+
+<div class="collar-calculator-container container mt-3">
+    
+    <h1>{% if request.session.language == 'en' %}"Collar" Strategy Simulator (Risk-Free Portfolio){% else %}Simulador de Estratégia "Collar" (Portfólio Livre de Risco){% endif %}</h1>
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#collarExplanationModal">
+            {% if request.session.language == 'en' %}Learn More About This Strategy{% else %}Saiba Mais Sobre Esta Estratégia{% endif %}
+        </button>
+    </div>
+    <div class="form-section">
+        <form id="collarForm">
+            <div class="row">
+                <div class="col-md-4 col-lg-3 mb-3">
+                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity{% else %}Quantidade de Ações{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" id="quantity" value="100">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3 mb-3">
+                    <label for="purchasePrice" class="form-label">{% if request.session.language == 'en' %}Stock Purchase Price{% else %}Preço de Compra da Ação{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control" id="purchasePrice" value="50">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3 mb-3">
+                    <label for="strikePrice" class="form-label">{% if request.session.language == 'en' %}Options Strike Price{% else %}Preço de Exercício (Opções){% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">E</span>
+                        <input type="number" class="form-control" id="strikePrice" value="55">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 col-lg-3 mb-3">
+                    <label for="minStockPrice" class="form-label">{% if request.session.language == 'en' %}Min Final Stock Price{% else %}Preço Mínimo Final da Ação{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control" id="minStockPrice" value="40">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3 mb-3">
+                    <label for="maxStockPrice" class="form-label">{% if request.session.language == 'en' %}Max Final Stock Price{% else %}Preço Máximo Final da Ação{% endif %}</label>
+                    <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    <input type="number" class="form-control" id="maxStockPrice" value="60">
+                </div>
+                </div>
+                <div class="col-md-4 col-lg-2 mb-3">
+                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Steps{% else %}Passos{% endif %}</label>
+                     <div class="input-group">
+                        <span class="input-group-text">n</span>
+                        <input type="number" class="form-control" id="divisions" value="5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <button type="button" id="clearButton" class="btn btn-clear me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
+                    <button type="button" id="calculateButton" class="btn btn-calculate">{% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-4 table-responsive">
+        <table class="table table-bordered table-striped table-hover results-table">
+            <thead>
+                <tr>
+                    <th>{% if request.session.language == 'en' %}Stock Price{% else %}Preço da Ação{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Stock Result{% else %}Resultado da Ação{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Sold Call Result{% else %}Resultado da Call Vendida{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Bought Put Result{% else %}Resultado da Put Comprada{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Total Result{% else %}Resultado Total{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <tr><td colspan="5" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="payoffChartContainer" class="chart-container">
+        <canvas id="payoffChartCanvas"></canvas>
+    </div>
+</div>
+
+<div class="modal fade" id="collarExplanationModal" tabindex="-1" aria-labelledby="collarExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="collarExplanationModalLabel">
+            {% if request.session.language == 'en' %}Understanding the "Collar" Strategy{% else %}Compreendendo a Estratégia "Collar"{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h4>{% if request.session.language == 'en' %}What is a "Collar"?{% else %}O que é um "Collar"?{% endif %}</h4>
+            <p>
+                {% if request.session.language == 'en' %}
+                The "Collar" (also known as a "Range Forward") is an options strategy implemented to protect against large losses, but it also limits large gains. It's a form of hedging often used by investors who have a substantial unrealized gain in a stock and want to protect it from a downturn.
+                {% else %}
+                O "Collar" (também conhecido como "Range Forward" ou "túnel") é uma estratégia com opções implementada para proteger contra grandes perdas, mas que também limita grandes ganhos. É uma forma de hedge (proteção) frequentemente usada por investidores que têm um ganho não realizado substancial em uma ação e querem protegê-lo de uma queda.
+                {% endif %}
+            </p>
+
+            <h5>{% if request.session.language == 'en' %}How is it constructed?{% else %}Como ela é construída?{% endif %}</h5>
+            <p>
+                {% if request.session.language == 'en' %}
+                The strategy involves three simultaneous operations:
+                <ol>
+                    <li><b>Owning the Underlying Asset:</b> You start by owning the shares of a stock.</li>
+                    <li><b>Selling a Call Option:</b> You sell an out-of-the-money (OTM) call option. The premium received from selling this call helps to offset the cost of the next step.</li>
+                    <li><b>Buying a Put Option:</b> You buy an out-of-the-money (OTM) put option. This put option protects you if the stock price falls, acting as an insurance policy.</li>
+                </ol>
+                Often, the strike prices are chosen so that the premium received from the call is close to the premium paid for the put, resulting in a low or zero-cost setup.
+                {% else %}
+                A estratégia envolve três operações simultâneas:
+                <ol>
+                    <li><b>Posse do Ativo Subjacente:</b> Você começa possuindo as ações de uma empresa.</li>
+                    <li><b>Venda de uma Opção de Compra (Call):</b> Você vende uma opção de compra fora-do-dinheiro (OTM). O prêmio recebido pela venda desta call ajuda a compensar o custo do próximo passo.</li>
+                    <li><b>Compra de uma Opção de Venda (Put):</b> Você compra uma opção de venda fora-do-dinheiro (OTM). Esta opção de venda protege você se o preço da ação cair, funcionando como uma apólice de seguro.</li>
+                </ol>
+                Muitas vezes, os preços de exercício são escolhidos de forma que o prêmio recebido pela call seja próximo ao prêmio pago pela put, resultando em uma montagem de baixo ou custo zero.
+                {% endif %}
+            </p>
+
+            <h5>{% if request.session.language == 'en' %}Creating a Risk-Free Portfolio{% else %}Criando um Portfólio Livre de Risco{% endif %}</h5>
+            <p>
+                {% if request.session.language == 'en' %}
+                In the specific scenario of this simulator, where the strike price for both the call and the put is the same, the strategy creates what is known as a <strong>synthetic forward contract</strong>. This locks in a future selling price for the stock.
+                <br>The final result becomes independent of the stock's market price at expiration, creating a "risk-free" outcome. The final profit or loss is determined at the moment the position is established.
+                <br>The total result is calculated as: `(Strike Price - Stock Purchase Price) * Quantity + Net Premium`. As you can see, the final stock price is not part of the equation, guaranteeing a fixed result.
+                {% else %}
+                No cenário específico deste simulador, onde o preço de exercício (strike) para a call e a put é o mesmo, a estratégia cria o que é conhecido como um <strong>contrato a termo sintético</strong>. Isso trava um preço de venda futuro para a ação.
+                <br>O resultado final torna-se independente do preço de mercado da ação no vencimento, criando um resultado "livre de risco". O lucro ou prejuízo final é determinado no momento em que a posição é estabelecida.
+                <br>O resultado total é calculado como: `(Preço de Exercício - Preço de Compra da Ação) * Quantidade + Prêmio Líquido`. Como você pode ver, o preço final da ação não faz parte da equação, garantindo um resultado fixo.
+                {% endif %}
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // DOM Elements
+    const calculateBtn = document.getElementById('calculateButton');
+    const clearBtn = document.getElementById('clearButton');
+    const resultsBody = document.getElementById('resultsBody');
+    const form = document.getElementById('collarForm');
+    const canvas = document.getElementById('payoffChartCanvas');
+    const chartContainer = document.getElementById('payoffChartContainer');
+
+    const T = {
+        en: {
+            initialMessage: "Enter parameters and click 'Calculate' to see results.",
+            chartTitle: "Payoff Diagram for Collar Strategy",
+            stockPriceAxis: "Stock Price @ Expiration",
+            payoffAxis: "Result (Payoff)",
+            stockResult: "Stock Result",
+            callResult: "Sold Call Result",
+            putResult: "Bought Put Result",
+            totalResult: "Total Result"
+        },
+        pt: {
+            initialMessage: "Insira os parâmetros e clique em 'Calcular' para ver os resultados.",
+            chartTitle: "Gráfico de Payoff da Estratégia Collar",
+            stockPriceAxis: "Preço da Ação no Vencimento",
+            payoffAxis: "Resultado (Payoff)",
+            stockResult: "Resultado da Ação",
+            callResult: "Resultado da Call Vendida",
+            putResult: "Resultado da Put Comprada",
+            totalResult: "Resultado Total"
+        }
+    };
+    const currentLang = '{{ request.session.language | default:"pt" }}';
+    const langT = T[currentLang];
+
+    let payoffChart;
+
+    function drawChart(stockPrices, stockResults, callResults, putResults, totalResults) {
+        if (payoffChart) {
+            payoffChart.destroy();
+        }
+        chartContainer.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        const currentLocale = currentLang === 'pt' ? 'pt-BR' : 'en-US';
+
+        payoffChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stockPrices,
+                datasets: [{
+                    label: langT.stockResult,
+                    data: stockResults,
+                    borderColor: 'rgba(0, 123, 255, 1)', // Blue
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    fill: false
+                }, {
+                    label: langT.callResult,
+                    data: callResults,
+                    borderColor: 'rgba(255, 193, 7, 1)', // Yellow
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    fill: false
+                }, {
+                    label: langT.putResult,
+                    data: putResults,
+                    borderColor: 'rgba(220, 53, 69, 1)', // Red
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    fill: false
+                }, {
+                    label: langT.totalResult,
+                    data: totalResults,
+                    borderColor: 'rgba(40, 167, 69, 1)', // Green
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    borderWidth: 4,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: langT.chartTitle, font: { size: 16 } },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: langT.stockPriceAxis },
+                        ticks: {
+                           callback: (value, index) => new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(stockPrices[index])
+                        }
+                    },
+                    y: {
+                        title: { display: true, text: langT.payoffAxis },
+                        ticks: {
+                           callback: (value) => new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(value)
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (calculateBtn) {
+        calculateBtn.addEventListener('click', function() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
+            const strikePrice = parseFloat(document.getElementById('strikePrice').value) || 0;
+            const minStockPrice = parseFloat(document.getElementById('minStockPrice').value) || 0;
+            const maxStockPrice = parseFloat(document.getElementById('maxStockPrice').value) || 0;
+            const divisions = parseInt(document.getElementById('divisions').value) || 1;
+
+            if ( maxStockPrice <= minStockPrice) {
+                resultsBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${currentLang === 'pt' ? '}O Valor Inicial não pode ser maior que o Valor Final.' : 'Initial Value cannot be greater than Final Value.'}</td></tr>`;
+                return;
+            }
+            if (quantity < 1 || quantity > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Quantity must be a number between 1 and 100,000.\
+                    {% else %}A Quantidade deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return;
+            }
+
+            else if (strikePrice < 1 || strikePrice > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Strike Price must be a number between 1 and 100,000.\
+                    {% else %}O Preço de Exercício deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return; 
+                }
+
+            else if (minStockPrice < 1 || minStockPrice > 100000) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Initial Stock Price must be a number between 1 and 100,000.\
+                    {% else %}O Valor Inicial da Ação deve ser um número entre 1 e 100.000.\
+                    {% endif %}</td></tr>';
+                    return; 
+            }
+            else if (maxStockPrice < 1 || maxStockPrice > 100000) {
+                    resultsBody.innerHTML = 
+                    '<tr><td colspan="3" class="text-center text-danger">\
+                        {% if request.session.language == "en" %}\
+                        Final Stock Price must be a number between 1 and 100,000.\
+                        {% else %}O Valor Final da Ação deve ser um número entre 1 e 100.000.\
+                        {% endif %}</td></tr>';
+                        return; 
+            }
+
+            else if (divisions < 5 || divisions > 50) {
+                resultsBody.innerHTML = 
+                '<tr><td colspan="3" class="text-center text-danger">\
+                    {% if request.session.language == "en" %}\
+                    Steps (Divisions) must be an integer between 5 and 50.\
+                    {% else %}Divisões (n) deve ser um número inteiro entre 5 e 50.\
+                    {% endif %}</td></tr>';
+                    return;            
+                }
+
+            // Data arrays for table and chart
+            const stockPrices = [];
+            const stockResults = [];
+            const callResults = [];
+            const putResults = [];
+            const totalResults = [];
+            
+            resultsBody.innerHTML = ''; // Clear previous results
+
+            const step = (maxStockPrice - minStockPrice) / (divisions - 1);
+            for (let i = 0; i < divisions; i++) {
+                const finalStockPrice = minStockPrice + (i * step);
+                stockPrices.push(finalStockPrice);
+
+                // 1. Resultado da Ação
+                const stockResult = (finalStockPrice - purchasePrice) * quantity;
+                
+                // 2. Resultado da Opção de Compra Vendida (Short Call)
+                // O resultado é negativo para o vendedor se a call for exercida
+                const callResult = -Math.max(0, finalStockPrice - strikePrice) * quantity;
+
+                // 3. Resultado da Opção de Venda Comprada (Long Put)
+                // O resultado é positivo para o comprador se a put for exercida
+                const putResult = Math.max(0, strikePrice - finalStockPrice) * quantity;
+
+                // 4. Resultado Total (incluindo prêmio líquido opcional por ação)
+                const totalResult = stockResult + callResult + putResult;
+                
+                stockResults.push(stockResult);
+                callResults.push(callResult);
+                putResults.push(putResult);
+                totalResults.push(totalResult);
+    
+                // Populate Table
+                const row = resultsBody.insertRow();
+                const currentLocale = currentLang === 'pt' ? 'pt-BR' : 'en-US';
+                const formatCurrency = (value) => value.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL' });
+                
+                row.insertCell().textContent = formatCurrency(finalStockPrice);
+                row.insertCell().textContent = formatCurrency(stockResult);
+                row.insertCell().textContent = formatCurrency(callResult);
+                row.insertCell().textContent = formatCurrency(putResult);
+                row.insertCell().textContent = formatCurrency(totalResult);
+            }
+            
+            drawChart(stockPrices, stockResults, callResults, putResults, totalResults);
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            form.reset();
+            if (payoffChart) {
+                payoffChart.destroy();
+                chartContainer.style.display = 'none'; 
+            }
+            resultsBody.innerHTML = `<tr><td colspan="5" class="text-center">${langT.initialMessage}</td></tr>`;
+        });
+    }
+})();
+</script>
+
+
+
+
+
+

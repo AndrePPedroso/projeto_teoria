@@ -71,49 +71,64 @@
 </style>
 
 <div class="simple-combination-container container mt-3">
-    <h1>{% if request.session.language == 'en' %}Combining Options: Asset Purchase and Put Option {% else %}Combinando opções: compra do ativo e da opção de vendas{% endif %}</h1>
+    <h1>{% if request.session.language == 'en' %}Asset Purchase and Put Option {% else %}Compra do ativo e da opção de venda{% endif %}</h1>
     <div class="text-center mb-4">
-        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#callpuExplanationModal">
-            {% if language == 'en' %}Learn More About {{ explanation.get_base_model_display }}{% else %}Saiba Mais Sobre {{ explanation.get_base_model_display }}{% endif %}
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#combinationExplanationModal">
+            {% if request.session.language == 'en' %}Learn More About This Strategy{% else %}Saiba Mais Sobre Esta Estratégia{% endif %}
         </button>
     </div>
     <div class="form-section">
         <form id="simpleCombinationForm">
-            <div class="row align-items-end"> {# align-items-end to keep labels/inputs aligned #}
+            <div class="row align-items-end">
                 <div class="col-md-2 mb-3">
-                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity (Q){% else %}Quantidade (Q){% endif %}</label>
-                    <input type="number" class="form-control" id="quantity" value="10" placeholder="10">
+                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity{% else %}Quantidade{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" id="quantity" value="10">
+                    </div>
                 </div>
                 <div class="col-md-2 mb-3">
-                    <label for="strikePriceE" class="form-label">{% if request.session.language == 'en' %}Strike Price (E){% else %}Preço de Exercício (E){% endif %}</label>
-                    <input type="number" class="form-control" id="strikePriceE" value="100" placeholder="110">
+                    <label for="strikePriceE" class="form-label">{% if request.session.language == 'en' %}Strike Price{% else %}Preço de Exercício{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">E</span>
+                        <input type="number" class="form-control" id="strikePriceE" value="100">
+                    </div>
                 </div>
                 <div class="col-md-2 mb-3">
                     <label for="initialValue" class="form-label">{% if request.session.language == 'en' %}Initial Value{% else %}Valor inicial{% endif %}</label>
-                    <input type="number" class="form-control" id="initialValue" value="100" placeholder="100">
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control" id="initialValue" value="100">
+                    </div>
                 </div>
                 <div class="col-md-2 mb-3">
                     <label for="finalValue" class="form-label">{% if request.session.language == 'en' %}Final Value{% else %}Valor final{% endif %}</label>
-                    <input type="number" class="form-control" id="finalValue" value="100" placeholder="105">
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control" id="finalValue" value="105">
+                    </div>
                 </div>
                 <div class="col-md-2 mb-3">
-                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Divisions (n){% else %}Divisões (n){% endif %}</label>
-                    <input type="number" class="form-control" id="divisions" value="10" placeholder="10">
+                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Divisions{% else %}Divisões{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">n</span>
+                        <input type="number" class="form-control" id="divisions" value="10">
+                    </div>
                 </div>
-                <div class="col-md-2 mb-3 text-end"> {# For buttons #}
+                <div class="col-md-2 mb-3 text-end">
                     <button type="button" id="clearButton" class="btn btn-custom-light-blue me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
                     <button type="button" id="calculateButton" class="btn btn-custom-blue">{% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}</button>
                 </div>
             </div>
-        </form>
+            </form>
     </div>
 
     <div class="mt-4 table-responsive">
         <table class="table table-bordered table-striped table-hover results-table">
             <thead>
                 <tr>
-                    <th>{% if request.session.language == 'en' %}Asset Value at Expiration{% else %}Valor dos ativos no vencimento{% endif %}</th>
-                    <th>{% if request.session.language == 'en' %}Put Option Value at Expiration{% else %}Valor da opção de venda no vencimento{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Asset Value at Expiration{% else %}Valor do Ativo no Vencimento{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Put Option Value at Expiration{% else %}Valor da Opção de Venda no Vencimento{% endif %}</th>
                     <th>{% if request.session.language == 'en' %}Combination{% else %}Combinação{% endif %}</th>
                 </tr>
             </thead>
@@ -124,6 +139,29 @@
     </div>
     <div id="payoffChartContainer" class="chart-container">
         <canvas id="payoffChartCanvas"></canvas>
+    </div>
+</div>
+
+<div class="modal fade" id="combinationExplanationModal" tabindex="-1" aria-labelledby="combinationExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="combinationExplanationModalLabel">{% if request.session.language == 'en' %}Strategy: Asset Purchase + Put Option{% else %}Estratégia: Compra do Ativo + Opção de Venda{% endif %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p>
+                {% if request.session.language == 'en' %}
+                This strategy is known as a <strong>Protective Put</strong>. It's like buying insurance for your stock. You own the asset, so you benefit if the price goes up. At the same time, you own a put option, which gives you the right to sell the asset at the strike price. If the stock's price falls sharply, you can exercise your put to sell at a higher price, limiting your potential losses.
+                {% else %}
+                Esta estratégia é conhecida como <strong>Put Protetora</strong>. É como comprar um seguro para sua ação. Você possui o ativo, então se beneficia se o preço subir. Ao mesmo tempo, você possui uma opção de venda, que lhe dá o direito de vender o ativo pelo preço de exercício (strike). Se o preço da ação cair bruscamente, você pode exercer sua put para vender por um preço mais alto, limitando suas perdas potenciais.
+                {% endif %}
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}</button>
+        </div>
+      </div>
     </div>
 </div>
 <div class="modal fade" id="callpuExplanationModal" tabindex="-1" aria-labelledby="callpuExplanationModalLabel" aria-hidden="true">

@@ -29,6 +29,11 @@ def call_put_options_view(request):
     return render(request, 'site/financeiros/call_put_options.html', {'title': 'Call and Put Options'})
 
 @login_required(login_url='/admin/login/')
+def collar_strategy_simulator_view(request):
+    return render(request, 'site/financeiros/collar_option.html', {'title': 'Collar Option Strategy Simulator'})
+
+
+@login_required(login_url='/admin/login/')
 def asset_put_combination_view(request):
     return render(request, 'site/financeiros/asset_put_combination.html', {'title': 'Combination - asset purchase and put option'})
 
