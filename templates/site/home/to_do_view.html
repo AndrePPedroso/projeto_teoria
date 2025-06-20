@@ -1,0 +1,19 @@
+<div class="text-center my-5 d-flex flex-column align-items-center justify-content-center"
+     style="min-height: 60vh;">
+    <div> {# No need for height:100% here, the flex container handles sizing #}
+        <h1>
+            {% if request.session.language == 'en' %}
+                In development
+            {% else %}
+                Em breve
+            {% endif %}
+        </h1>
+        <p class="lead text-muted">
+            {% if request.session.language == 'en' %}
+                We're working hard to bring this feature to you.
+            {% else %}
+                Estamos trabalhando para lançar essa funcionalidade.
+            {% endif %}
+        </p>
+    </div>
+</div>

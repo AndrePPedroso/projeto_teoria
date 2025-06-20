@@ -1,0 +1,87 @@
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100 py-5">
+
+    <h1 class="text-3xl font-bold mb-4 text-dark">
+        {% if request.session.language == 'en' %}Cox-Ross-Rubinstein Models{% else %}Modelos de Cox-Ross-Rubinstein{% endif %}
+    </h1>
+
+    <div class="text-center mb-5">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
+            {% if request.session.language == 'en' %}Models Guide{% else %}Guia dos Modelos{% endif %}
+        </button>
+    </div>
+    
+    <div class="row w-100 justify-content-center">
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'cox_ross_rubinstein' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}CRR - Discrete Time{% else %}CRR - Tempo Discreto{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}The foundational binomial model for option pricing in discrete steps.{% else %}O modelo binomial fundamental para precificação de opções em passos discretos.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'to_do' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}CRR - Continuous Time{% else %}CRR - Tempo Contínuo{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Approximating the Black-Scholes model using an infinite number of steps.{% else %}Aproximando o modelo Black-Scholes usando um número infinito de passos.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="conceptsExplanationModal" tabindex="-1" aria-labelledby="conceptsExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="conceptsExplanationModalLabel">
+            {% if request.session.language == 'en' %}Guide to Cox-Ross-Rubinstein Models{% else %}Guia dos Modelos Cox-Ross-Rubinstein{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <h4>{% if request.session.language == 'en' %}1. CRR - Discrete Time{% else %}1. CRR - Tempo Discreto{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To understand the original Cox-Ross-Rubinstein (CRR) binomial option pricing model. This model prices options by constructing a binomial tree, where the underlying asset's price can move up or down at each discrete time step. It's a powerful tool for illustrating the concept of risk-neutral valuation and dynamic hedging.
+                {% else %}
+                Compreender o modelo original de precificação de opções binomial de Cox-Ross-Rubinstein (CRR). Este modelo precifica opções construindo uma árvore binomial, onde o preço do ativo subjacente pode subir ou descer a cada passo discreto de tempo. É uma ferramenta poderosa para ilustrar o conceito de avaliação neutra ao risco e hedge dinâmico.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}2. CRR - Continuous Time{% else %}2. CRR - Tempo Contínuo{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To explore how the Cox-Ross-Rubinstein binomial model converges to the Black-Scholes model as the number of time steps approaches infinity. This continuous-time approximation demonstrates the deep connection between discrete-time and continuous-time option pricing frameworks, highlighting the robustness of the binomial model for practical applications with many steps.
+                {% else %}
+                Explorar como o modelo binomial de Cox-Ross-Rubinstein converge para o modelo Black-Scholes à medida que o número de passos de tempo se aproxima do infinito. Essa aproximação em tempo contínuo demonstra a profunda conexão entre os frameworks de precificação de opções em tempo discreto e contínuo, destacando a robustez do modelo binomial para aplicações práticas com muitos passos.
+                {% endif %}
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>

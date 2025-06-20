@@ -10,6 +10,10 @@ urlpatterns = [
     path('api/cox-ross-rubinstein/', cox_ross_rubinstein_view, name='cox_ross_rubinstein_api'),
     path('precificar/', precificar_opcao_view, name='precificar_opcao'),
     path('financial_options/basic_concepts/overview/', basic_concepts_overview_view, name='basic_concepts_overview'),
+    path('financial_options/black_scholes/overview/', black_scholes_overview_view, name='black_scholes_overview'),
+    path('financial_options/cox_ross/overview/', cox_ross_overview_view, name='cox_ross_overview'),
+    path('financial_options/monte_carlo/overview/', monte_carlo_overview_view, name='monte_carlo_overview'),
+
     path('financial_options/basic_concepts/call_put_options/', call_put_options_view, name='call_put_options'),
     path('financial_options/basic_concepts/asset_put_combination/', asset_put_combination_view, name='asset_put_combination'),
     path('financial_options/basic_concepts/bull_bear_spread/', bull_bear_spread_view, name='bull_bear_spread'),

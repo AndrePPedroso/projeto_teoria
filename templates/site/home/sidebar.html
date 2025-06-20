@@ -1,0 +1,140 @@
+<div class="sidebar">
+    <a class="text-center" style="font-size:24px;" href="/home">Menu</a>
+    <div class="accordion-section">
+        <input type="checkbox" id="accordion-1" class="accordion-checkbox">
+        <label class="accordion-label d-flex justify-content-between" for="accordion-1">
+            <div>
+                {% if request.session.language == 'en' %}Stochastic Processes {% else %}Processos Estocásticos{% endif %}
+            </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </label>
+        <div class="accordion-content">
+            <a class="nav-link" data-url="{% url 'cadeia_markov' %}">
+                {% if request.session.language == 'en' %}Markov Chains{% else %}Cadeias de Markov{% endif %}
+            </a>
+            <a class="nav-link" data-url="{% url 'random_walk_template' %}">
+                Random Walk
+            </a>
+            <a class="nav-link" data-url="{% url 'random_walk_normal' %}">
+                Random Walk Normal
+            </a>
+            <a class="nav-link" data-url="{% url 'monte_carlos' %}">
+                {% if request.session.language == 'en' %}GBM - Wiener{% else %}MGB - Wiener{% endif %}
+            </a>
+            <a class="nav-link" data-url="{% url 'mbg_ito' %}">
+                {% if request.session.language == 'en' %}GBM - Itô{% else %}MGB - Itô{% endif %}
+            </a>
+            <a class="nav-link" data-url="{% url 'modelo_reversao_media' %}">
+                {% if request.session.language == 'en' %}Mean Reversion Model{% else %}Modelo de Reversão a Média{% endif %}
+            </a>
+        </div>
+    </div>
+    <div class="accordion-section">
+        <input type="checkbox" id="accordion-2" class="accordion-checkbox">
+        <label class="accordion-label d-flex justify-content-between" for="accordion-2">
+            <div>
+                {% if request.session.language == 'en' %}Finantial Options {% else %}Opções Financeiras{% endif %}
+            </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </label>
+        <div class="accordion-content">
+            <a class="nav-link" data-url="{% url 'basic_concepts_overview' %}">
+                {% if request.session.language == 'en' %}Basic Concepts{% else %}Conceitos Básicos{% endif %}
+            </a>   
+            <a class="nav-link" data-url="{% url 'volatilidade_template' %}">
+                {% if request.session.language == 'en' %}Return and volatility: <span class="fs-6">discrete and continuous</span>{% else %}Retorno e volatilidade: <span class="fs-6">discreto e contínuo</span> {% endif %}
+            </a>
+            <a class="nav-link" data-url="{% url 'black_scholes_overview' %}">
+                {% if request.session.language == 'en' %}Black Scholes Merton Models{% else %}Modelos Black Scholes Merton{% endif %}
+            </a>
+            <a class="nav-link" data-url="{% url 'cox_ross_overview' %}">
+                {% if request.session.language == 'en' %}Cox-Ross-Rubinstein Models{% else %}Modelos Cox-Ross-Rubinstein{% endif %}
+            </a>
+            <a class="nav-link" data-url="{% url 'monte_carlo_overview' %}">
+                {% if request.session.language == 'en' %}Monte Carlo Option Models{% else %}Modelos de Precificação de Opções por Monte Carlo{% endif %}
+            </a>
+        </div>
+    </div>
+    <div class="accordion-section">
+        <input type="checkbox" id="accordion-3" class="accordion-checkbox">
+        <label class="accordion-label d-flex justify-content-between" for="accordion-3">
+            <div>
+                {% if request.session.language == 'en' %}Real Options{% else %}Opções Reais{% endif %}
+            </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </label>
+        <div class="accordion-content">
+            <a class="nav-link" data-url="{% url 'binomial_model' %}">
+                {% if request.session.language == 'en' %}Binomial model{% else %}Modelo binomial{% endif %}
+            </a>
+
+            <!-- Copeland & Antikarov Method -->
+            <a class="nav-link" data-url="{% url 'copeland_antikarov_volatility' %}">
+                {% if request.session.language == 'en' %}Copeland & Antikarov Method{% else %}Método de Copeland & Antikarov{% endif %}
+            </a>
+            
+            <!-- Herath & Park Method -->
+            <a class="nav-link" data-url="{% url 'herath_park_volatility' %}">
+                {% if request.session.language == 'en' %}Herath & Park Method{% else %}Método de Herath & Park{% endif %}
+            </a>
+        </div>
+    </div>
+    <div class="accordion-section">
+        <input type="checkbox" id="accordion-4" class="accordion-checkbox">
+        <label data-url="{% url 'to_do' %}" class="nav-link accordion-label d-flex justify-content-between" for="accordion-4">
+            <div>
+                    {% if request.session.language == 'en' %}Theory of Games{% else %}Teoria dos Jogos{% endif %}
+            </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </label>
+        {% comment %} <div class="accordion-content">
+            <a href="{% url 'binomial_model' %}" class="nav-link" data-url="{% url 'binomial_model' %}">
+                {% if request.session.language == 'en' %}Binomial model{% else %}Modelo binomial{% endif %}
+            </a>
+        </div> {% endcomment %}
+    </div>
+    <div class="accordion-section">
+        <input type="checkbox" id="accordion-5" class="accordion-checkbox">
+        <label data-url="{% url 'to_do' %}" class="nav-link accordion-label d-flex justify-content-between" for="accordion-4">
+            <div>
+                {% if request.session.language == 'en' %}Aplications{% else %}Aplicações{% endif %}
+            </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </label>
+        {% comment %} <div class="accordion-content">
+            <a href="{% url 'binomial_model' %}" class="nav-link" data-url="{% url 'binomial_model' %}">
+                {% if request.session.language == 'en' %}Binomial model{% else %}Modelo binomial{% endif %}
+            </a>
+        </div> {% endcomment %}
+    </div>
+    <div class="mt-auto px-2">
+        <select id="languageSelect" class="form-control px-2" onchange="updateLanguage(this.value)">
+            <option class="" value="pt" {% if request.session.language == 'pt' %}selected{% endif %}>Portuguese</option>
+            <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
+        </select>
+        
+        <a href="{% url 'custom-logout' %}" class="mt-auto">
+            {% if request.session.language == 'en' %}log-out{% else %}Sair{% endif %}
+        </a> 
+    </div>
+</div>

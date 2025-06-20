@@ -1,0 +1,113 @@
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100 py-5">
+
+    <h1 class="text-3xl font-bold mb-4 text-dark">
+        {% if request.session.language == 'en' %}Monte Carlo Simulation Methods{% else %}Métodos de Simulação Monte Carlo{% endif %}
+    </h1>
+
+    <div class="text-center mb-5">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
+            {% if request.session.language == 'en' %}Methods Guide{% else %}Guia dos Métodos{% endif %}
+        </button>
+    </div>
+    
+    <div class="row w-100 justify-content-center">
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'precificar_opcao' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Classic Monte Carlo Simulation{% else %}Simulação Clássica de Monte Carlo{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}The fundamental approach for pricing European options.{% else %}A abordagem fundamental para precificar opções europeias.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'to_do' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Least Squares Monte Carlo{% else %}Monte Carlo de Mínimos Quadrados{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Specifically designed for pricing American-style options.{% else %}Projetado especificamente para precificar opções estilo americano.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'to_do' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Quasi Monte Carlo{% else %}Quase Monte Carlo{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Enhances simulation accuracy using low-discrepancy sequences.{% else %}Melhora a precisão da simulação usando sequências de baixa discrepância.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="conceptsExplanationModal" tabindex="-1" aria-labelledby="conceptsExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="conceptsExplanationModalLabel">
+            {% if request.session.language == 'en' %}Guide to Monte Carlo Simulation Methods{% else %}Guia dos Métodos de Simulação Monte Carlo{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <h4>{% if request.session.language == 'en' %}1. Classic Monte Carlo Simulation{% else %}1. Simulação Clássica de Monte Carlo{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To price European call and put options through basic Monte Carlo Simulation. It simulates multiple price paths for path-dependent options. It is suitable for pricing European call and put options.
+                {% else %}
+                Precificar opções de compra e venda europeias por meio da Simulação básica de Monte Carlo. Ela simula múltiplos caminhos de preços para opções dependentes do caminho. É adequada para precificar opções de compra e venda europeias.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}2. Least Squares Monte Carlo{% else %}2. Monte Carlo de Mínimos Quadrados{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To price American call and put options using the Least Squares Monte Carlo (LSM) Simulation. This type of simulation is useful for pricing American-style options.
+                {% else %}
+                Precificar opções de compra e venda americanas por meio da Simulação Monte Carlo de Mínimos Quadrados (LSM – Least Squares Method, em inglês). Esse tipo de simulação é útil para precificar opções no estilo americano.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}3. Quasi Monte Carlo{% else %}3. Quase Monte Carlo{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To utilize low-discrepancy sequences to improve the precision/accuracy of the simulation. This method aims to achieve faster convergence and more accurate results compared to traditional Monte Carlo methods, especially for high-dimensional problems.
+                {% else %}
+                Utilizar sequências de baixa discrepância para melhorar a precisão/acurácia da simulação. Este método visa alcançar uma convergência mais rápida e resultados mais precisos em comparação com os métodos Monte Carlo tradicionais, especialmente para problemas de alta dimensão.
+                {% endif %}
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>

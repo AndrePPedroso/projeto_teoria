@@ -6,7 +6,7 @@
 
     <div class="text-center mb-5">
         <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
-            {% if request.session.language == 'en' %}Modules Guide{% else %}Guia dos Módulos{% endif %}
+            {% if request.session.language == 'en' %}Models Guide{% else %}Guia dos Modelos{% endif %}
         </button>
     </div>
 
@@ -18,7 +18,7 @@
     
     <div class="row w-100 justify-content-center">
         <div class="col-12 col-md-4 mb-4">
-            <a href="{% url 'call_put_options' %}"
+            <a
                class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
                data-url="{% url 'call_put_options' %}"
                style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
@@ -43,7 +43,7 @@
 
     <div class="row w-100 justify-content-center">
         <div class="col-12 col-md-4 mb-4">
-            <a href="{% url 'asset_put_combination' %}"
+            <a
                class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
                data-url="{% url 'asset_put_combination' %}"
                style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
@@ -57,9 +57,23 @@
                 </div>
             </a>
         </div>
-
         <div class="col-12 col-md-4 mb-4">
-            <a href="{% url 'collar_strategy_simulator' %}"
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'bull_bear_spread' %}"
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Options Spread Payoff{% else %}Trava de alta e baixa{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Explore strategies combining asset purchase with put options.{% else %}Explore estratégias que combinam a compra de um ativo com opções de venda.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
                class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
                data-url="{% url 'collar_strategy_simulator' %}"
                style="border-radius: 0.75rem; text-decoration: none; color: inherit;">

@@ -1,0 +1,119 @@
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100 py-5">
+
+    <h1 class="text-3xl font-bold mb-4 text-dark">
+        {% if request.session.language == 'en' %}Black-Scholes Models{% else %}Modelos de Black-Scholes{% endif %}
+    </h1>
+
+    <div class="text-center mb-5">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
+            {% if request.session.language == 'en' %}Models Guide{% else %}Guia dos Modelos{% endif %}
+        </button>
+    </div>
+
+    {% comment %} <div class="w-100 text-center">
+        <h2 class="text-2xl font-bold mb-4 text-dark">
+            {% if request.session.language == 'en' %}Black-Scholes-Merton Models{% else %}Modelos Black-Scholes-Merton{% endif %}
+        </h2>
+    </div>
+     {% endcomment %}
+    <div class="row w-100 justify-content-center">
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'black_scholes' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Black-Scholes Model{% else %}Modelo Black-Scholes{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}The foundational model for pricing European options.{% else %}O modelo fundamental para precificação de opções europeias.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'black_scholes_merton' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Black-Scholes-Merton Model{% else %}Modelo Black-Scholes-Merton{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Extends the Black-Scholes model to include dividends.{% else %}Uma extensão do modelo Black-Scholes para incluir dividendos.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'to_do' %}" {# Replace with your actual URL name #}
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Generalized Black-Scholes-Merton Model{% else %}Modelo Black-Scholes-Merton Generalizado{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}A flexible model accommodating various income streams and costs.{% else %}Um modelo flexível que acomoda diversas fontes de renda e custos.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="conceptsExplanationModal" tabindex="-1" aria-labelledby="conceptsExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="conceptsExplanationModalLabel">
+            {% if request.session.language == 'en' %}Guide to Black-Scholes Models{% else %}Guia dos Modelos Black-Scholes{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <h4>{% if request.session.language == 'en' %}1. Black-Scholes Model{% else %}1. Modelo Black-Scholes{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To understand the original model for pricing European-style options on non-dividend-paying assets. It assumes a log-normal distribution for asset prices, constant volatility and risk-free rate, and no transaction costs or arbitrage opportunities.
+                {% else %}
+                Compreender o modelo original para precificação de opções europeias sobre ativos que não pagam dividendos. Assume uma distribuição log-normal para os preços dos ativos, volatilidade e taxa livre de risco constantes, e ausência de custos de transação ou oportunidades de arbitragem.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}2. Black-Scholes-Merton Model{% else %}2. Modelo Black-Scholes-Merton{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To explore the extension of the Black-Scholes model that accounts for continuous dividend payments. This modification is crucial for pricing options on stocks that regularly distribute dividends, providing a more realistic valuation.
+                {% else %}
+                Explorar a extensão do modelo Black-Scholes que considera o pagamento contínuo de dividendos. Essa modificação é crucial para precificar opções sobre ações que distribuem dividendos regularmente, fornecendo uma avaliação mais realista.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}3. Generalized Black-Scholes-Merton Model{% else %}3. Modelo Black-Scholes-Merton Generalizado{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Objective:{% else %}Objetivo:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                To delve into the most versatile version of the Black-Scholes model, which can be adapted to price options on various underlying assets, including currencies, futures, and commodities. It incorporates a "cost of carry" that accounts for any continuous yield or cost associated with holding the asset.
+                {% else %}
+                Aprofundar-se na versão mais versátil do modelo Black-Scholes, que pode ser adaptada para precificar opções sobre diversos ativos subjacentes, incluindo moedas, futuros e commodities. Incorpora um "custo de carregamento" que considera qualquer rendimento contínuo ou custo associado à manutenção do ativo.
+                {% endif %}
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>

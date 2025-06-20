@@ -1,116 +1,245 @@
 <style>
-    /* Specific styles for the bull and bear spread calculator */
-    .spread-calculator-container {
+    .payoff-calculator-container {
         padding: 20px;
-        background-color: #f8f9fa; /* Light background for the container */
+        background-color: #f8f9fa;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .spread-calculator-container h1 {
+    .payoff-calculator-container h1 {
         font-size: 1.75rem;
-        margin-bottom: 1.5rem;
-        color: #343a40; /* Darker heading */
+        margin-bottom: 1rem;
+        color: #343a40;
+        text-align: center;
     }
     .form-section {
-        background-color: #e6f0ff; /* Light blue background to match image */
-        padding: 20px;
+        background-color: #e9ecef;
+        padding: 25px;
         border-radius: 8px;
         margin-bottom: 20px;
-        border: 1px solid #cce0ff; /* Light blue border */
     }
     .form-section label {
         font-weight: 500;
+        margin-bottom: .5rem;
+    }
+    .results-summary {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+    .results-summary h3 {
+        font-size: 1.25rem;
+        color: #495057;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 0.5rem;
+    }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+    .summary-item strong {
         color: #343a40;
+    }
+    .summary-item span {
+        font-weight: 500;
+        color: #007bff;
+    }
+    .summary-item span.loss {
+        color: #dc3545;
+    }
+    .summary-item span.gain {
+        color: #28a745;
     }
     .results-table th {
-        background-color: #f0f8ff; /* Lightest blue for header to match image */
-        color: #343a40; /* Dark text for header */
-        border-bottom: 2px solid #a3ccff; /* Blue underline */
-    }
-    .results-table tbody tr:nth-child(even) {
-        background-color: #f7fcff; /* Slightly different background for even rows */
-    }
-    .btn-custom-blue {
-        background-color: #639dff; /* Blue from image */
-        border-color: #639dff;
+        background-color: #343a40;
         color: white;
     }
-    .btn-custom-blue:hover {
-        background-color: #4b8dfc;
-        border-color: #4b8dfc;
+    .btn-calculate {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+        font-weight: bold;
     }
-    .btn-custom-light-blue {
-        background-color: #dae8ff; /* Lighter blue for clear */
-        border-color: #dae8ff;
-        color: #343a40; /* Dark text */
+    .btn-calculate:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
     }
-    .btn-custom-light-blue:hover {
-        background-color: #c8d8f5;
-        border-color: #c8d8f5;
+    .btn-clear {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    .btn-clear:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
     }
     .input-group-text {
-        min-width: 40px; /* For Q, E, C, n labels */
+        min-width: 45px;
         justify-content: center;
-        background-color: #e0f2ff; /* Light blue for input group text */
-        border-color: #b3d9ff;
-        color: #343a40;
+        font-weight: bold;
     }
-    .form-control {
-        border-color: #b3d9ff; /* Light blue border for inputs */
+    .chart-container {
+        position: relative;
+        height: 60vh;
+        margin-top: 2rem;
+        display:none;
     }
-    .form-control:focus {
-        border-color: #88bbff;
-        box-shadow: 0 0 0 0.2rem rgba(99, 157, 255, 0.25);
+    .strategy-leg {
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #fff;
+    }
+    .strategy-leg h5 {
+        font-size: 1.1rem;
+        color: #495057;
     }
 </style>
 
-<div class="spread-calculator-container container mt-3">
-    <h1>{% if request.session.language == 'en' %}Real Options Theory - Combining options: Bull Call Spread{% else %}Teoria das Opções Reais - Combinando opções: Trava de Alta com Calls{% endif %}</h1>
-
+<div class="payoff-calculator-container container mt-4">
+    <div class="mb-3">
+        <a href="javascript:history.back()" class="btn btn-light">
+            <i class="bi bi-arrow-left"></i> {% if request.session.language == 'en' %}Back{% else %}Voltar{% endif %}
+        </a>
+    </div>
+    <h1>{% if request.session.language == 'en' %}Options Spread Payoff Calculator{% else %}Calculadora de Payoff de Travas com Opções{% endif %}</h1>
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#strategyExplanationModal">
+            {% if request.session.language == 'en' %}Learn About{% else %}Saiba Mais{% endif %}
+        </button>
+    </div>
     <div class="form-section">
-        <form id="spreadForm">
-            <div class="row align-items-end">
-                <div class="col-md-2 mb-3">
-                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity (Q){% else %}Quantidade (Q){% endif %}</label>
-                    <input type="number" class="form-control" id="quantity" value="100" placeholder="100">
-                </div>
-                <div class="col-md-2 mb-3">
-                    <label for="strikePrice1" class="form-label">{% if request.session.language == 'en' %}Buy Call Strike (E1){% else %}Strike Compra Call (E1){% endif %}</label>
-                    <input type="number" class="form-control" id="strikePrice1" value="100" placeholder="100">
-                </div>
-                <div class="col-md-2 mb-3">
-                    <label for="premium1" class="form-label">{% if request.session.language == 'en' %}Buy Call Premium (C1){% else %}Prêmio Compra Call (C1){% endif %}</label>
-                    <input type="number" class="form-control" id="premium1" value="1.5" step="0.01" placeholder="1.5">
-                </div>
-                <div class="col-md-2 mb-3">
-                    <label for="strikePrice2" class="form-label">{% if request.session.language == 'en' %}Sell Call Strike (E2){% else %}Strike Venda Call (E2){% endif %}</label>
-                    <input type="number" class="form-control" id="strikePrice2" value="105" placeholder="105">
-                </div>
-                <div class="col-md-2 mb-3">
-                    <label for="premium2" class="form-label">{% if request.session.language == 'en' %}Sell Call Premium (C2){% else %}Prêmio Venda Call (C2){% endif %}</label>
-                    <input type="number" class="form-control" id="premium2" value="0.5" step="0.01" placeholder="0.5">
+        <form id="payoffForm">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <label class="form-label">{% if request.session.language == 'en' %}Strategy Type{% else %}Tipo de Estratégia{% endif %}:</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="strategyType" id="bullCallSpread" value="bullCall" checked>
+                            <label class="form-check-label" for="bullCallSpread">{% if request.session.language == 'en' %}Bull Call Spread{% else %}Trava de Alta (c/ Call){% endif %}</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="strategyType" id="bearPutSpread" value="bearPut">
+                            <label class="form-check-label" for="bearPutSpread">{% if request.session.language == 'en' %}Bear Put Spread{% else %}Trava de Baixa (c/ Put){% endif %}</label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row align-items-end mt-2">
-                <div class="col-md-3 mb-3">
-                    <label for="initialValue" class="form-label">{% if request.session.language == 'en' %}Initial Value{% else %}Valor inicial{% endif %}</label>
-                    <input type="number" class="form-control" id="initialValue" value="95" placeholder="95">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="strategy-leg">
+                        <h5><span class="badge bg-success">{% if request.session.language == 'en' %}Buy Leg{% else %}Ponta Comprada{% endif %}</span></h5>
+                        <div class="mb-3">
+                            <label for="strike_long" class="form-label">{% if request.session.language == 'en' %}Strike Price (Buy){% else %}Preço de Exercício (Compra){% endif %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">K&#x2081;</span>
+                                <input type="number" step="0.01" class="form-control" id="strike_long" value="30">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="premium_long" class="form-label">{% if request.session.language == 'en' %}Premium (Paid){% else %}Prêmio (Pago){% endif %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="premium_long" value="1.1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="strategy-leg">
+                         <h5><span class="badge bg-danger">{% if request.session.language == 'en' %}Sell Leg{% else %}Ponta Vendida{% endif %}</span></h5>
+                        <div class="mb-3">
+                            <label for="strike_short" class="form-label">{% if request.session.language == 'en' %}Strike Price (Sell){% else %}Preço de Exercício (Venda){% endif %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">K&#x2082;</span>
+                                <input type="number" step="0.01" class="form-control" id="strike_short" value="32">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="premium_short" class="form-label">{% if request.session.language == 'en' %}Premium (Received){% else %}Prêmio (Recebido){% endif %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="premium_short" value="0.5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                 <div class="col-md-3 mb-3">
+                    <label for="quantity" class="form-label">{% if request.session.language == 'en' %}Quantity{% else %}Quantidade{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" id="quantity" value="1000">
+                    </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label for="finalValue" class="form-label">{% if request.session.language == 'en' %}Final Value{% else %}Valor final{% endif %}</label>
-                    <input type="number" class="form-control" id="finalValue" value="110" placeholder="110">
+                    <label for="initialValue" class="form-label">{% if request.session.language == 'en' %}Min Stock Price{% else %}Preço Mínimo da Ação{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control" id="initialValue" value="28">
+                    </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Divisions (n){% else %}Divisões (n){% endif %}</label>
-                    <input type="number" class="form-control" id="divisions" value="10" placeholder="10">
+                    <label for="finalValue" class="form-label">{% if request.session.language == 'en' %}Max Stock Price{% else %}Preço Máximo da Ação{% endif %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control" id="finalValue" value="34">
+                    </div>
                 </div>
-                <div class="col-md-3 mb-3 text-end">
-                    <button type="button" id="clearButton" class="btn btn-custom-light-blue me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
-                    <button type="button" id="calculateButton" class="btn btn-custom-blue">{% if request.session.language == 'en' %}Calculate{% else %}Calcular{% endif %}</button>
+                <div class="col-md-3 mb-3">
+                    <label for="divisions" class="form-label">{% if request.session.language == 'en' %}Steps{% else %}Passos{% endif %}</label>
+                     <div class="input-group">
+                        <span class="input-group-text">n</span>
+                        <input type="number" class="form-control" id="divisions" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="button" id="clearButton" class="btn btn-clear me-2">{% if request.session.language == 'en' %}Clear{% else %}Limpar{% endif %}</button>
+                    <button type="button" id="calculateButton" class="btn btn-calculate">{% if request.session.language == 'en' %}Calculate Strategy{% else %}Calcular Estratégia{% endif %}</button>
                 </div>
             </div>
         </form>
+    </div>
+
+    <div id="resultsSummary" class="results-summary" style="display: none;">
+        <h3>{% if request.session.language == 'en' %}Strategy Summary{% else %}Resumo da Estratégia{% endif %}</h3>
+        <div class="summary-item">
+            <strong>{% if request.session.language == 'en' %}Setup Cost (Debit){% else %}Custo de Montagem (Débito){% endif %}</strong>
+            <span id="summaryDebit" class="loss"></span>
+        </div>
+        <div class="summary-item">
+            <strong>{% if request.session.language == 'en' %}Maximum Risk{% else %}Risco Máximo{% endif %}</strong>
+            <span id="summaryMaxLoss" class="loss"></span>
+        </div>
+        <div class="summary-item">
+            <strong>{% if request.session.language == 'en' %}Maximum Return{% else %}Retorno Máximo{% endif %}</strong>
+            <span id="summaryMaxGain" class="gain"></span>
+        </div>
+        <div class="summary-item">
+            <strong>{% if request.session.language == 'en' %}Breakeven Point{% else %}Ponto de Equilíbrio{% endif %}</strong>
+            <span id="summaryBreakeven"></span>
+        </div>
+         <div class="summary-item">
+            <strong>{% if request.session.language == 'en' %}Potential Return{% else %}Retorno Potencial{% endif %}</strong>
+            <span id="summaryPotential" class="gain"></span>
+        </div>
     </div>
 
     <div class="mt-4 table-responsive">
@@ -118,112 +247,381 @@
             <thead>
                 <tr>
                     <th>{% if request.session.language == 'en' %}Stock Price at Expiration{% else %}Preço da Ação no Vencimento{% endif %}</th>
-                    <th>{% if request.session.language == 'en' %}Payoff Bought Call{% else %}Payoff Call Comprada{% endif %}</th>
-                    <th>{% if request.session.language == 'en' %}Payoff Sold Call{% else %}Payoff Call Vendida{% endif %}</th>
-                    <th>{% if request.session.language == 'en' %}Total Payoff{% else %}Payoff Total{% endif %}</th>
+                    <th>{% if request.session.language == 'en' %}Strategy P/L{% else %}Resultado da Estratégia (L/P){% endif %}</th>
                 </tr>
             </thead>
             <tbody id="resultsBody">
-                <tr><td colspan="4" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
+                <tr><td colspan="2" class="text-center">{% if request.session.language == 'en' %}Enter parameters and click 'Calculate' to see results.{% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.{% endif %}</td></tr>
             </tbody>
         </table>
     </div>
+
+    <div id="payoffChartContainer" class="chart-container">
+        <canvas id="payoffChartCanvas"></canvas>
+    </div>
 </div>
 
+<div class="modal fade" id="strategyExplanationModal" tabindex="-1" aria-labelledby="strategyExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="strategyExplanationModalLabel">
+            {% if request.session.language == 'en' %}Understanding the Bull Call Spread{% else %}Entendendo a Trava de Alta com Call{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div lang="en" {% if request.session.language != 'en' %}style="display:none;"{% endif %}>
+                <p><strong>Also known as:</strong> Long Call Spread, Bull Call Spread, and Call Debit Spread.</p>
+                <p>The Bull Call Spread is a bullish vertical spread, formed by buying an ATM (at-the-money) or near-the-money call and simultaneously selling an OTM (out-of-the-money) call with the same expiration date.</p>
+                <p>Compared to buying a naked call, the bull call spread has a lower setup cost and an easier breakeven point to achieve.</p>
+                <p>By buying one call and selling another, you reduce your cost by receiving premium from the sale and decrease the operation's exposure to the theta effect (time decay).</p>
+
+                <h5 class="mt-4">Step-by-step to set up:</h5>
+                <ol>
+                    <li>Buy a call with a lower strike price (ATM).</li>
+                    <li>Sell a call with a higher strike price (OTM) with the same expiration date.</li>
+                </ol>
+
+                <h5 class="mt-4">Risk Profile of the Operation</h5>
+                <ul>
+                    <li>Maximum Risk: The amount paid to set up the operation (the net debit). You incur the maximum loss if the stock closes below the strike of the bought call at expiration.</li>
+                    <li>Maximum Return: The difference between the strikes minus the setup cost. The profit is maximized if the stock closes above the strike of the sold call at expiration.</li>
+                    <li>Breakeven Point: The strike of the bought call plus the setup cost (net debit paid).</li>
+                </ul>
+
+                <h5 class="mt-4">Practical Example:</h5>
+                <p>Imagine PETR4 is at R$ 35.08. You are optimistic and expect it to reach R$ 38.00. You set up a spread:</p>
+                <ul>
+                    <li>Buy: 1000 PETRK362 options (strike R$ 36.20) paying R$ 1.02 per option.</li>
+                    <li>Sell: 1000 PETRK343 options (strike R$ 37.45) receiving R$ 0.58 per option.</li>
+                </ul>
+                <p>
+                    Setup Cost: (R$ 1.02 - R$ 0.58) * 1000 = R$ 0.44 * 1000 = R$ 440.00. This is your Maximum Risk.
+                    <br>
+                    Maximum Return: ((R$ 37.45 - R$ 36.20) - R$ 0.44) * 1000 = (R$ 1.25 - R$ 0.44) * 1000 = R$ 810.00.
+                    <br>
+                    Breakeven: R$ 36.20 + R$ 0.44 = R$ 36.64. Above this price at expiration, the operation is profitable.
+                </p>
+            </div>
+
+            <div lang="pt" {% if request.session.language == 'en' %}style="display:none;"{% endif %}>
+                <p><strong>Estratégia também conhecida como:</strong> Long Call Spread, Bull Call Spread e Call Debit Spread.</p>
+                <p>A Trava de Alta com Call é um spread vertical de viés altista, ela é formada pela compra de uma call ATM (ou próxima do dinheiro) e pela venda simultânea de uma call OTM (fora do dinheiro) de mesmo vencimento.</p>
+                <p>Se comparado com uma compra de call a seco, a trava de alta com call tem um custo de montagem menor e um ponto de breakeven mais fácil de ser alcançado.</p>
+                <p>Ao comprar a call e vender a outra, você reduz o custo ao receber o crédito pela venda e diminui a exposição da operação ao efeito theta (a passagem do tempo).</p>
+
+                <h5 class="mt-4">Passo a passo para montar:</h5>
+                <ol>
+                    <li>Compre uma call de strike mais baixo (ATM).</li>
+                    <li>Venda uma call de strike mais alto (OTM) com a mesma data de vencimento.</li>
+                </ol>
+
+                <h5 class="mt-4">Perfil de Risco da Operação</h5>
+                <ul>
+                    <li>Risco Máximo: O valor pago para montar a operação (o débito líquido). Você perde o máximo se a ação fechar abaixo do strike da call comprada no vencimento.</li>
+                    <li>Retorno Máximo: A diferença entre os strikes menos o custo de montagem. O lucro é máximo se a ação fechar acima do strike da call vendida no vencimento.</li>
+                    <li>Breakeven (Ponto de Equilíbrio): O strike da call comprada mais o custo de montagem (débito pago).</li>
+                </ul>
+
+                <h5 class="mt-4">Exemplo Prático:</h5>
+                <p>Imagine que PETR4 está a R$ 35,08. Você está otimista e espera que chegue a R$ 38,00. Você monta uma trava:</p>
+                <ul>
+                    <li>Compra: 1000 opções PETRK362 (strike R$ 36,20) pagando R$ 1,02 por opção.</li>
+                    <li>Venda: 1000 opções PETRK343 (strike R$ 37,45) recebendo R$ 0,58 por opção.</li>
+                </ul>
+                <p>
+                    Custo de Montagem: (R$ 1,02 - R$ 0,58) * 1000 = R$ 0,44 * 1000 = R$ 440,00. Este é seu Risco Máximo.
+                    <br>
+                    Retorno Máximo: ((R$ 37,45 - R$ 36,20) - R$ 0,44) * 1000 = (R$ 1,25 - R$ 0,44) * 1000 = R$ 810,00.
+                    <br>
+                    Breakeven: R$ 36,20 + R$ 0,44 = R$ 36,64. Acima deste preço no vencimento, a operação dá lucro.
+                </p>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>
 <script>
 (function() {
+    const form = document.getElementById('payoffForm');
     const calculateBtn = document.getElementById('calculateButton');
     const clearBtn = document.getElementById('clearButton');
     const resultsBody = document.getElementById('resultsBody');
-    const form = document.getElementById('spreadForm');
+    const chartContainer = document.getElementById('payoffChartContainer');
+    const canvas = document.getElementById('payoffChartCanvas');
+    const resultsSummaryDiv = document.getElementById('resultsSummary');
 
-    if (calculateBtn) {
-        calculateBtn.addEventListener('click', function() {
-            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
-            const strikePrice1 = parseFloat(document.getElementById('strikePrice1').value) || 0; // E1 (Buy Call)
-            const premium1 = parseFloat(document.getElementById('premium1').value) || 0; // C1
-            const strikePrice2 = parseFloat(document.getElementById('strikePrice2').value) || 0; // E2 (Sell Call)
-            const premium2 = parseFloat(document.getElementById('premium2').value) || 0; // C2
-            const initialValue = parseFloat(document.getElementById('initialValue').value) || 0;
-            const finalValue = parseFloat(document.getElementById('finalValue').value) || 0;
-            const divisions = parseInt(document.getElementById('divisions').value) || 1;
+    let payoffChart;
 
-            // --- Input Validations ---
-            const displayError = (message) => {
-                resultsBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${message}</td></tr>`;
-            };
+    // Get the language from the session, defaulting to English
+    const lang = '{{ request.session.language|default:"en" }}';
 
-            const invalidQuantity = "{% if request.session.language == 'en' %}Quantity must be a number between 1 and 100,000.{% else %}A Quantidade deve ser um número entre 1 e 100.000.{% endif %}";
-            const invalidStrikePrice = "{% if request.session.language == 'en' %}Strike Prices must be numbers between 1 and 100,000.{% else %}Os Preços de Exercício devem ser números entre 1 e 100.000.{% endif %}";
-            const invalidPremium = "{% if request.session.language == 'en' %}Premiums must be non-negative numbers.{% else %}Os Prêmios devem ser números não negativos.{% endif %}";
-            const invalidRange = "{% if request.session.language == 'en' %}Initial and Final Values must be numbers between 1 and 100,000.{% else %}Os Valores Inicial e Final devem ser números entre 1 e 100.000.{% endif %}";
-            const invalidDivisions = "{% if request.session.language == 'en' %}Divisions (n) must be an integer between 5 and 50.{% else %}Divisões (n) deve ser um número inteiro entre 5 e 50.{% endif %}";
-            const rangeOrderError = "{% if request.session.language == 'en' %}Initial Value cannot be greater than Final Value.{% else %}O Valor Inicial não pode ser maior que o Valor Final.{% endif %}";
-            const strikeOrderError = "{% if request.session.language == 'en' %}For a Bull Call Spread, Buy Call Strike (E1) must be less than Sell Call Strike (E2).{% else %}Para uma Trava de Alta com Calls, o Strike da Call Comprada (E1) deve ser menor que o Strike da Call Vendida (E2).{% endif %}";
+    // Attach event listeners
+    calculateBtn.addEventListener('click', calculateStrategy);
+    clearBtn.addEventListener('click', clearForm);
 
+    /**
+     * Formats a number as currency based on the current language.
+     * @param {number} value - The number to format.
+     * @returns {string} The formatted currency string.
+     */
+    const formatCurrency = (value) => {
+        const locale = lang === 'pt' ? 'pt-BR' : 'en-US';
+        const currency = 'BRL'; // The logic is in Brazilian Reals
+        return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value);
+    };
 
-            if (quantity < 1 || quantity > 100000) return displayError(invalidQuantity);
-            if (strikePrice1 < 1 || strikePrice1 > 100000 || strikePrice2 < 1 || strikePrice2 > 100000) return displayError(invalidStrikePrice);
-            if (premium1 < 0 || premium2 < 0) return displayError(invalidPremium);
-            if (initialValue < 1 || initialValue > 100000 || finalValue < 1 || finalValue > 100000) return displayError(invalidRange);
-            if (divisions < 5 || divisions > 50) return displayError(invalidDivisions);
-            if (initialValue > finalValue) return displayError(rangeOrderError);
-            if (strikePrice1 >= strikePrice2) return displayError(strikeOrderError);
+    /**
+     * Displays an error message in the results body.
+     * @param {string} message - The error message to display.
+     */
+    const displayError = (message) => {
+        resultsBody.innerHTML = `<tr><td colspan="2" class="text-center text-danger">${message}</td></tr>`;
+        resultsSummaryDiv.style.display = 'none';
+        if (payoffChart) {
+            payoffChart.destroy();
+        }
+        chartContainer.style.display = 'none';
+    };
 
+    /**
+     * Calculates the payoff for a bull call spread or bear put spread strategy.
+     */
+    function calculateStrategy() {
+        // Get input values
+        const strategyType = document.querySelector('input[name="strategyType"]:checked').value;
+        const K1_long = parseFloat(document.getElementById('strike_long').value);
+        const P1_long = parseFloat(document.getElementById('premium_long').value);
+        const K2_short = parseFloat(document.getElementById('strike_short').value);
+        const P2_short = parseFloat(document.getElementById('premium_short').value);
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const initialStockPrice = parseFloat(document.getElementById('initialValue').value);
+        const finalStockPrice = parseFloat(document.getElementById('finalValue').value);
+        const divisions = parseInt(document.getElementById('divisions').value);
 
-            // --- Calculation Logic ---
-            const stockPricesAtExpiration = []; // S_T values
-            const step = (finalValue - initialValue) / (divisions - 1);
-            for (let i = 0; i < divisions; i++) {
-                stockPricesAtExpiration.push(initialValue + (i * step));
+        // Validation messages
+        const validationMessage = lang === 'en' ? 'Please fill in all fields with valid numbers.' : 'Por favor, preencha todos os campos com números válidos.';
+        const quantityRangeMessage = lang === 'en' ? 'Quantity must be a positive integer.' : 'A quantidade deve ser um número inteiro positivo.';
+        const strikePremiumRangeMessage = lang === 'en' ? 'Strike and Premium values must be positive numbers.' : 'Os valores de Strike e Prêmio devem ser números positivos.';
+        const priceRangeMessage = lang === 'en' ? 'Initial and Final Stock Prices must be positive numbers, and the final price must be greater than or equal to the initial price.' : 'Os preços inicial e final da ação devem ser números positivos, e o preço final deve ser maior ou igual ao preço inicial.';
+        const divisionsRangeMessage = lang === 'en' ? 'Divisions must be an integer greater than 0.' : 'As divisões devem ser um número inteiro maior que 0.';
+
+        // Simple validation
+        if (isNaN(K1_long) || isNaN(P1_long) || isNaN(K2_short) || isNaN(P2_short) ||
+            isNaN(quantity) || isNaN(initialStockPrice) || isNaN(finalStockPrice) || isNaN(divisions)) {
+            displayError(validationMessage);
+            return;
+        }
+
+        if (quantity <= 0) {
+            displayError(quantityRangeMessage);
+            return;
+        }
+
+        if (K1_long <= 0 || P1_long < 0 || K2_short <= 0 || P2_short < 0) {
+            displayError(strikePremiumRangeMessage);
+            return;
+        }
+
+        if (initialStockPrice <= 0 || finalStockPrice <= 0 || initialStockPrice > finalStockPrice) {
+            displayError(priceRangeMessage);
+            return;
+        }
+
+        if (divisions <= 0) {
+            displayError(divisionsRangeMessage);
+            return;
+        }
+
+        // Calculation logic
+        const netDebitPerShare = P1_long - P2_short;
+        const totalDebit = netDebitPerShare * quantity;
+
+        const maxLoss = totalDebit;
+        const strikeDifference = Math.abs(K2_short - K1_long);
+        const maxGainPerShare = strikeDifference - netDebitPerShare;
+        const totalMaxGain = maxGainPerShare * quantity;
+
+        let breakeven;
+        if (strategyType === 'bullCall') {
+            breakeven = K1_long + netDebitPerShare;
+        } else { // bearPut
+            breakeven = K1_long - netDebitPerShare;
+        }
+
+        const potentialReturn = (maxLoss !== 0) ? (totalMaxGain / maxLoss) * 100 : 0;
+
+        // Display summary
+        document.getElementById('summaryDebit').textContent = formatCurrency(totalDebit);
+        document.getElementById('summaryMaxLoss').textContent = formatCurrency(maxLoss);
+        document.getElementById('summaryMaxGain').textContent = formatCurrency(totalMaxGain);
+        document.getElementById('summaryBreakeven').textContent = formatCurrency(breakeven);
+        document.getElementById('summaryPotential').textContent = `${potentialReturn.toFixed(2)}%`;
+        resultsSummaryDiv.style.display = 'block';
+
+        // Prepare data for table and chart
+        const stockPrices = [];
+        const payoffs = [];
+        const step = (finalStockPrice - initialStockPrice) / (divisions - 1);
+
+        for (let i = 0; i < divisions; i++) {
+            const S = initialStockPrice + (i * step); // Stock Price at Expiration
+            stockPrices.push(S);
+
+            let longLegPayoff = 0;
+            let shortLegPayoff = 0;
+
+            if (strategyType === 'bullCall') {
+                longLegPayoff = Math.max(0, S - K1_long); // Buy Call payoff
+                shortLegPayoff = -Math.max(0, S - K2_short); // Sell Call payoff (negative as it's a loss for seller)
+            } else { // bearPut
+                longLegPayoff = Math.max(0, K1_long - S); // Buy Put payoff (K1_long is the higher strike for bear put)
+                shortLegPayoff = -Math.max(0, K2_short - S); // Sell Put payoff (K2_short is the lower strike for bear put, negative as it's a loss for seller)
             }
 
-            resultsBody.innerHTML = '';
-            const currentLocale = 'pt-BR'; // Using pt-BR for R$ currency display
+            const grossPayoffPerShare = longLegPayoff + shortLegPayoff;
+            const netPayoffPerShare = grossPayoffPerShare - netDebitPerShare;
+            const totalNetPayoff = netPayoffPerShare * quantity;
+            payoffs.push(totalNetPayoff);
+        }
 
-            stockPricesAtExpiration.forEach(S_T => {
-                const stockPriceAtExpiration = S_T;
+        // Populate table
+        resultsBody.innerHTML = '';
+        stockPrices.forEach((price, index) => {
+            const row = resultsBody.insertRow();
+            row.insertCell().textContent = formatCurrency(price);
+            const payoffCell = row.insertCell();
+            payoffCell.textContent = formatCurrency(payoffs[index]);
+            payoffCell.style.color = payoffs[index] < 0 ? '#dc3545' : '#198754';
+        });
 
-                // Payoff for Bought Call (Option 1)
-                const payoffBoughtCallPerShare = (Math.max(0, S_T - strikePrice1) - premium1);
+        // Draw chart
+        drawChart(stockPrices, payoffs);
+    }
 
-                // Payoff for Sold Call (Option 2) - this is the inverse of the individual option's payoff
-                const payoffSoldCallPerShare = -(Math.max(0, S_T - strikePrice2) - premium2);
+    /**
+     * Draws or updates the payoff chart.
+     * @param {number[]} stockPrices - Array of stock prices at expiration.
+     * @param {number[]} payoffs - Array of corresponding payoff values.
+     */
+    function drawChart(stockPrices, payoffs) {
+        if (payoffChart) {
+            payoffChart.destroy();
+        }
+        chartContainer.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        const chartTitle = lang === 'en' ? 'Strategy Payoff Diagram' : 'Diagrama de Payoff da Estratégia';
+        const xAxisLabel = lang === 'en' ? 'Stock Price at Expiration' : 'Preço da Ação no Vencimento';
+        const yAxisLabel = lang === 'en' ? 'Profit / Loss' : 'Lucro / Prejuízo';
+        const datasetLabel = lang === 'en' ? 'Strategy P/L' : 'Resultado da Estratégia';
+        const currentLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
 
-                // Total Payoff for the spread strategy
-                const totalPayoffSpreadPerShare = payoffBoughtCallPerShare + payoffSoldCallPerShare;
-                const totalPayoff = totalPayoffSpreadPerShare * quantity;
 
-
-                const row = resultsBody.insertRow();
-                row.insertCell().textContent = stockPriceAtExpiration.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                row.insertCell().textContent = (payoffBoughtCallPerShare * quantity).toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                row.insertCell().textContent = (payoffSoldCallPerShare * quantity).toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                row.insertCell().textContent = totalPayoff.toLocaleString(currentLocale, { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            });
+        payoffChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stockPrices.map(p => formatCurrency(p)),
+                datasets: [{
+                    label: datasetLabel,
+                    data: payoffs,
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderWidth: 3,
+                    tension: 0,
+                    pointRadius: 0,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: chartTitle,
+                        font: { size: 16 }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                }
+                                return label;
+                            },
+                            title: function(context) {
+                                if (context[0] && context[0].parsed.x !== null) {
+                                    return new Intl.NumberFormat(currentLocale, { style: 'currency', currency: 'BRL' }).format(stockPrices[context[0].dataIndex]);
+                                }
+                                return '';
+                            }
+                        }
+                    },
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: xAxisLabel }
+                    },
+                    y: {
+                        title: { display: true, text: yAxisLabel },
+                        ticks: {
+                           callback: (value) => formatCurrency(value)
+                        }
+                    }
+                }
+            }
         });
     }
 
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            form.reset();
-            // Reset to default values for inputs
-            document.getElementById('quantity').value = '100';
-            document.getElementById('strikePrice1').value = '100';
-            document.getElementById('premium1').value = '1.5';
-            document.getElementById('strikePrice2').value = '105';
-            document.getElementById('premium2').value = '0.5';
-            document.getElementById('initialValue').value = '95';
-            document.getElementById('finalValue').value = '110';
-            document.getElementById('divisions').value = '10';
-
-            const initialMessage =
-                "{% if request.session.language == "en" %}\
-                Enter parameters and click 'Calculate' to see results.\
-                {% else %}Insira os parâmetros e clique em 'Calcular' para ver os resultados.\
-                {% endif %}"
-            resultsBody.innerHTML = `<tr><td colspan="4" class="text-center">${initialMessage}</td></tr>`;
-        });
+    /**
+     * Clears the form and resets the results display.
+     */
+    function clearForm() {
+        form.reset();
+        document.getElementById('bullCallSpread').checked = true; // Set default radio button
+        const initialTableMessage = lang === 'en' ? 'Enter parameters and click \'Calculate\' to see results.' : 'Insira os parâmetros e clique em \'Calcular\' para ver os resultados.';
+        resultsBody.innerHTML = `<tr><td colspan="2" class="text-center">${initialTableMessage}</td></tr>`;
+        resultsSummaryDiv.style.display = 'none';
+        if (payoffChart) {
+            payoffChart.destroy();
+        }
+        chartContainer.style.display = 'none';
     }
+
+
+    // Strategy type change to adjust strike order for user convenience
+    document.querySelectorAll('input[name="strategyType"]').forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            const strikeLongInput = document.getElementById('strike_long');
+            const strikeShortInput = document.getElementById('strike_short');
+            let strikeLong = parseFloat(strikeLongInput.value);
+            let strikeShort = parseFloat(strikeShortInput.value);
+
+            // Only attempt to swap if both values are valid numbers
+            if (!isNaN(strikeLong) && !isNaN(strikeShort)) {
+                // For Bear Put Spread, the bought strike (long) is HIGHER than the sold strike (short)
+                // If values are in Bull Call order, they are swapped for convenience
+                if (event.target.value === 'bearPut' && strikeLong < strikeShort) {
+                    [strikeLongInput.value, strikeShortInput.value] = [strikeShortInput.value, strikeLongInput.value];
+                }
+                // For Bull Call Spread, the bought strike (long) is LOWER than the sold strike (short)
+                // If values are in Bear Put order, they are swapped
+                else if (event.target.value === 'bullCall' && strikeLong > strikeShort) {
+                     [strikeLongInput.value, strikeShortInput.value] = [strikeShortInput.value, strikeLongInput.value];
+                }
+            }
+        });
+    });
 })();
-</script>

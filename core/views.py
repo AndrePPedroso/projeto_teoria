@@ -60,3 +60,7 @@ def custom_logout(request):
 @login_required(login_url='/admin/login/')
 def reference_view(request):
     return render(request, "site/home/references.html")
+
+@login_required(login_url='/admin/login/')
+def to_do_view(request):
+    return render(request, "site/home/to_do_view.html")

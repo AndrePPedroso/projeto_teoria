@@ -31,6 +31,7 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("home/", home_view, name="home"),
+    path("to_do/", to_do_view, name="to_do"),
     path("user/", include("usuario.urls")),
     path("teoria/", include("teoria_opcao.urls")),
     path("estocasticos/", include("estocasticos.urls")),

@@ -25,6 +25,18 @@ def basic_concepts_overview_view(request):
     return render(request, 'site/financeiros/basic_concepts_overview.html', {'title': 'Basic Concepts Overview'})
 
 @login_required(login_url='/admin/login/')
+def black_scholes_overview_view(request):
+    return render(request, 'site/financeiros/black_scholes_overview.html', {'title': 'Black Scholes Merton Overview'})
+
+@login_required(login_url='/admin/login/')
+def cox_ross_overview_view(request):
+    return render(request, 'site/financeiros/cox_ross_overview.html', {'title': 'Cox Ross Overview'})
+
+@login_required(login_url='/admin/login/')
+def monte_carlo_overview_view(request):
+    return render(request, 'site/financeiros/monte_carlo_overview.html', {'title': 'Monte Carlo Overview'})
+
+@login_required(login_url='/admin/login/')
 def call_put_options_view(request):
     return render(request, 'site/financeiros/call_put_options.html', {'title': 'Call and Put Options'})
 

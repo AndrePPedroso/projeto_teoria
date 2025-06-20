@@ -8,7 +8,7 @@
     <title>Home</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,6 +35,12 @@
         .sidebar a:hover {
             background-color: #495057;
         }
+        .accordion-section:hover {
+            cursor: pointer; 
+        }      
+        .card {
+            cursor: pointer; 
+        }  
         .content {
             margin-left: 200px;
             padding: 20px;
@@ -93,8 +99,8 @@
             background-color: #6c757d;
         }
         .footnote-section {
-            margin-top: 40px; /* Add some space above the footnote */
-            padding: 10px 0; /* Adjust padding as needed */
+            margin-top: 40px; 
+            padding: 10px 0; 
             border-top: 1px solid #e9ecef;
             font-size: 0.85em;
             color: #6c757d;
@@ -108,113 +114,7 @@
 <body>
 
     <!-- Sidebar -->
-    <div class="sidebar">
-        <a class="text-center" style="font-size:24px;" href="/home">Menu</a>
-        <div class="accordion-section">
-            <input type="checkbox" id="accordion-1" class="accordion-checkbox">
-            <label class="accordion-label d-flex justify-content-between" for="accordion-1">
-                <div>
-                    {% if request.session.language == 'en' %}Stochastic Processes {% else %}Processos Estocásticos{% endif %}
-                </div>
-                <div class="d-flex justify-content-center align-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
-            </label>
-            <div class="accordion-content">
-                <a href="{% url 'cadeia_markov' %}" class="nav-link" data-url="{% url 'cadeia_markov' %}">
-                    {% if request.session.language == 'en' %}Markov Chains{% else %}Cadeias de Markov{% endif %}
-                </a>
-                <a href="{% url 'random_walk_template' %}" class="nav-link" data-url="{% url 'random_walk_template' %}">
-                    Random Walk
-                </a>
-                <a href="{% url 'random_walk_normal' %}" class="nav-link" data-url="{% url 'random_walk_normal' %}">
-                    Random Walk Normal
-                </a>
-                <a href="{% url 'monte_carlos' %}" class="nav-link" data-url="{% url 'monte_carlos' %}">
-                    {% if request.session.language == 'en' %}GBM - Wiener{% else %}MGB - Wiener{% endif %}
-                </a>
-                <a href="{% url 'mbg_ito' %}" class="nav-link" data-url="{% url 'mbg_ito' %}">
-                    {% if request.session.language == 'en' %}GBM - Itô{% else %}MGB - Itô{% endif %}
-                </a>
-                <a href="{% url 'modelo_reversao_media' %}" class="nav-link" data-url="{% url 'modelo_reversao_media' %}">
-                    {% if request.session.language == 'en' %}Mean Reversion Model{% else %}Modelo de Reversão a Média{% endif %}
-                </a>
-            </div>
-        </div>
-        <div class="accordion-section">
-            <input type="checkbox" id="accordion-2" class="accordion-checkbox">
-            <label class="accordion-label d-flex justify-content-between" for="accordion-2">
-                <div>
-                    {% if request.session.language == 'en' %}Finantial Options {% else %}Opções Financeiras{% endif %}
-                </div>
-                <div class="d-flex justify-content-center align-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
-            </label>
-            <div class="accordion-content">
-                <a href="{% url 'basic_concepts_overview' %}" class="nav-link" data-url="{% url 'basic_concepts_overview' %}">
-                    {% if request.session.language == 'en' %}Basic Concepts{% else %}Conceitos Básicos{% endif %}
-                </a>   
-                <a href="{% url 'black_scholes' %}" class="nav-link" data-url="{% url 'black_scholes' %}">
-                    {% if request.session.language == 'en' %}Black-Scholes model{% else %}Modelo Black-Scholes{% endif %}
-                </a>
-                <a href="{% url 'black_scholes_merton' %}" class="nav-link" data-url="{% url 'black_scholes_merton' %}">
-                    {% if request.session.language == 'en' %}Black-Scholes-Merton model{% else %}Modelo Black-Scholes-Merton{% endif %}
-                </a>
-                <a href="{% url 'precificar_opcao' %}" class="nav-link" data-url="{% url 'precificar_opcao' %}">
-                    {% if request.session.language == 'en' %}Monte Carlo Option Pricing{% else %}Precificação de Opções por Monte Carlo{% endif %}
-                </a>
-                <a href="{% url 'cox_ross_rubinstein' %}" class="nav-link" data-url="{% url 'cox_ross_rubinstein' %}">
-                    Cox-Ross-Rubinstein
-                </a>
-                <a href="{% url 'volatilidade_template' %}" class="nav-link" data-url="{% url 'volatilidade_template' %}">
-                    {% if request.session.language == 'en' %}Return and volatility: <span class="fs-6">discrete and continuous</span>{% else %}Retorno e volatilidade: <span class="fs-6">discreto e contínuo</span> {% endif %}
-                </a>
-            </div>
-        </div>
-        <div class="accordion-section">
-            <input type="checkbox" id="accordion-3" class="accordion-checkbox">
-            <label class="accordion-label d-flex justify-content-between" for="accordion-3">
-                <div>
-                    {% if request.session.language == 'en' %}Real Options{% else %}Opções Reais{% endif %}
-                </div>
-                <div class="d-flex justify-content-center align-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
-            </label>
-            <div class="accordion-content">
-                <a href="{% url 'binomial_model' %}" class="nav-link" data-url="{% url 'binomial_model' %}">
-                    {% if request.session.language == 'en' %}Binomial model{% else %}Modelo binomial{% endif %}
-                </a>
-
-                <!-- Copeland & Antikarov Method -->
-                <a href="{% url 'copeland_antikarov_volatility' %}" class="nav-link" data-url="{% url 'copeland_antikarov_volatility' %}">
-                    {% if request.session.language == 'en' %}Copeland & Antikarov Method{% else %}Método de Copeland & Antikarov{% endif %}
-                </a>
-                
-                <!-- Herath & Park Method -->
-                <a href="{% url 'herath_park_volatility' %}" class="nav-link" data-url="{% url 'herath_park_volatility' %}">
-                    {% if request.session.language == 'en' %}Herath & Park Method{% else %}Método de Herath & Park{% endif %}
-                </a>
-            </div>
-        </div>
-                <div class="mt-auto px-2">
-            <select id="languageSelect" class="form-control px-2" onchange="updateLanguage(this.value)">
-                <option class="" value="pt" {% if request.session.language == 'pt' %}selected{% endif %}>Portuguese</option>
-                <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
-            </select>
-            
-            <a href="{% url 'custom-logout' %}" class="mt-auto">
-                {% if request.session.language == 'en' %}log-out{% else %}Sair{% endif %}
-            </a> 
-        </div>
-    </div>
+    {% include 'site/home/sidebar.html' %}
     <div class="content">
         <div id="main-content">
             <div class="container d-flex flex-column vh-100 justify-content-center align-items-center">
@@ -279,9 +179,7 @@
                     $.ajax({
                         url: url,
                         success: function(data) {
-                            $('#main-content').html(data); // Load the response into main-content
-                            // Optional: If you want to scroll to top after content loads
-                            // window.scrollTo(0, 0);
+                            $('#main-content').html(data); 
                         },
                         error: function() {
                             $('#main-content').html('<p>Erro ao carregar conteúdo. Tente novamente.</p>');
