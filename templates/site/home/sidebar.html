@@ -16,17 +16,11 @@
             <a class="nav-link" data-url="{% url 'cadeia_markov' %}">
                 {% if request.session.language == 'en' %}Markov Chains{% else %}Cadeias de Markov{% endif %}
             </a>
-            <a class="nav-link" data-url="{% url 'random_walk_template' %}">
+            <a class="nav-link" data-url="{% url 'random_walk_overview' %}">
                 Random Walk
             </a>
-            <a class="nav-link" data-url="{% url 'random_walk_normal' %}">
-                Random Walk Normal
-            </a>
-            <a class="nav-link" data-url="{% url 'monte_carlos' %}">
-                {% if request.session.language == 'en' %}GBM - Wiener{% else %}MGB - Wiener{% endif %}
-            </a>
-            <a class="nav-link" data-url="{% url 'mbg_ito' %}">
-                {% if request.session.language == 'en' %}GBM - Itô{% else %}MGB - Itô{% endif %}
+            <a class="nav-link" data-url="{% url 'mbg_overview' %}">
+                {% if request.session.language == 'en' %}Brownian movement{% else %}Movimento Browniano{% endif %}
             </a>
             <a class="nav-link" data-url="{% url 'modelo_reversao_media' %}">
                 {% if request.session.language == 'en' %}Mean Reversion Model{% else %}Modelo de Reversão a Média{% endif %}

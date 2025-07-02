@@ -18,6 +18,8 @@ def processos_home(request):
 def cadeia_markov(request):
     return render(request, "site/processos-estocasticos/cadeia_markov.html")
 
+def random_walk_overview(request):
+    return render(request, "site/processos-estocasticos/random_walk_overview.html")
 
 def random_walk_normal(request):
     return render(request, "site/processos-estocasticos/random_walk_normal.html")
@@ -37,6 +39,9 @@ def random_walk_template(request):
 def monte_carlos(request):
     return render(request, "site/processos-estocasticos/monte_carlos.html")
 
+
+def mbg_overview(request):
+    return render(request, "site/processos-estocasticos/mbg_overview.html")
 
 def mbg_ito(request):
     return render(request, "site/processos-estocasticos/mbg_ito.html")

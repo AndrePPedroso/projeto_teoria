@@ -1,0 +1,87 @@
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100 py-5">
+
+    <h1 class="text-3xl font-bold mb-4 text-dark">
+        {% if request.session.language == 'en' %}Random walk Models{% else %}Modelos de Random Walk{% endif %}
+    </h1>
+
+    <div class="text-center mb-5">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
+            {% if request.session.language == 'en' %}Models Guide{% else %}Guia dos Modelos{% endif %}
+        </button>
+    </div>
+    
+    <div class="row w-100 justify-content-center">
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'random_walk_normal' %}"
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        Random walk
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Random walk behavior vizualization com distribuição normal.{% else %}Vizualização do comportamento Ramdom Walk com distribuição normal.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4 mb-4">
+            <a
+               class="card nav-link bg-light text-center shadow-sm h-100 d-flex flex-column justify-content-center"
+               data-url="{% url 'random_walk_template' %}" 
+               style="border-radius: 0.75rem; text-decoration: none; color: inherit;">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-2 text-dark">
+                        {% if request.session.language == 'en' %}Random walk distribuition{% else %}Distribuições random walk{% endif %}
+                    </h2>
+                    <p class="card-text text-secondary small">
+                        {% if request.session.language == 'en' %}Vizualization of the behavior of a random walk with three different distributions.{% else %}Vizualizar o comportamento de uma random walk com com três distribuições diferentes.{% endif %}
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="conceptsExplanationModal" tabindex="-1" aria-labelledby="conceptsExplanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="conceptsExplanationModalLabel">
+            {% if request.session.language == 'en' %}Guide to Random Walk Models{% else %}Guia dos Modelos de Passeio Aleatório{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-dark">
+            
+            <h4>{% if request.session.language == 'en' %}1. Random Walk - Discrete Time{% else %}1. Passeio Aleatório - Tempo Discreto{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Concept:{% else %}Conceito:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                A discrete-time random walk describes a path consisting of a sequence of random steps on some mathematical space. At each step, the position of the "walker" changes by a random amount. This model is fundamental in various fields, including finance (modeling stock prices), physics (Brownian motion), and computer science, illustrating basic principles of randomness and probability.
+                {% else %}
+                Um passeio aleatório em tempo discreto descreve um caminho que consiste em uma sequência de passos aleatórios em algum espaço matemático. A cada passo, a posição do "caminhante" muda por uma quantidade aleatória. Este modelo é fundamental em várias áreas, incluindo finanças (modelagem de preços de ações), física (movimento Browniano) e ciência da computação, ilustrando princípios básicos de aleatoriedade e probabilidade.
+                {% endif %}
+            </p>
+            <hr>
+
+            <h4>{% if request.session.language == 'en' %}2. Random Walk - Normal View{% else %}2. Passeio Aleatório - Visão Normal{% endif %}</h4>
+            <p>
+                <strong>{% if request.session.language == 'en' %}Concept:{% else %}Conceito:{% endif %}</strong>
+                {% if request.session.language == 'en' %}
+                The "Normal View" of a random walk focuses on visualizing how the distribution of positions converges to a normal (Gaussian) distribution as the number of steps increases. This demonstrates the Central Limit Theorem in action, showing that the sum of many independent random variables (the individual steps) tends towards a normal distribution, regardless of the distribution of the individual steps themselves. This provides key insights into the statistical properties of random walks over longer periods.
+                {% else %}
+                A "Visão Normal" de um passeio aleatório foca em visualizar como a distribuição das posições converge para uma distribuição normal (Gaussiana) à medida que o número de passos aumenta. Isso demonstra o Teorema do Limite Central em ação, mostrando que a soma de muitas variáveis aleatórias independentes (os passos individuais) tende a uma distribuição normal, independentemente da distribuição dos passos individuais. Isso fornece insights importantes sobre as propriedades estatísticas dos passeios aleatórios em períodos mais longos.
+                {% endif %}
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>
