@@ -6,36 +6,46 @@ import matplotlib.pyplot as plt
 import io
 import base64
 
-def option_price_use_case(S0, K, T, r, sigma, num_simulacoes):
+def option_price_use_case(S0, K, T, r, sigma, num_simulacoes, option_type='call'):
     """
-    Simula o preço de opções de compra europeias usando o método de Monte Carlo.
+    Simula o preço de opções europeias usando o método de Monte Carlo.
 
     Args:
         S0 (float): Preço atual do ativo subjacente.
         K (float): Preço de exercício (strike) da opção.
         T (float): Tempo até o vencimento em anos.
-        r (float): Taxa de juros livre de risco anual.
-        sigma (float): Volatilidade anual do ativo subjacente.
+        r (float): Taxa de juros livre de risco anual (em %).
+        sigma (float): Volatilidade anual do ativo subjacente (em %).
         num_simulacoes (int): Número de simulações de Monte Carlo.
+        option_type (str): Tipo da opção, 'call' ou 'put'.
 
     Returns:
         tuple: (preco_opcao, ST_array, statistics)
-            preco_opcao (float): Preço estimado da opção de compra europeia.
+            preco_opcao (float): Preço estimado da opção europeia.
             ST_array (numpy.ndarray): Array dos preços simulados do ativo no vencimento.
             statistics (dict): Dicionário com estatísticas descritivas dos preços no vencimento.
     """
+    # Converter taxas de porcentagem para decimal
+    r_dec = r / 100.0
+    sigma_dec = sigma / 100.0
+    
     # Gerar números aleatórios da distribuição normal padrão
     z = np.random.standard_normal(num_simulacoes)
-    r = r/100
-    sigma= sigma/100
+    
     # Simular os preços do ativo subjacente no vencimento (ST)
-    ST = S0 * np.exp((r - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * z)
+    ST = S0 * np.exp((r_dec - 0.5 * sigma_dec**2) * T + sigma_dec * np.sqrt(T) * z)
 
-    # Calcular o payoff da opção de compra europeia
-    payoffs = np.maximum(ST - K, 0)
+    # Calcular o payoff da opção com base no tipo
+    if option_type == 'call':
+        payoffs = np.maximum(ST - K, 0)
+    elif option_type == 'put':
+        payoffs = np.maximum(K - ST, 0)
+    else:
+        # Caso o tipo seja inválido, retorna um erro. A validação principal está na view.
+        raise ValueError("Tipo de opção inválido. Escolha 'call' ou 'put'.")
 
     # Calcular o preço da opção como a média dos payoffs descontados
-    preco_opcao = np.exp(-r * T) * np.mean(payoffs)
+    preco_opcao = np.exp(-r_dec * T) * np.mean(payoffs)
 
     # Calcular estatísticas descritivas dos preços finais simulados
     statistics = {
@@ -44,40 +54,41 @@ def option_price_use_case(S0, K, T, r, sigma, num_simulacoes):
         'Desvio Padrão': np.std(ST),
         'Mínimo': np.min(ST),
         'Máximo': np.max(ST),
-        'Preço da Opção (Descontado)': preco_opcao # Incluindo o preço da opção aqui
     }
 
     return preco_opcao, ST, statistics
 
-def create_plots(ST_array, num_periods_placeholder=None):
+def create_plots(ST_array):
     """
     Cria gráficos para visualização dos resultados da simulação.
-    Para a precificação de opções, podemos mostrar a distribuição dos preços finais.
-    O 'price_plot' será mais conceitual ou omitido, pois não simulamos caminhos ao longo do tempo aqui.
     """
-    # Gráfico de Distribuição dos Preços Finais
-    plt.figure(figsize=(8, 6))
-    plt.hist(ST_array, bins=50, density=True, alpha=0.7, color='skyblue', edgecolor='black')
-    plt.title('Distribuição dos Preços do Ativo no Vencimento (ST)')
-    plt.xlabel('Preço do Ativo no Vencimento')
-    plt.ylabel('Densidade')
-    plt.grid(True)
-    buf_dist = io.BytesIO()
-    plt.savefig(buf_dist, format='png')
-    plt.close()
-    data_dist = base64.b64encode(buf_dist.getvalue()).decode('utf-8')
+    plt.style.use('seaborn-v0_8-darkgrid')
 
-    plt.figure(figsize=(8, 6))
-    plt.plot([0, len(ST_array)], [np.mean(ST_array), np.mean(ST_array)], 'r--')
-    plt.text(len(ST_array)/2, np.mean(ST_array) * 1.05, f'Média de ST: {np.mean(ST_array):.2f}', horizontalalignment='center')
-    plt.title('Média dos Preços do Ativo no Vencimento')
-    plt.xlabel('Simulações')
-    plt.ylabel('Preço do Ativo')
-    plt.grid(True)
+    # --- Gráfico 1: Convergência da Média do Preço ---
+    mean_prices = np.cumsum(ST_array) / (np.arange(len(ST_array)) + 1)
+    fig1, ax1 = plt.subplots(figsize=(8, 5))
+    ax1.plot(mean_prices)
+    ax1.set_title('Convergência do Preço Médio do Ativo')
+    ax1.set_xlabel('Número de Simulações')
+    ax1.set_ylabel('Preço Médio')
+    ax1.grid(True)
+    
     buf_price = io.BytesIO()
-    plt.savefig(buf_price, format='png')
-    plt.close()
+    fig1.savefig(buf_price, format='png', bbox_inches='tight')
     data_price = base64.b64encode(buf_price.getvalue()).decode('utf-8')
+    plt.close(fig1)
 
+    # --- Gráfico 2: Distribuição dos Preços Finais ---
+    fig2, ax2 = plt.subplots(figsize=(8, 5))
+    ax2.hist(ST_array, bins=50, density=True, alpha=0.75, color='skyblue', edgecolor='black')
+    ax2.set_title('Distribuição dos Preços do Ativo no Vencimento (ST)')
+    ax2.set_xlabel('Preço do Ativo no Vencimento')
+    ax2.set_ylabel('Densidade')
+    ax2.grid(True)
+
+    buf_dist = io.BytesIO()
+    fig2.savefig(buf_dist, format='png', bbox_inches='tight')
+    data_dist = base64.b64encode(buf_dist.getvalue()).decode('utf-8')
+    plt.close(fig2)
 
     return data_price, data_dist

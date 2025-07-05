@@ -9,6 +9,7 @@ urlpatterns = [
     path('cox-ross-rubinstein/', cox_ross_rubinstein_template, name='cox_ross_rubinstein'),
     path('api/cox-ross-rubinstein/', cox_ross_rubinstein_view, name='cox_ross_rubinstein_api'),
     path('precificar/', precificar_opcao_view, name='precificar_opcao'),
+    path('precificar-americana/', precificar_opcao_americana_view, name='precificar_opcao_americana'),
     path('financial_options/basic_concepts/overview/', basic_concepts_overview_view, name='basic_concepts_overview'),
     path('financial_options/black_scholes/overview/', black_scholes_overview_view, name='black_scholes_overview'),
     path('financial_options/cox_ross/overview/', cox_ross_overview_view, name='cox_ross_overview'),

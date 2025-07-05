@@ -1,0 +1,172 @@
+<div class="container mt-5">
+    {% if language == 'en' %}
+    <h1>American Option Pricing with Least Squares Monte Carlo</h1>
+    {% else %}
+    <h1>Precificação de Opção Americana com Mínimos Quadrados e Monte Carlo</h1>
+    {% endif %}
+<form id="americanOptionForm" method="post" action="{% url 'precificar_opcao_americana' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="S0_american">
+            {% if language == 'en' %}Initial Price (S0):{% else %}Preço Atual do Ativo (S0):{% endif %}
+        </label>
+        <input type="number" class="form-control" id="S0_american" name="S0" value="{{ initial_data.S0 }}" min="0.01" step="0.01" required>
+        <ul class="errorlist" id="S0_american_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="K_american">
+            {% if language == 'en' %}Strike Price (K):{% else %}Preço de Exercício (K):{% endif %}
+        </label>
+        <input type="number" class="form-control" id="K_american" name="K" value="{{ initial_data.K }}" min="0.01" step="0.01" required>
+        <ul class="errorlist" id="K_american_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="T_american">
+            {% if language == 'en' %}Time to Maturity (T in years):{% else %}Tempo até o Vencimento (T em anos):{% endif %}
+        </label>
+        <input type="number" class="form-control" id="T_american" name="T" value="{{ initial_data.T }}" min="0.01" step="0.01" required>
+        <ul class="errorlist" id="T_american_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="r_american">
+            {% if language == 'en' %}Risk-Free Rate (r, %):{% else %}Taxa de Juros Livre de Risco (r, %):{% endif %}
+        </label>
+        <div class="input-group">
+        <input type="number" class="form-control" id="r_american" name="r" value="{{ initial_data.r }}" min="0" max="100" step="0.01" value="5" required>
+        <span class="input-group-text">%</span>
+        </div>
+        <ul class="errorlist" id="r_american_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="sigma_american">
+            {% if language == 'en' %}Volatility (σ, %):{% else %}Volatilidade (σ, %):{% endif %}
+        </label>
+        <div class="input-group">
+            <input type="number" class="form-control" id="sigma_american" name="sigma" value="{{ initial_data.sigma }}" min="0.1" max="200" step="0.1" value="20" required>
+            <span class="input-group-text">%</span>
+            <ul class="errorlist" id="sigma_american_errors"></ul>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="num_simulacoes_american">
+            {% if language == 'en' %}Number of Simulations:{% else %}Número de Simulações:{% endif %}
+        </label>
+        <input type="number" class="form-control" id="num_simulacoes_american" name="num_simulacoes" value="{{ initial_data.num_simulacoes }}" min="1000" max="100000" step="1" required>
+        <ul class="errorlist" id="num_simulacoes_american_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="num_passos">
+            {% if language == 'en' %}Number of Time Steps:{% else %}Número de Passos de Tempo:{% endif %}
+        </label>
+        <input type="number" class="form-control" id="num_passos" name="num_passos" value="{{ initial_data.num_passos|default:100 }}" min="10" max="1000" step="1" required>
+        <ul class="errorlist" id="num_passos_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="option_type_american">
+            {% if language == 'en' %}Option Type:{% else %}Tipo de Opção:{% endif %}
+        </label>
+        <select class="form-control" id="option_type_american" name="option_type">
+            <option value="put" {% if initial_data.option_type == 'put' %}selected{% endif %}>
+                {% if language == 'en' %}Put{% else %}Venda (Put){% endif %}
+            </option>
+            <option value="call" {% if initial_data.option_type == 'call' %}selected{% endif %}>
+                {% if language == 'en' %}Call{% else %}Compra (Call){% endif %}
+            </option>
+        </select>
+        <ul class="errorlist" id="option_type_errors"></ul>
+    </div>
+    <button type="button" class="btn btn-primary mt-3" onclick="submitAmericanOptionForm()">
+        {% if language == 'en' %}Run Simulation{% else %}Executar Simulação{% endif %}
+    </button>
+</form>
+
+<div class="result-section" id="resultSectionAmerican" style="display: none;">
+    <h3>
+        {% if language == 'en' %}Simulation Results{% else %}Resultados da Simulação{% endif %}
+    </h3>
+    <p><strong>{% if language == 'en' %}Estimated Option Price:{% else %}Preço Estimado da Opção:{% endif %}</strong> <span id="estimatedPriceAmerican"></span></p>
+    <div class="row">
+        <div class="col-md-6">
+            <img id="pricePlotAmerican" class="img-fluid" alt="Gráfico de Trajetórias de Preços">
+        </div>
+        <div class="col-md-6">
+            <img id="exerciseBoundaryPlot" class="img-fluid" alt="Fronteira de Exercício">
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    function clearAmericanErrors() {
+        $('.errorlist').empty();
+    }
+
+    function displayAmericanErrors(errors) {
+        clearAmericanErrors();
+
+        if (typeof errors !== 'object' || errors === null) {
+            console.error("Expected 'errors' to be an object, but got:", errors);
+            alert("An unexpected error occurred while processing the errors. Please try again.");
+            return;
+        }
+
+        for (const field in errors) {
+            if (errors.hasOwnProperty(field)) {
+                const errorList = $(`#${field}_american_errors, #${field}_errors`);
+
+                if (errorList.length === 0) {
+                    console.warn(`No errorlist element found for field: ${field}.`);
+                    continue;
+                }
+
+                let fieldErrors = errors[field];
+                if (typeof fieldErrors === 'string') {
+                    fieldErrors = [fieldErrors];
+                }
+
+                if (Array.isArray(fieldErrors)) {
+                    fieldErrors.forEach(error => {
+                        errorList.append(`<li>${error}</li>`);
+                    });
+                } else {
+                    console.warn(`Unexpected non-array/non-string error format for field '${field}':`, fieldErrors);
+                    errorList.append(`<li>${String(fieldErrors)}</li>`);
+                }
+            }
+        }
+    }
+
+    function submitAmericanOptionForm() {
+        clearAmericanErrors();
+        const form = $('#americanOptionForm');
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(data) {
+                $('#resultSectionAmerican').show();
+                $('#estimatedPriceAmerican').text(data.preco_estimado);
+                $('#pricePlotAmerican').attr('src', 'data:image/png;base64,' + data.price_plot);
+                $('#exerciseBoundaryPlot').attr('src', 'data:image/png;base64,' + data.exercise_boundary_plot);
+            },
+            error: function(xhr, status, error) {
+                let errorMessage = "Error in simulation. Please check the entered data.";
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        displayAmericanErrors(xhr.responseJSON.errors);
+                        errorMessage = "Validation error. Please check the marked fields.";
+                    } else if (xhr.responseJSON.error) {
+                        errorMessage = "Simulation error: " + xhr.responseJSON.error;
+                    } else {
+                        errorMessage = "Unknown simulation error.";
+                        console.log("Unexpected error response JSON:", xhr.responseJSON);
+                    }
+                } else {
+                    errorMessage = `Error communicating with the server: ${error || 'Check your connection.'}`;
+                }
+                console.log("Final error message:", errorMessage);
+                alert(errorMessage);
+            }
+        });
+    }
+</script>

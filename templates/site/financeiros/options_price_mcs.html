@@ -1,165 +1,178 @@
-
-    <div class="container mt-5">
-        {% if language == 'en' %}
-        <h1>Monte Carlo Simulation for European Option Pricing</h1>
-        {% else %}
-        <h1>Simulação de Monte Carlo para Precificação de Opções Europeias</h1>
-        {% endif %}
-    <form id="precificacaoOpcaoForm" method="post" action="{% url 'precificar_opcao' %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="S0">
-                {% if language == 'en' %}Initial Price (S0):{% else %}Preço Atual do Ativo (S0):{% endif %}
-            </label>
-            <input type="number" class="form-control" id="S0" name="S0" value="{{ initial_data.S0 }}" min="0.01" step="0.01" required>
-            <ul class="errorlist" id="S0_errors"></ul>
+<div class="container mt-5">
+    {% if language == 'en' %}
+    <h1>Monte Carlo Simulation for European Option Pricing</h1>
+    {% else %}
+    <h1>Simulação de Monte Carlo para Precificação de Opções Europeias</h1>
+    {% endif %}
+<form id="precificacaoOpcaoForm" method="post" action="{% url 'precificar_opcao' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="S0">
+            {% if language == 'en' %}Initial Price (S0):{% else %}Preço Atual do Ativo (S0):{% endif %}
+        </label>
+        <input type="number" class="form-control" id="S0" name="S0" value="{{ initial_data.S0 }}" min="0.01" step="0.01" required>
+        <ul class="errorlist" id="S0_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="K">
+            {% if language == 'en' %}Strike Price (K):{% else %}Preço de Exercício (K):{% endif %}
+        </label>
+        <input type="number" class="form-control" id="K" name="K" value="{{ initial_data.K }}" min="0.01" step="0.01" required>
+        <ul class="errorlist" id="K_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="T">
+            {% if language == 'en' %}Time to Maturity (T in years):{% else %}Tempo até o Vencimento (T em anos):{% endif %}
+        </label>
+        <input type="number" class="form-control" id="T" name="T" value="{{ initial_data.T }}" min="0.01" step="0.01" required>
+        <ul class="errorlist" id="T_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="r">
+            {% if language == 'en' %}Risk-Free Rate (r, %):{% else %}Taxa de Juros Livre de Risco (r, %):{% endif %}
+        </label>
+        <div class="input-group">
+        <input type="number" class="form-control" id="r" name="r" value="{{ initial_data.r }}" min="0" max="100" step="0.01" value="5" required>
+        <span class="input-group-text">%</span>
         </div>
-        <div class="form-group">
-            <label for="K">
-                {% if language == 'en' %}Strike Price (K):{% else %}Preço de Exercício (K):{% endif %}
-            </label>
-            <input type="number" class="form-control" id="K" name="K" value="{{ initial_data.K }}" min="0.01" step="0.01" required>
-            <ul class="errorlist" id="K_errors"></ul>
-        </div>
-        <div class="form-group">
-            <label for="T">
-                {% if language == 'en' %}Time to Maturity (T in years):{% else %}Tempo até o Vencimento (T em anos):{% endif %}
-            </label>
-            <input type="number" class="form-control" id="T" name="T" value="{{ initial_data.T }}" min="0.01" step="0.01" required>
-            <ul class="errorlist" id="T_errors"></ul>
-        </div>
-        <div class="form-group">
-            <label for="r">
-                {% if language == 'en' %}Risk-Free Rate (r, %):{% else %}Taxa de Juros Livre de Risco (r, %):{% endif %}
-            </label>
-            <div class="input-group">
-            <input type="number" class="form-control" id="r" name="r" value="{{ initial_data.r }}" min="0" max="100" step="0.01" value="5" required>
+        <ul class="errorlist" id="r_errors"></ul>
+    </div>
+    <div class="form-group">
+        <label for="sigma">
+            {% if language == 'en' %}Volatility (σ, %):{% else %}Volatilidade (σ, %):{% endif %}
+        </label>
+        <div class="input-group">
+            <input type="number" class="form-control" id="sigma" name="sigma" value="{{ initial_data.sigma }}" min="0.1" max="200" step="0.1" value="20" required>
             <span class="input-group-text">%</span>
-            </div>
-            <ul class="errorlist" id="r_errors"></ul>
+            <ul class="errorlist" id="sigma_errors"></ul>
         </div>
-        <div class="form-group">
-            <label for="sigma">
-                {% if language == 'en' %}Volatility (σ, %):{% else %}Volatilidade (σ, %):{% endif %}
-            </label>
-            <div class="input-group">
-                <input type="number" class="form-control" id="sigma" name="sigma" value="{{ initial_data.sigma }}" min="0.1" max="200" step="0.1" value="20" required>
-                <span class="input-group-text">%</span>
-                <ul class="errorlist" id="sigma_errors"></ul>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="num_simulacoes">
-                {% if language == 'en' %}Number of Simulations:{% else %}Número de Simulações:{% endif %}
-            </label>
-            <input type="number" class="form-control" id="num_simulacoes" name="num_simulacoes" value="{{ initial_data.num_simulacoes }}" min="1000" max="100000" step="1" required>
-            <ul class="errorlist" id="num_simulacoes_errors"></ul>
-        </div>
-        <button type="button" class="btn btn-primary" onclick="submitMonteCarloForm()">
-            {% if language == 'en' %}Run Simulation{% else %}Executar Simulação{% endif %}
-        </button>
-    </form>
-
-    <div class="result-section" id="resultSection" style="display: none;">
-        <h3>
-            {% if language == 'en' %}Simulation Results{% else %}Resultados da Simulação{% endif %}
-        </h3>
-        <p><strong>{% if language == 'en' %}Estimated Option Price:{% else %}Preço Estimado da Opção:{% endif %}</strong> <span id="estimatedPrice"></span></p>
-        <div class="row">
-            <div class="col-md-6">
-                <img id="pricePlot" class="img-fluid" alt="Gráfico de Média de Preço">
-            </div>
-            <div class="col-md-6">
-                <img id="distributionPlot" class="img-fluid" alt="Distribuição dos Preços Finais">
-            </div>
-        </div>
-        <h4>
-            {% if language == 'en' %}Statistics (of Final Prices):{% else %}Estatísticas Descritivas (dos Preços Finais):{% endif %}
-        </h4>
-        <table class="table table-bordered" id="statisticsTable"></table>
     </div>
+    <div class="form-group">
+        <label for="num_simulacoes">
+            {% if language == 'en' %}Number of Simulations:{% else %}Número de Simulações:{% endif %}
+        </label>
+        <input type="number" class="form-control" id="num_simulacoes" name="num_simulacoes" value="{{ initial_data.num_simulacoes }}" min="1000" max="1000000" step="1" required>
+        <ul class="errorlist" id="num_simulacoes_errors"></ul>
     </div>
+    <div class="form-group">
+        <label for="option_type">
+            {% if language == 'en' %}Option Type:{% else %}Tipo de Opção:{% endif %}
+        </label>
+        <select class="form-control" id="option_type" name="option_type">
+            <option value="call" {% if initial_data.option_type == 'call' %}selected{% endif %}>
+                {% if language == 'en' %}Call{% else %}Compra (Call){% endif %}
+            </option>
+            <option value="put" {% if initial_data.option_type == 'put' %}selected{% endif %}>
+                {% if language == 'en' %}Put{% else %}Venda (Put){% endif %}
+            </option>
+        </select>
+        <ul class="errorlist" id="option_type_errors"></ul>
+    </div>
+    <button type="button" class="btn btn-primary mt-3" onclick="submitMonteCarloForm()">
+        {% if language == 'en' %}Run Simulation{% else %}Executar Simulação{% endif %}
+    </button>
+</form>
 
-    <script>
-        function clearErrors() {
-            $('.errorlist').empty(); 
+<div class="result-section" id="resultSection" style="display: none;">
+    <h3>
+        {% if language == 'en' %}Simulation Results{% else %}Resultados da Simulação{% endif %}
+    </h3>
+    <p><strong>{% if language == 'en' %}Estimated Option Price:{% else %}Preço Estimado da Opção:{% endif %}</strong> <span id="estimatedPrice"></span></p>
+    <div class="row">
+        <div class="col-md-6">
+            <img id="pricePlot" class="img-fluid" alt="Gráfico de Média de Preço">
+        </div>
+        <div class="col-md-6">
+            <img id="distributionPlot" class="img-fluid" alt="Distribuição dos Preços Finais">
+        </div>
+    </div>
+    <h4>
+        {% if language == 'en' %}Statistics (of Final Prices):{% else %}Estatísticas Descritivas (dos Preços Finais):{% endif %}
+    </h4>
+    <table class="table table-bordered" id="statisticsTable"></table>
+</div>
+</div>
+
+<script>
+    function clearErrors() {
+        $('.errorlist').empty(); 
+    }
+
+    function displayErrors(errors) {
+        clearErrors();
+
+        if (typeof errors !== 'object' || errors === null) {
+            console.error("Expected 'errors' to be an object, but got:", errors);
+            alert("Ocorreu um erro inesperado ao processar os erros. Por favor, tente novamente.");
+            return;
         }
-    
-        function displayErrors(errors) {
-            clearErrors();
-    
-            if (typeof errors !== 'object' || errors === null) {
-                console.error("Expected 'errors' to be an object, but got:", errors);
-                alert("Ocorreu um erro inesperado ao processar os erros. Por favor, tente novamente.");
-                return;
-            }
-    
-            for (const field in errors) {
-                if (errors.hasOwnProperty(field)) {
-                    const errorList = $(`#${field}_errors`);
-    
-                    if (errorList.length === 0) {
-                        console.warn(`No errorlist element found for field: ${field}. Looking for #${field}_errors`);
-                        continue; 
-                    }
-    
-                    let fieldErrors = errors[field];
-                    if (typeof fieldErrors === 'string') {
-                        fieldErrors = [fieldErrors];
-                    }
-    
-                    if (Array.isArray(fieldErrors)) {
-                        fieldErrors.forEach(error => {
-                            errorList.append(`<li>${error}</li>`);
-                        });
-                    } else {
-                        console.warn(`Unexpected non-array/non-string error format for field '${field}':`, fieldErrors);
-                        errorList.append(`<li>${fieldErrors}</li>`); // Display it as is, better than nothing
-                    }
+
+        for (const field in errors) {
+            if (errors.hasOwnProperty(field)) {
+                const errorList = $(`#${field}_errors`);
+
+                if (errorList.length === 0) {
+                    console.warn(`No errorlist element found for field: ${field}. Looking for #${field}_errors`);
+                    continue; 
+                }
+
+                let fieldErrors = errors[field];
+                if (typeof fieldErrors === 'string') {
+                    fieldErrors = [fieldErrors];
+                }
+
+                if (Array.isArray(fieldErrors)) {
+                    fieldErrors.forEach(error => {
+                        errorList.append(`<li>${error}</li>`);
+                    });
+                } else {
+                    console.warn(`Unexpected non-array/non-string error format for field '${field}':`, fieldErrors);
+                    errorList.append(`<li>${fieldErrors}</li>`); // Display it as is, better than nothing
                 }
             }
         }
-    
-        function submitMonteCarloForm() {
-            clearErrors(); 
-            const form = $('#precificacaoOpcaoForm');
-            $.ajax({
-                url: form.attr('action'),
-                method: 'POST',
-                data: form.serialize(),
-                success: function(data) {
-                    $('#resultSection').show();
-                    $('#estimatedPrice').text(data.preco_estimado);
-                    $('#pricePlot').attr('src', 'data:image/png;base64,' + data.price_plot);
-                    $('#distributionPlot').attr('src', 'data:image/png;base64,' + data.distribution_plot);
-                
-                    const statsTable = $('#statisticsTable');
-                    statsTable.empty();
-                    statsTable.append('<thead><tr><th>Estatística</th><th>Valor</th></tr></thead>');
-                    const tbody = $('<tbody></tbody>');
-                    for (const [key, value] of Object.entries(data.statistics)) {
-                        tbody.append(`<tr><td>${key}</td><td>${value}</td></tr>`);
-                    }
-                    statsTable.append(tbody);
-                },
-                error: function(xhr, status, error) {
-                    let errorMessage = "Erro na simulação. Por favor, verifique os dados inseridos.";
-                    if (xhr.responseJSON) {
-                        if (xhr.responseJSON.errors) {
-                            displayErrors(xhr.responseJSON.errors);
-                            errorMessage = "Erro de validação. Verifique os campos marcados.";
-                        } else if (xhr.responseJSON.error) {
-                            errorMessage = "Erro na simulação: " + xhr.responseJSON.error;
-                        } else {
-                            errorMessage = "Erro desconhecido na simulação.";
-                            console.log("Unexpected error response JSON:", xhr.responseJSON);
-                        }
-                    } else {
-                        errorMessage = `Erro na comunicação com o servidor: ${error || 'Verifique sua conexão.'}`;
-                    }
-                    console.log("Final error message:", errorMessage);
-                    alert(errorMessage); 
+    }
+
+    function submitMonteCarloForm() {
+        clearErrors(); 
+        const form = $('#precificacaoOpcaoForm');
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(data) {
+                $('#resultSection').show();
+                $('#estimatedPrice').text(data.preco_estimado);
+                $('#pricePlot').attr('src', 'data:image/png;base64,' + data.price_plot);
+                $('#distributionPlot').attr('src', 'data:image/png;base64,' + data.distribution_plot);
+            
+                const statsTable = $('#statisticsTable');
+                statsTable.empty();
+                statsTable.append('<thead><tr><th>Estatística</th><th>Valor</th></tr></thead>');
+                const tbody = $('<tbody></tbody>');
+                for (const [key, value] of Object.entries(data.statistics)) {
+                    tbody.append(`<tr><td>${key}</td><td>${value}</td></tr>`);
                 }
-            });
-        }
-    </script>
+                statsTable.append(tbody);
+            },
+            error: function(xhr, status, error) {
+                let errorMessage = "Erro na simulação. Por favor, verifique os dados inseridos.";
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        displayErrors(xhr.responseJSON.errors);
+                        errorMessage = "Erro de validação. Verifique os campos marcados.";
+                    } else if (xhr.responseJSON.error) {
+                        errorMessage = "Erro na simulação: " + xhr.responseJSON.error;
+                    } else {
+                        errorMessage = "Erro desconhecido na simulação.";
+                        console.log("Unexpected error response JSON:", xhr.responseJSON);
+                    }
+                } else {
+                    errorMessage = `Erro na comunicação com o servidor: ${error || 'Verifique sua conexão.'}`;
+                }
+                console.log("Final error message:", errorMessage);
+                alert(errorMessage); 
+            }
+        });
+    }
+</script>

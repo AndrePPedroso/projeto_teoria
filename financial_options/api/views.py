@@ -7,6 +7,7 @@ from estocasticos.use_cases.financial_options.black_scholes_merton_use_case impo
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
 from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
+from financial_options.use_cases.option_price_american_use_case import create_american_option_plots, american_option_lsmc
 
 @login_required(login_url='/admin/login/')
 def black_scholes_template(request):
@@ -407,21 +408,21 @@ def precificar_opcao_view(request):
         # Captura e valida os dados manualmente
         try:
             S0 = float(request.POST.get('S0'))
-            if S0 <= 0.01:
+            if S0 <= 0.0:
                 errors['S0'] = 'Preço Atual do Ativo (S0) deve ser maior que 0.'
         except (ValueError, TypeError):
             errors['S0'] = 'Preço Atual do Ativo (S0) inválido.'
 
         try:
             K = float(request.POST.get('K'))
-            if K <= 0.01:
+            if K <= 0.0:
                 errors['K'] = 'Preço de Exercício (K) deve ser maior que 0.'
         except (ValueError, TypeError):
             errors['K'] = 'Preço de Exercício (K) inválido.'
 
         try:
             T = float(request.POST.get('T'))
-            if T <= 0.01:
+            if T <= 0.0:
                 errors['T'] = 'Tempo até o Vencimento (T) deve ser maior que 0.'
         except (ValueError, TypeError):
             errors['T'] = 'Tempo até o Vencimento (T) inválido.'
@@ -429,14 +430,14 @@ def precificar_opcao_view(request):
         try:
             r = float(request.POST.get('r'))
             if not (0.0 <= r <= 100):
-                errors['r'] = 'Taxa de Juros Livre de Risco (r) deve estar entre 0 e 1.'
+                errors['r'] = 'Taxa de Juros Livre de Risco (r) deve estar entre 0 e 100.'
         except (ValueError, TypeError):
             errors['r'] = 'Taxa de Juros Livre de Risco (r) inválida.'
 
         try:
             sigma = float(request.POST.get('sigma'))
-            if not (0.1 <= sigma <= 100):
-                errors['sigma'] = 'Volatilidade (sigma) deve estar entre 0.01 e 1.'
+            if not (0.1 <= sigma <= 200):
+                errors['sigma'] = 'Volatilidade (sigma) deve estar entre 0.1 e 200.'
         except (ValueError, TypeError):
             errors['sigma'] = 'Volatilidade (sigma) inválida.'
 
@@ -446,12 +447,20 @@ def precificar_opcao_view(request):
                 errors['num_simulacoes'] = 'Número de Simulações deve estar entre 1.000 e 1.000.000.'
         except (ValueError, TypeError):
             errors['num_simulacoes'] = 'Número de Simulações inválido.'
+        
+        # Validação para o novo campo 'option_type'
+        option_type = request.POST.get('option_type')
+        if option_type not in ['put', 'call']:
+            errors['option_type'] = 'Tipo de opção inválido.'
 
         if errors:
-            return JsonResponse({'errors': errors}, status=400) # Retorna erros de validação
+            return JsonResponse({'errors': errors}, status=400)
 
         try:
-            preco_opcao, ST_array, statistics = option_price_use_case(S0, K, T, r, sigma, num_simulacoes)
+            # Passa o 'option_type' para a função de cálculo
+            preco_opcao, ST_array, statistics = option_price_use_case(
+                S0, K, T, r, sigma, num_simulacoes, option_type
+            )
 
             price_plot_base64, distribution_plot_base64 = create_plots(ST_array)
 
@@ -464,9 +473,9 @@ def precificar_opcao_view(request):
                 'statistics': formatted_stats,
             })
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400) # Erros inesperados
+            return JsonResponse({'error': str(e)}, status=500)
 
-    else:
+    else: # GET request
         initial_data = {
             'S0': 100.0,
             'K': 100.0,
@@ -474,9 +483,116 @@ def precificar_opcao_view(request):
             'r': 5,
             'sigma': 20,
             'num_simulacoes': 100000,
+            'option_type': 'call',  # Define um valor padrão para o GET
         }
         context = {
             'initial_data': initial_data,
             'language': request.session.get('language', 'pt')
         }
+        # Certifique-se de que o caminho para o template está correto
         return render(request, 'site/financeiros/options_price_mcs.html', context)
+    
+def precificar_opcao_americana_view(request):
+    """
+    View to handle the pricing of American options via a web form.
+    """
+    if request.method == 'POST':
+        errors = {}
+        # Capture and validate the data from the form
+        try:
+            S0 = float(request.POST.get('S0'))
+            if S0 <= 0:
+                errors['S0'] = 'Initial Asset Price (S0) must be greater than 0.'
+        except (ValueError, TypeError):
+            errors['S0'] = 'Invalid Initial Asset Price (S0).'
+
+        try:
+            K = float(request.POST.get('K'))
+            if K <= 0:
+                errors['K'] = 'Strike Price (K) must be greater than 0.'
+        except (ValueError, TypeError):
+            errors['K'] = 'Invalid Strike Price (K).'
+
+        try:
+            T = float(request.POST.get('T'))
+            if T <= 0:
+                errors['T'] = 'Time to Maturity (T) must be greater than 0.'
+        except (ValueError, TypeError):
+            errors['T'] = 'Invalid Time to Maturity (T).'
+
+        try:
+            r = float(request.POST.get('r'))
+            if not (0.0 <= r <= 100):
+                errors['r'] = 'Risk-Free Rate (r) must be between 0 and 100.'
+        except (ValueError, TypeError):
+            errors['r'] = 'Invalid Risk-Free Rate (r).'
+
+        try:
+            sigma = float(request.POST.get('sigma'))
+            if not (0.1 <= sigma <= 200):
+                errors['sigma'] = 'Volatility (sigma) must be between 0.1 and 200.'
+        except (ValueError, TypeError):
+            errors['sigma'] = 'Invalid Volatility (sigma).'
+
+        try:
+            num_simulacoes = int(request.POST.get('num_simulacoes'))
+            if not (1000 <= num_simulacoes <= 100000):
+                errors['num_simulacoes'] = 'Number of Simulations must be between 1,000 and 100,000.'
+        except (ValueError, TypeError):
+            errors['num_simulacoes'] = 'Invalid Number of Simulations.'
+            
+        try:
+            num_passos = int(request.POST.get('num_passos'))
+            if not (10 <= num_passos <= 1000):
+                errors['num_passos'] = 'Number of Time Steps must be between 10 and 1,000.'
+        except (ValueError, TypeError):
+            errors['num_passos'] = 'Invalid Number of Time Steps.'
+
+        option_type = request.POST.get('option_type')
+        if option_type not in ['put', 'call']:
+            errors['option_type'] = 'Invalid option type selected.'
+
+        if errors:
+            return JsonResponse({'errors': errors}, status=400)
+
+        try:
+            # Call the calculation function with the validated data
+            option_price, S_paths, boundary = american_option_lsmc(
+                S0, K, T, r, sigma, num_simulacoes, num_passos, option_type
+            )
+            
+            # Generate plots based on the simulation results
+            price_plot_base64, boundary_plot_base64 = create_american_option_plots(
+                S_paths, boundary, option_type, num_simulacoes
+            )
+            
+            # Return the results as a JSON response
+            return JsonResponse({
+                'preco_estimado': f'{option_price:.4f}',
+                'price_plot': price_plot_base64,
+                'exercise_boundary_plot': boundary_plot_base64,
+            })
+        except Exception as e:
+            # Log the exception for debugging purposes
+            print(f"An error occurred during simulation: {e}")
+            return JsonResponse({'error': 'An unexpected error occurred during the simulation.'}, status=500)
+
+    else: # GET request
+        # Provide initial data for the form when the page is first loaded
+        initial_data = {
+            'S0': 100.0,
+            'K': 100.0,
+            'T': 1.0,
+            'r': 5.0,
+            'sigma': 20.0,
+            'num_simulacoes': 10000,
+            'num_passos': 100,
+            'option_type': 'put', # Default option type
+        }
+        context = {
+            'initial_data': initial_data,
+            'language': request.session.get('language', 'pt')
+        }
+        # Ensure this template path matches your project structure
+        return render(request, 'site/financeiros/options_price_american_mcs.html', context)
+
