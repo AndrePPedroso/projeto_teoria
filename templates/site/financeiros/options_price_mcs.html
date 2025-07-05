@@ -4,6 +4,12 @@
     {% else %}
     <h1>Simulação de Monte Carlo para Precificação de Opções Europeias</h1>
     {% endif %}
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#explanationModalEuropean">
+            {% if language == 'en' %}Learn More{% else %}Saiba Mais{% endif %}
+        </button>
+    </div>
+
 <form id="precificacaoOpcaoForm" method="post" action="{% url 'precificar_opcao' %}">
     {% csrf_token %}
     <div class="form-group">
@@ -92,7 +98,50 @@
     <table class="table table-bordered" id="statisticsTable"></table>
 </div>
 </div>
-
+<!-- Explanation Modal -->
+<div class="modal fade" id="explanationModalEuropean" tabindex="-1" aria-labelledby="explanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="explanationModalLabel">{% if language == 'en' %}Understanding the European Option Pricer{% else %}Compreendendo o Precificador de Opção Europeia{% endif %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+              {% if language == 'en' %}
+              This tool estimates the price of a <strong>European Option</strong>, a financial contract giving the right,but not the obligation, to buy (call) or sell (put) an asset at a set price on a specific future date (the expiration date).
+              {% else %}
+              Esta ferramenta estima o preço de uma <strong>Opção Europeia</strong>, um contrato financeiro que dá o direito, mas não a obrigação, de comprar (call) ou vender (put) um ativo a um preço definido em uma data futura específica (a data de vencimento).
+              {% endif %}
+          </p>
+  
+          <h5>{% if language == 'en' %}How It Works: The Monte Carlo Method{% else %}Como Funciona: O Método Monte Carlo{% endif %}</h5>
+          <p>
+              {% if language == 'en' %}
+              Because the future is uncertain, we can't know the exact price of the asset at expiration. The Monte Carlo method tackles this by simulating thousands of possible future prices.
+              {% else %}
+              Como o futuro é incerto, não podemos saber o preço exato do ativo no vencimento. O método de Monte Carlo lida com isso simulando milhares de possíveis preços futuros.
+              {% endif %}
+          </p>
+          <ol>
+              <li><strong>Simulation:</strong> {% if language == 'en' %}The model generates a large number of random final stock prices based on the inputs (like volatility). Each simulation is one possible outcome for the stock price at the expiration date.{% else %}O modelo gera um grande número de preços finais aleatórios para a ação com base nos dados de entrada (como a volatilidade). Cada simulação é um resultado possível para o preço da ação na data de vencimento.{% endif %}</li>
+              <li><strong>Payoff Calculation:</strong> {% if language == 'en' %}For each simulated final price, it calculates the option's payoff (e.g., for a call, `Final Price - Strike Price` if positive, otherwise zero).{% else %}Para cada preço final simulado, ele calcula o payoff da opção (ex: para uma call, `Preço Final - Preço de Exercício` se for positivo, senão zero).{% endif %}</li>
+              <li><strong>Averaging & Discounting:</strong> {% if language == 'en' %}It averages the payoffs from all simulations and then discounts this average back to today's value using the risk-free rate. This final number is the estimated price of the option.{% else %}Ele calcula a média dos payoffs de todas as simulações e então desconta essa média para o valor presente usando a taxa livre de risco. Esse número final é o preço estimado da opção.{% endif %}</li>
+          </ol>
+  
+          <h5>{% if language == 'en' %}Understanding the Results{% else %}Entendendo os Resultados{% endif %}</h5>
+          <ul>
+              <li><strong>{% if language == 'en' %}Mean Price Convergence:{% else %}Convergência do Preço Médio:{% endif %}</strong> {% if language == 'en' %}This chart shows how the average simulated final price stabilizes as more simulations are run. It demonstrates the "law of large numbers" in action, giving confidence in the stability of the result.{% else %}Este gráfico mostra como a média do preço final simulado se estabiliza à medida que mais simulações são executadas. Ele demonstra a "lei dos grandes números" em ação, dando confiança na estabilidade do resultado.{% endif %}</li>
+              <li><strong>{% if language == 'en' %}Final Price Distribution:{% else %}Distribuição de Preços Finais:{% endif %}</strong> {% if language == 'en' %}This chart shows the probability distribution of all simulated final prices. The green area represents outcomes where the option finishes "in-the-money" (profitable), and the red area shows "out-of-the-money" outcomes.{% else %}Este gráfico mostra a distribuição de probabilidade de todos os preços finais simulados. A área verde representa os resultados onde a opção termina "in-the-money" (lucrativa), e a área vermelha mostra os resultados "out-of-the-money".{% endif %}</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if language == 'en' %}Close{% else %}Fechar{% endif %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 <script>
     function clearErrors() {
         $('.errorlist').empty(); 

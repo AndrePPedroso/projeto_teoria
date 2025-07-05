@@ -53,11 +53,9 @@ def american_option_lsmc(S0, K, T, r, sigma, num_simulacoes, num_passos, option_
         
         # Identify paths where the option is in-the-money
         in_the_money_paths = payoff[t] > 0
-        
         # If there are no in-the-money paths, there's no possibility of early exercise
         if not np.any(in_the_money_paths):
             continue
-
         # Perform regression only on in-the-money paths
         X = S[t, in_the_money_paths]
         Y = cash_flow[in_the_money_paths]
@@ -81,7 +79,7 @@ def american_option_lsmc(S0, K, T, r, sigma, num_simulacoes, num_passos, option_
             roots = np.roots(poly_coeffs)
             real_roots = roots[np.isreal(roots)].real
             # Heuristic to choose the correct boundary root from the polynomial's solutions
-            boundary_candidate = real_roots[(real_roots > 0) & (real_roots < S0 * 3)]
+            boundary_candidate = real_roots[(real_roots > 0) & (real_roots < S0 * 2) & (real_roots > S0/2)]
             if len(boundary_candidate) > 0:
                 exercise_boundary[t] = np.min(boundary_candidate) if option_type == 'put' else np.max(boundary_candidate)
         except np.linalg.LinAlgError:
@@ -126,9 +124,9 @@ def create_american_option_plots(S, exercise_boundary, option_type, num_simulaco
     time_grid = np.linspace(0, num_steps, num_steps + 1)
     
     # Plot a subset of paths to keep the visualization clean
-    paths_to_plot = S[:, :min(num_simulacoes, num_paths_to_plot)]
+    paths_to_plot = S[:num_simulacoes]
     ax1.plot(time_grid, paths_to_plot, lw=1, alpha=0.7)
-    ax1.set_title(f'Top {min(num_simulacoes, num_paths_to_plot)} Simulated Stock Price Paths')
+    ax1.set_title(f'Simulated Stock Price Paths')
     ax1.set_xlabel('Time Steps')
     ax1.set_ylabel('Stock Price')
     ax1.grid(True)

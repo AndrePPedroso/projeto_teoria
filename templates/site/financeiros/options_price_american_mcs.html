@@ -1,9 +1,81 @@
+<style>
+    /* Custom styles for the American Option Pricer */
+    .pricer-container {
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .pricer-container h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        color: #343a40;
+    }
+    .form-section {
+        background-color: #e9ecef;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .result-section {
+        display: none;
+        margin-top: 2rem;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+    .result-section h3 {
+        margin-bottom: 1rem;
+    }
+    .result-section img {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .modal-body h5 {
+        color: #0d6efd;
+        margin-top: 1.5rem;
+    }
+    /* Loading Spinner Overlay */
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1060; /* Higher than modal z-index */
+        display: none; /* Hidden by default */
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+<div id="loading-overlay">
+    <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden"></span>
+    </div>
+</div>
 <div class="container mt-5">
     {% if language == 'en' %}
     <h1>American Option Pricing with Least Squares Monte Carlo</h1>
     {% else %}
     <h1>Precificação de Opção Americana com Mínimos Quadrados e Monte Carlo</h1>
     {% endif %}
+    <div class="text-center mb-4">
+        <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#explanationModal">
+            {% if language == 'en' %}Learn More{% else %}Saiba Mais{% endif %}
+        </button>
+    </div>
 <form id="americanOptionForm" method="post" action="{% url 'precificar_opcao_americana' %}">
     {% csrf_token %}
     <div class="form-group">
@@ -95,7 +167,49 @@
     </div>
 </div>
 </div>
-
+<div class="modal fade" id="explanationModal" tabindex="-1" aria-labelledby="explanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="explanationModalLabel">{% if language == 'en' %}Understanding the American Option Pricer{% else %}Compreendendo o Precificador de Opção Americana{% endif %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+              {% if language == 'en' %}
+              This tool estimates the price of an <strong>American Option</strong>, which is a financial contract that gives the holder the right—but not the obligation—to buy (call) or sell (put) an asset at a predetermined price at any time up to its expiration date.
+              {% else %}
+              Esta ferramenta estima o preço de uma <strong>Opção Americana</strong>, que é um contrato financeiro que dá ao titular o direito, mas não a obrigação, de comprar (call) ou vender (put) um ativo a um preço predeterminado a qualquer momento até a sua data de vencimento.
+              {% endif %}
+          </p>
+  
+          <h5>{% if language == 'en' %}Key Feature: Early Exercise{% else %}Característica Principal: Exercício Antecipado{% endif %}</h5>
+          <p>
+              {% if language == 'en' %}
+              The main difference between American and European options is this right to <strong>early exercise</strong>. Deciding when to exercise is the central challenge in pricing these options. This model uses a powerful technique called <strong>Least Squares Monte Carlo (LSMC)</strong> to solve this problem.
+              {% else %}
+              A principal diferença entre opções americanas e europeias é este direito de <strong>exercício antecipado</strong>. Decidir quando exercer é o desafio central na precificação dessas opções. Este modelo usa uma técnica poderosa chamada <strong>Monte Carlo com Mínimos Quadrados (LSMC)</strong> para resolver esse problema.
+              {% endif %}
+          </p>
+  
+          <h5>{% if language == 'en' %}How It Works: The LSMC Method{% else %}Como Funciona: O Método LSMC{% endif %}</h5>
+          <ol>
+              <li><strong>Monte Carlo Simulation:</strong> {% if language == 'en' %}First, the model simulates thousands of possible future price paths for the underlying asset from today until the expiration date. This creates a rich set of potential future scenarios.{% else %}Primeiro, o modelo simula milhares de possíveis caminhos de preços futuros para o ativo subjacente, de hoje até a data de vencimento. Isso cria um conjunto rico de cenários futuros potenciais.{% endif %}</li>
+              <li><strong>Backward Induction & Least Squares:</strong> {% if language == 'en' %}The model then works backward in time from the expiration date. At each time step, it uses a statistical technique (Least Squares regression) to estimate the value of keeping the option alive (the "continuation value"). It compares this to the value of exercising immediately. By doing this for all simulated paths, it builds an optimal exercise strategy.{% else %}O modelo então trabalha de trás para frente no tempo, a partir da data de vencimento. Em cada passo de tempo, ele usa uma técnica estatística (regressão por Mínimos Quadrados) para estimar o valor de manter a opção viva (o "valor de continuação"). Ele compara isso com o valor de exercer imediatamente. Ao fazer isso para todos os caminhos simulados, ele constrói uma estratégia de exercício ótima.{% endif %}</li>
+          </ol>
+  
+          <h5>{% if language == 'en' %}Understanding the Results{% else %}Entendendo os Resultados{% endif %}</h5>
+          <ul>
+              <li><strong>{% if language == 'en' %}Final Price Distribution:{% else %}Distribuição de Preços Finais:{% endif %}</strong> {% if language == 'en' %}This chart shows the probability distribution of the asset's price at expiration across all simulations. The green area represents outcomes where the option finishes "in-the-money" (profitable to exercise at expiration), and the red area shows "out-of-the-money" outcomes.{% else %}Este gráfico mostra a distribuição de probabilidade do preço do ativo no vencimento em todas as simulações. A área verde representa os resultados onde a opção termina "in-the-money" (lucrativo para exercer no vencimento), e a área vermelha mostra os resultados "out-of-the-money".{% endif %}</li>
+              <li><strong>{% if language == 'en' %}Exercise Boundary Plot:{% else %}Gráfico da Fronteira de Exercício:{% endif %}</strong> {% if language == 'en' %}This is the most important chart for an American option. It plots the optimal exercise strategy over time. For a put option, if the asset's price drops below this line, it's optimal to exercise. For a call, it's optimal to exercise if the price goes above it. It shows the "decision line" at any point in time.{% else %}Este é o gráfico mais importante para uma opção americana. Ele plota a estratégia de exercício ótima ao longo do tempo. Para uma opção de venda (put), se o preço do ativo cair abaixo desta linha, é ótimo exercer. Para uma de compra (call), é ótimo exercer se o preço subir acima dela. Ele mostra a "linha de decisão" em qualquer ponto no tempo.{% endif %}</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% if language == 'en' %}Close{% else %}Fechar{% endif %}</button>
+        </div>
+      </div>
+    </div>
+  </div>  
 <script>
     function clearAmericanErrors() {
         $('.errorlist').empty();
@@ -138,18 +252,25 @@
 
     function submitAmericanOptionForm() {
         clearAmericanErrors();
+        const loadingOverlay = $('#loading-overlay');
         const form = $('#americanOptionForm');
         $.ajax({
             url: form.attr('action'),
             method: 'POST',
             data: form.serialize(),
+            beforeSend: function() {
+                loadingOverlay.css('display', 'flex');
+                $('#resultSectionAmerican').hide(); 
+            },
             success: function(data) {
+                loadingOverlay.hide();
                 $('#resultSectionAmerican').show();
                 $('#estimatedPriceAmerican').text(data.preco_estimado);
                 $('#pricePlotAmerican').attr('src', 'data:image/png;base64,' + data.price_plot);
                 $('#exerciseBoundaryPlot').attr('src', 'data:image/png;base64,' + data.exercise_boundary_plot);
             },
             error: function(xhr, status, error) {
+                loadingOverlay.hide();
                 let errorMessage = "Error in simulation. Please check the entered data.";
                 if (xhr.responseJSON) {
                     if (xhr.responseJSON.errors) {

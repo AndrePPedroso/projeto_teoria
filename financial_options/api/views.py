@@ -536,7 +536,7 @@ def precificar_opcao_americana_view(request):
 
         try:
             num_simulacoes = int(request.POST.get('num_simulacoes'))
-            if not (1000 <= num_simulacoes <= 100000):
+            if not (1000 <= num_simulacoes <= 10000):
                 errors['num_simulacoes'] = 'Number of Simulations must be between 1,000 and 100,000.'
         except (ValueError, TypeError):
             errors['num_simulacoes'] = 'Invalid Number of Simulations.'
