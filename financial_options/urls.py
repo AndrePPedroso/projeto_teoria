@@ -2,7 +2,7 @@ from django.urls import path
 from .api.views import *
 
 urlpatterns = [
-    path('black-scholes/', black_scholes_template, name='black_scholes'),
+    path('save-financial-model/', save_black_schole_model_view, name='save_financial_model'),
     path('black-scholes/api/', black_scholes_view, name='black_scholes_api'),
     path('black-scholes-merton/', black_scholes_merton_template, name='black_scholes_merton'),
     path('black-scholes-merton/api/', black_scholes_merton_view, name='black_scholes_merton_api'),

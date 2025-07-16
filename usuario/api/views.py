@@ -23,16 +23,16 @@ def send_verification_email(request, user):
     mail_subject = 'Activate your account.'
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
-    activation_link = reverse('account_verification_sent', kwargs={'uidb64': uid, 'token': token}) # You need to define this URL and view
+    activation_link = reverse('account_verification_sent', kwargs={'uidb64': uid, 'token': token}) 
     
-    message = render_to_string('account/email/account_activation_email.html', { # Create this email template
+    message = render_to_string('account/email/account_activation_email.html', { 
         'user': user,
         'domain': current_site.domain,
         'activation_link': f"http://{current_site.domain}{activation_link}", # Construct full link
     })
     
     try:
-        send_mail(mail_subject, message, 'your_sending_email@example.com', [user.email])
+        send_mail(mail_subject, message, 'saeto-pb@utfpr.edu.br', [user.email])
         return True
     except Exception as e:
         return False

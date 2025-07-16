@@ -2,10 +2,13 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from estocasticos.use_cases.financial_options.black_scholes_merton_use_case import BlackScholesMertonUseCase
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
+from financial_options.models import FinantialModels
+from financial_options.use_cases.generate_save_pdf import generate_and_save_pdf
 from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
 from financial_options.use_cases.option_price_american_use_case import create_american_option_plots, american_option_lsmc
 
@@ -121,8 +124,70 @@ def black_scholes_view(request):
             return JsonResponse({'error': 'Por favor, insira valores numéricos válidos.'})
         except Exception as e:
             return JsonResponse({'error': str(e)})
-    
-    return render(request, 'black_scholes.html')
+    else:
+        initial_data = {
+            'asset_price': 100.0,
+            'exercise_price': 100.0,
+            'time_to_expiration': 30,
+            'interest_rate': 5,
+            'volatility': 20,
+            'option_type': 'call',
+        }
+            
+        context = {
+            'initial_data': initial_data,
+            'language': request.session.get('language', 'pt')
+        }
+        return render(request, "site/financeiros/black-sholes.html", context)
+
+@require_POST 
+def save_black_schole_model_view(request):
+    try:
+        data = json.loads(request.body)
+        model_type = data.get('model_type')
+        parameters = data.get('parameters')
+        results = data.get('results')
+        # Basic validation
+        if not all([model_type, parameters, results]):
+            return JsonResponse({'success': False, 'error': 'Missing data in request.'}, status=400)
+
+        financial_model = FinantialModels.objects.create(
+            usuario=request.user,  
+            model_type=model_type,
+            parameters=parameters,
+            results=results
+        )
+        resultados = financial_model.results
+        context = {
+        'report_title': data.get('title'),
+        'parameters': financial_model.parameters,
+        'results': {
+            'Option price': resultados.get('option_price'),
+            'd1': resultados.get('d1'),
+            'd2': resultados.get('d2'),
+            'Break-even point': resultados.get('break_even'),
+            'Max loss': resultados.get('max_loss'),
+        },
+        'nested_results': {
+            'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
+        },
+        'interpretation': resultados.get('interpretation'),
+        'charts': {
+            'Lucro/Prejuízo no Vencimento': resultados.get('payoff_plot'),
+        },
+        'language': 'pt' 
+        }
+
+        generate_and_save_pdf(financial_model, context)
+        return JsonResponse({'success': True, 'message': 'Project saved successfully!', 'id': financial_model.id})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON format.'}, status=400)
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error saving financial model: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 def black_scholes_merton_view(request):
     """Handle API requests for Black-Scholes-Merton calculations."""
@@ -252,8 +317,22 @@ def black_scholes_merton_view(request):
         except Exception as e:
             return JsonResponse({'error': str(e)})
     
-    # If not POST, just render the template
-    return render(request, 'site/financeiros/black-scholes-merton.html')
+    else:
+        initial_data = {
+            'asset_price': 100.0,
+            'exercise_price': 100.0,
+            'time_to_expiration': 30,
+            'interest_rate': 5,
+            'volatility': 20,
+            'dividend_yield': 2,
+            'option_type': 'call',
+        }
+            
+        context = {
+            'initial_data': initial_data,
+            'language': request.session.get('language', 'pt')
+        }
+        return render(request, 'site/financeiros/black-scholes-merton.html', context)
 
 def cox_ross_rubinstein_view(request):
     """Handle API requests for Cox-Ross-Rubinstein calculations."""
