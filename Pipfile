@@ -39,9 +39,11 @@ pandas = "==2.0.3"
 # Utilities
 python-dateutil = "==2.9.0.post0"
 pytz = "==2024.2"
-requests = "==2.32.3"
-urllib3 = "==2.2.3"
+requests = "==2.25.1"
+urllib3 = "==1.26.18"
 weasyprint = "*"
+django-storages = "*"
+boto3 = "*"
 
 [dev-packages]
 black = "==24.10.0"

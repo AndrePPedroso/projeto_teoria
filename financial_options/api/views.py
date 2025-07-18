@@ -1,4 +1,5 @@
 import json
+import traceback
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -151,12 +152,18 @@ def save_black_schole_model_view(request):
         if not all([model_type, parameters, results]):
             return JsonResponse({'success': False, 'error': 'Missing data in request.'}, status=400)
 
-        financial_model = FinantialModels.objects.create(
-            usuario=request.user,  
+        financial_model = FinantialModels(
+            usuario=request.user,
             model_type=model_type,
             parameters=parameters,
-            results=results
+            results=results,
+            report=None
         )
+        try:
+            financial_model.save()
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'Erro ao salvar o modelo financeiro inicialmente: {e}'}, status=500)
+
         resultados = financial_model.results
         context = {
         'report_title': data.get('title'),
@@ -184,7 +191,6 @@ def save_black_schole_model_view(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON format.'}, status=400)
     except Exception as e:
-        # Log the error for debugging
         print(f"Error saving financial model: {e}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

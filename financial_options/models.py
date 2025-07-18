@@ -1,8 +1,15 @@
 
+import os
 from core.models import ModelPadrao
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
+
+def _get_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    timestamp_str = instance.criado_em.strftime('%Y-%m-%d_%H-%M-%S')
+    new_filename = f"{instance.model_type}_{timestamp_str}.{ext}"
+    return os.path.join('financial_reports', instance.usuario.username, new_filename)
 
 class FinantialModelsChoices(models.TextChoices):
     BLACK_SCHOLES = 'BLACK_SCHOLES', _('Black-Scholes'),
@@ -25,7 +32,7 @@ class FinantialModels(ModelPadrao):
     )
 
     report = models.FileField(
-        upload_to='financial_reports/',
+        upload_to=_get_upload_path,
         null=True,
         blank=True,
         verbose_name="PDF Report",

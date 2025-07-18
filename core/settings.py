@@ -114,20 +114,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-if ENV_NAME == "dev":
-    STATIC_ROOT = BASE_DIR / "staticfiles"
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = BASE_DIR / "media"
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "LOCATION": MEDIA_ROOT,
-        },
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            "LOCATION": STATIC_ROOT,
-        },
-    }
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
@@ -143,14 +129,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10621440
 
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/admin/login/"
@@ -171,8 +149,58 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
+STATICFILES_STORAGE_BACKEND = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Uso da API V3 do Sendgrid
-# SENDGRID_URL_BASE = config('SENDGRID_URL_BASE', default='https://api.sendgrid.com/v3')
-# SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
+USE_BUCKET = config("USE_BUCKET", default=False, cast=bool)
+if USE_BUCKET:
+    INSTALLED_APPS += ['storages'] 
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME')
+    OCI_NAMESPACE = config('OCI_NAMESPACE')
 
+    AWS_S3_ENDPOINT_URL = f'https://{OCI_NAMESPACE}.compat.objectstorage.{AWS_S3_REGION_NAME}.oraclecloud.com'
+    AWS_S3_CUSTOM_DOMAIN = f'{OCI_NAMESPACE}.compat.objectstorage.{AWS_S3_REGION_NAME}.oraclecloud.com'
+
+    AWS_DEFAULT_ACL = config('AWS_DEFAULT_ACL', default='public-read')
+    AWS_S3_FILE_OVERWRITE = config("AWS_S3_FILE_OVERWRITE", default=False, cast=bool)
+
+    STORAGES = {
+        "default": { 
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": { 
+            "BACKEND": STATICFILES_STORAGE_BACKEND,
+            "OPTIONS": {
+                "location": STATIC_ROOT,
+            },
+        },
+    }
+
+
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+
+else: # USE_BUCKET is False (local storage)
+    MEDIA_ROOT = BASE_DIR / "media"
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+
+    # Define STORAGES dictionary for local file system backends
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {
+                "location": MEDIA_ROOT,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "OPTIONS": {
+                "location": STATIC_ROOT,
+            },
+        },
+    }
+
+    MEDIA_URL = "/media/"
+    STATIC_URL = "/static/"
