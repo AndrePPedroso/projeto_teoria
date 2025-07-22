@@ -1,0 +1,143 @@
+<div id="simulations-container" class="container d-flex flex-column align-items-center min-vh-100 py-5">
+
+    <h1 class="text-3xl font-bold mb-5 text-dark text-center">
+        {% if request.session.language == 'en' %}My Simulations History{% else %}Histórico de Minhas Simulações{% endif %}
+    </h1>
+
+    {% comment %} Check if the 'simulations' object passed from the view has any items {% endcomment %}
+    {% if simulations %}
+    <div class="w-100 shadow-sm" style="overflow-x: auto;">
+        <table class="table table-striped table-hover bg-light text-center" style="border-radius: 0.75rem; overflow: hidden;">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">{% if request.session.language == 'en' %}Model Used{% else %}Modelo Utilizado{% endif %}</th>
+                    <th scope="col">{% if request.session.language == 'en' %}Simulation Date{% else %}Data da Simulação{% endif %}</th>
+                    <th scope="col">{% if request.session.language == 'en' %}Report{% else %}Relatório{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id='simulation-list-container'>
+                {% for simulation in simulations %}
+                <tr id="simulation-{{ simulation.id }}">
+                    <td class="align-middle">{{ simulation.get_model_type_display }}</td>
+                    <td class="align-middle">{{ simulation.criado_em|date:"d/m/Y H:i" }}</td>
+                    <td class="align-middle">
+                        <div class="d-flex justify-content-center align-items-center">
+                            {% comment %} Download Button {% endcomment %}
+                            {% if simulation.report %}
+                                <a href="{% url 'download_report' simulation.id %}" class="btn btn-primary btn-sm me-2">
+                                    {% if request.session.language == 'en' %}Download{% else %}Baixar{% endif %}
+                                </a>
+                            {% endif %}
+                            <button class="btn btn-danger btn-sm delete-btn" data-id="{{ simulation.id }}">
+                                {% if request.session.language == 'en' %}Delete{% else %}Excluir{% endif %}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% else %}
+    {% comment %} Display a message if there are no simulations for the user {% endcomment %}
+    <div class="card bg-light text-center shadow-sm p-4 w-100" style="border-radius: 0.75rem;">
+        <div class="card-body">
+            <h2 class="card-title h5 mb-3 text-dark">
+                {% if request.session.language == 'en' %}No Simulations Found{% else %}Nenhuma Simulação Encontrada{% endif %}
+            </h2>
+            <p class="card-text text-secondary">
+                {% if request.session.language == 'en' %}
+                    You have not run any financial simulations yet. Go to the learning modules to start your first one.
+                {% else %}
+                    Você ainda não realizou nenhuma simulação financeira. Acesse os módulos de aprendizagem para iniciar.
+                {% endif %}
+            </p>
+            {% comment %} Make sure you have a URL named 'learning_modules' or change it accordingly {% endcomment %}
+            <a href="/home" class="btn btn-info mt-3">
+                {% if request.session.language == 'en' %}Go to Modules{% else %}Ir para Módulos{% endif %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+        
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // A dedicated function for the API call
+    async function apiDeleteSimulation(simulationId) {
+        const url = `{% url 'delete_simulation' %}`;
+        const csrftoken = getCookie('csrftoken');
+    
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: simulationId })
+        });
+    
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Server error');
+        }
+    
+        return await response.json();
+    }
+
+    function initializePage() {
+        console.log("Script initialized.");
+        const container = document.getElementById('simulations-container');
+    
+        if (!container) {
+            console.error("The main container with ID 'simulations-container' was not found!");
+            return;
+        }
+    
+        container.addEventListener('click', async (event) => {
+            const deleteButton = event.target.closest('.delete-btn');
+            
+            if (!deleteButton) {
+                return; // Exit if the click was not on a delete button
+            }
+    
+            const simulationId = deleteButton.dataset.id;
+            const userConfirmed = confirm('Are you sure you want to delete this simulation?');
+    
+            if (userConfirmed) {
+                try {
+                    const result = await apiDeleteSimulation(simulationId);
+                    if (result.status === 'success') {
+                        document.getElementById(`simulation-${simulationId}`).remove();
+                        console.log(`Simulation ${simulationId} removed from UI.`);
+                    } else {
+                        throw new Error(result.message || 'Failed to delete simulation.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(`Could not delete the simulation: ${error.message}`);
+                }
+            }
+        });
+    }
+    
+    initializePage();
+</script>

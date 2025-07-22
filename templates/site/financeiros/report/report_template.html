@@ -148,5 +148,13 @@
         {% endfor %}
     {% endif %}
 
+    {% if latticeContainer %}
+        <div class="mb-4">
+            <h5>{% if request.session.language == 'en' %}Binomial Lattice Visualization{% else %}Visualização da Treliça Binomial{% endif %}</h5>
+            <div id="latticeContainerCRR" class="text-center overflow-auto" style="min-height: 300px;">
+                {{latticeContainer | safe}}
+            </div>
+        </div>
+    {% endif %}
 </body>
 </html>

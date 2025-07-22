@@ -43,7 +43,7 @@ requests = "==2.25.1"
 urllib3 = "==1.26.18"
 weasyprint = "*"
 django-storages = "*"
-boto3 = "*"
+boto3 = "==1.34.131"
 
 [dev-packages]
 black = "==24.10.0"

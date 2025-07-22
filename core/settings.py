@@ -108,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
@@ -160,9 +160,9 @@ if USE_BUCKET:
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME')
     OCI_NAMESPACE = config('OCI_NAMESPACE')
-
+    AWS_QUERYSTRING_AUTH = True 
     AWS_S3_ENDPOINT_URL = f'https://{OCI_NAMESPACE}.compat.objectstorage.{AWS_S3_REGION_NAME}.oraclecloud.com'
-    AWS_S3_CUSTOM_DOMAIN = f'{OCI_NAMESPACE}.compat.objectstorage.{AWS_S3_REGION_NAME}.oraclecloud.com'
+    AWS_S3_CUSTOM_DOMAIN = f'{OCI_NAMESPACE}.compat.objectstorage.{AWS_S3_REGION_NAME}.oraclecloud.com/{AWS_STORAGE_BUCKET_NAME}'
 
     AWS_DEFAULT_ACL = config('AWS_DEFAULT_ACL', default='public-read')
     AWS_S3_FILE_OVERWRITE = config("AWS_S3_FILE_OVERWRITE", default=False, cast=bool)

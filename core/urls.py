@@ -4,6 +4,8 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from .views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -38,4 +40,10 @@ urlpatterns = [
     path("financial_options/", include("financial_options.urls")),
     path("references/", reference_view, name="references"),
     path("set_language/", set_language, name="set_language"),
+    path('my-simulations/', simulation_list_view, name='simulation_list'),
+    path('simulations/download/<uuid:simulation_id>/', download_report_view, name='download_report'),
+    path('my-simulations/delete/', delete_simulation_view, name='delete_simulation'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

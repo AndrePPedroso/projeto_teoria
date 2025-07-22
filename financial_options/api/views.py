@@ -1,4 +1,5 @@
 import json
+import math
 import traceback
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -163,28 +164,49 @@ def save_black_schole_model_view(request):
             financial_model.save()
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Erro ao salvar o modelo financeiro inicialmente: {e}'}, status=500)
-
         resultados = financial_model.results
-        context = {
-        'report_title': data.get('title'),
-        'parameters': financial_model.parameters,
-        'results': {
-            'Option price': resultados.get('option_price'),
-            'd1': resultados.get('d1'),
-            'd2': resultados.get('d2'),
-            'Break-even point': resultados.get('break_even'),
-            'Max loss': resultados.get('max_loss'),
-        },
-        'nested_results': {
-            'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
-        },
-        'interpretation': resultados.get('interpretation'),
-        'charts': {
-            'Lucro/Prejuízo no Vencimento': resultados.get('payoff_plot'),
-        },
-        'language': 'pt' 
-        }
-
+        if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON'):
+            context = {
+            'report_title': data.get('title'),
+            'parameters': financial_model.parameters,
+            'results': {
+                'Option price': resultados.get('option_price'),
+                'd1': resultados.get('d1'),
+                'd2': resultados.get('d2'),
+                'Break-even point': resultados.get('break_even'),
+                'Max loss': resultados.get('max_loss'),
+            },
+            'nested_results': {
+                'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
+            },
+            'interpretation': resultados.get('interpretation'),
+            'charts': {
+                'Lucro/Prejuízo no Vencimento': resultados.get('payoff_plot'),
+            },
+            'language': 'pt' 
+            }
+        elif model_type in ('COX_ROSS'):
+            context = {
+            'report_title': data.get('title'),
+            'parameters': financial_model.parameters,
+            'results': {
+                'Option price': resultados.get('option_price'),
+                'Up factor': resultados.get('upFactor'),
+                'Down factor': resultados.get('d2'),
+                'Break-even point': resultados.get('break_even'),
+                'Max loss': resultados.get('max_loss'),
+                'Risk-neutral probability (%)': (round(float(resultados.get('prob')),3)*100),
+                'VPL Tradicional':resultados.get('traditionalNPV'),
+                'VPL expandido':resultados.get('expandedNPV'),
+                'Valor da opção / custo':resultados.get('optionRatio'),
+            },
+            'nested_results': {
+                'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
+            },
+            'interpretation': resultados.get('interpretation'),
+            'latticeContainer':  resultados.get('lattice'),
+            'language': 'pt' 
+            }
         generate_and_save_pdf(financial_model, context)
         return JsonResponse({'success': True, 'message': 'Project saved successfully!', 'id': financial_model.id})
 
@@ -370,18 +392,18 @@ def cox_ross_rubinstein_view(request):
             # Get lattice data and generate HTML
             lattice_html = model.generate_lattice_html()
             lattice_data = model.get_lattice_data()
+            years  = T / 365
+            rate = r / 100
+            pv = (E * math.exp(-rate * years))
+            traditional_npv = S - pv
             
-            # Calculate traditional NPV (simplified assumption: NPV = S - E)
-            traditional_npv = S - E
-            
-            # Calculate expanded NPV (traditional NPV + option value)
             expanded_npv = traditional_npv + option_price if traditional_npv < 0 else traditional_npv
             
             # Value of flexibility (equals option value for negative NPV projects)
-            flexibility_value = option_price if traditional_npv < 0 else 0
+            flexibility_value = expanded_npv - traditional_npv
             
             # Option value / investment cost ratio
-            option_ratio = option_price / E
+            option_ratio = option_price / abs(traditional_npv) if traditional_npv != 0 else 0 
             
             # Calculate break-even point
             if option_type == 'call':

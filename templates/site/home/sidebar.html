@@ -122,6 +122,9 @@
         </div> {% endcomment %}
     </div>
     <div class="mt-auto px-2">
+        <a class="nav-link pointer" data-url="{% url 'simulation_list' %}">
+            {% if request.session.language == 'en' %}Saved projects{% else %}Projetos salvos{% endif %}
+        </a>
         <select id="languageSelect" class="form-control px-2" onchange="updateLanguage(this.value)">
             <option class="" value="pt" {% if request.session.language == 'pt' %}selected{% endif %}>Portuguese</option>
             <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>

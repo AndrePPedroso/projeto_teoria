@@ -166,7 +166,6 @@
 
     <div id="loadingSpinnerCRR" class="text-center my-4" style="display: none;">
         <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
     
@@ -335,6 +334,8 @@
                 <button type="button" class="btn btn-secondary" onclick="resetCoxRossRubinsteinForm()">
                     {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
                 </button>
+                <button type="button" class="btn btn-success" id="saveProjectBtn" onclick="saveProject()">
+                    {% if language == 'en' %}Save Project{% else %}Salvar Projeto{% endif %}</button>
             </div>
         </div>
     </div>
@@ -439,7 +440,84 @@
         document.getElementById('coxRossRubinsteinResults').style.display = 'none';
         document.getElementById('latticeContainerCRR').innerHTML = '';
     }
-    
+
+    function saveProject() {
+        const saveBtn = document.getElementById('saveProjectBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `{% if language == 'en' %}<span class="spinner-border spinner-border-sm"></span> Saving...{% else %}<span class="spinner-border spinner-border-sm"></span> Salvando...{% endif %}`;
+
+        const parameters = {
+            asset_price: document.getElementById('asset_price').value,
+            exercise_price: document.getElementById('exercise_price').value,
+            time_to_expiration: document.getElementById('time_to_expiration').value,
+            interest_rate: document.getElementById('interest_rate').value,
+            volatility: document.getElementById('volatility').value,
+            dividend_yield: document.getElementById('dividend_yield').value,
+            option_type: document.querySelector('input[name="option_type"]:checked').value
+        };
+
+        // 2. Collect Results from the results section
+        const results = {
+            option_price: document.getElementById('optionPriceCRR').textContent,
+            break_even: document.getElementById('breakEvenValueCRR').textContent,
+            max_loss: document.getElementById('maxLossValueCRR').textContent,
+            upFactor: document.getElementById('upFactorCRR').textContent,
+            downFactor: document.getElementById('downFactorCRR').textContent,
+            prob: document.getElementById('probCRR').textContent,
+            dt: document.getElementById('dtCRR').textContent,
+
+            // Update real options analysis
+            traditionalNPV: document.getElementById('traditionalNPV').textContent,
+            expandedNPV: document.getElementById('expandedNPV').textContent,
+            flexibilityValue: document.getElementById('flexibilityValue').textContent,
+            optionRatio: document.getElementById('optionRatio').textContent,
+            
+            greeks: {
+                delta: document.getElementById('deltaMeasureCRR').textContent,
+                gamma: document.getElementById('gammaMeasureCRR').textContent,
+                theta: document.getElementById('thetaMeasureCRR').textContent,
+                vega: document.getElementById('vegaMeasureCRR').textContent,
+                rho: document.getElementById('rhoMeasureCRR').textContent,  
+            },
+            lattice : document.getElementById('latticeContainerCRR').innerHTML,
+            interpretation: document.getElementById('interpretationCRR').innerHTML
+        };
+
+        const payload = {
+            model_type: 'COX_ROSS',
+            title:'Cox-Ross Binomial Report', 
+            parameters: parameters,
+            results: results,
+        };
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        fetch("{% url 'save_financial_model' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('{% if language == "en" %}Project saved successfully!{% else %}Projeto salvo com sucesso!{% endif %}');
+            } else {
+                alert('{% if language == "en" %}Error saving project:{% else %}Erro ao salvar o projeto:{% endif %} ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{% if language == "en" %}An unexpected error occurred.{% else %}Ocorreu um erro inesperado.{% endif %}');
+        })
+        .finally(() => {
+            // Re-enable the button
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `{% if language == 'en' %}Save Project{% else %}Salvar Projeto{% endif %}`;
+        });
+    }
+
     // Initialize when DOM is loaded - just for checking elements exist
     document.addEventListener('DOMContentLoaded', function() {
         const crrForm = document.getElementById('coxRossRubinsteinForm');
@@ -448,7 +526,8 @@
         const calculateCRRBtn = document.getElementById('calculateBtnCRR');
         const recalculateCRRBtn = document.getElementById('recalculateBtnCRR');
         const latticeContainer = document.getElementById('latticeContainerCRR');
-        
+        const saveBtn = document.getElementById('saveProjectBtn'); 
+
         console.log('DOM fully loaded - CRR Elements check:', {
             form: crrForm ? 'Found' : 'Not found',
             loadingSpinner: crrLoadingSpinner ? 'Found' : 'Not found',
@@ -457,6 +536,7 @@
             recalculateBtn: recalculateCRRBtn ? 'Found' : 'Not found',
             latticeContainer: latticeContainer ? 'Found' : 'Not found'
         });
+        if (saveBtn) saveBtn.addEventListener('click', saveProject); 
     });
 </script>
 
