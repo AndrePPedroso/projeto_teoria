@@ -16,6 +16,8 @@ class FinantialModelsChoices(models.TextChoices):
     BLACK_SCHOLES_MERTON = 'BLACK_SCHOLES_MERTON', _('Black-Scholes-Merton'),
     GENERALIZED_BLACK_SCHOLES_MERTON = 'GENERALIZED_BLACK_SCHOLES_MERTON', _('Generalized Black-Scholes-Merton'),
     COX_ROSS = 'COX_ROSS', _('Cox-Ross Binomial'),
+    MONTE_CARLO_EUROPEAN = 'MONTE_CARLO_EUROPEAN', _('Monte-carlo European'),
+    MONTE_CARLO_AMERICAN = 'MONTE_CARLO_AMERICAN', _('Monte-carlo American'),
 
 class FinantialModels(ModelPadrao):
     model_type = models.CharField(max_length=100, blank=True, null=True, choices=FinantialModelsChoices.choices)

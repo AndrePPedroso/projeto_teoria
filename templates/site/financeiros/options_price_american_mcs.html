@@ -152,6 +152,8 @@
     <button type="button" class="btn btn-primary mt-3" onclick="submitAmericanOptionForm()">
         {% if language == 'en' %}Run Simulation{% else %}Executar Simulação{% endif %}
     </button>
+    <button type="button" class="btn btn-success" id="saveProjectBtn" disabled onclick="saveProject()">
+        {% if language == 'en' %}Save Project{% else %}Salvar Projeto{% endif %}</button>
 </form>
 
 <div class="result-section" id="resultSectionAmerican" style="display: none;">
@@ -253,6 +255,7 @@
     }
 
     function submitAmericanOptionForm() {
+        const saveBtn = document.getElementById('saveProjectBtn');
         clearAmericanErrors();
         const loadingOverlay = $('#loading-overlay');
         const form = $('#americanOptionForm');
@@ -290,6 +293,75 @@
                 console.log("Final error message:", errorMessage);
                 alert(errorMessage);
             }
+        });
+        saveBtn.disabled = false;
+    }
+    function saveProject() {
+        const saveBtn = document.getElementById('saveProjectBtn');
+        
+        // Check if there are results to save
+        const resultsSection = document.getElementById('resultSectionAmerican');
+        if (resultsSection.style.display === 'none') {
+            alert('{% if language == "en" %}Please run the simulation first before saving.{% else %}Por favor, execute a simulação antes de salvar.{% endif %}');
+            return;
+        }
+    
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `{% if language == 'en' %}<span class="spinner-border spinner-border-sm"></span> Saving...{% else %}<span class="spinner-border spinner-border-sm"></span> Salvando...{% endif %}`;
+    
+        // 1. Collect Parameters from the form
+        const parameters = {
+            S0: document.getElementById('S0_american').value,
+            K: document.getElementById('K_american').value,
+            T: document.getElementById('T_american').value,
+            r: document.getElementById('r_american').value,
+            sigma: document.getElementById('sigma_american').value,
+            num_simulacoes: document.getElementById('num_simulacoes_american').value,
+            num_passos: document.getElementById('num_passos').value,
+            option_type: document.getElementById('option_type_american').value
+        };
+    
+        // 2. Collect Results from the results section
+        const results = {
+            preco_estimado: document.getElementById('estimatedPriceAmerican').textContent,
+            price_plot: document.getElementById('pricePlotAmerican').src,
+            exercise_boundary_plot: document.getElementById('exerciseBoundaryPlot').src,
+        };
+    
+        // 3. Prepare data payload for the server
+        const payload = {
+            model_type: 'MONTE_CARLO_AMERICAN',
+            title: '{% if language == "en" %}American Option Pricing Report{% else %}Relatório de Precificação de Opção Americana{% endif %}',
+            parameters: parameters,
+            results: results
+        };
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    
+        fetch("{% url 'save_mcs_model' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('{% if language == "en" %}Project saved successfully!{% else %}Projeto salvo com sucesso!{% endif %}');
+            } else {
+                alert('{% if language == "en" %}Error saving project:{% else %}Erro ao salvar o projeto:{% endif %} ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{% if language == "en" %}An unexpected error occurred.{% else %}Ocorreu um erro inesperado.{% endif %}');
+        })
+        .finally(() => {
+            // Re-enable the button
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `{% if language == 'en' %}Save Project{% else %}Salvar Projeto{% endif %}`;
         });
     }
 </script>

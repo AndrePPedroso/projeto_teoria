@@ -122,6 +122,9 @@
         </div> {% endcomment %}
     </div>
     <div class="mt-auto px-2">
+        <a class="nav-link pointer" data-url="{% url 'perfil_view' %}">
+            {% if request.session.language == 'en' %}Perfil{% else %}Perfil{% endif %}
+        </a>
         <a class="nav-link pointer" data-url="{% url 'simulation_list' %}">
             {% if request.session.language == 'en' %}Saved projects{% else %}Projetos salvos{% endif %}
         </a>

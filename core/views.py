@@ -19,6 +19,12 @@ from financial_options.models import FinantialModels
 def pagina_inicial(request):
     return render(request, "admin/login.html")
 
+def perfil_view(request):
+    context = {
+        "first_name" : request.user.first_name,
+        "last_name" : request.user.last_name
+            }
+    return render(request, "site/home/perfil.html", context)
 
 def custom_admin_login(request):
     error_message = None

@@ -10,7 +10,7 @@ from estocasticos.use_cases.financial_options.black_scholes_merton_use_case impo
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
 from financial_options.models import FinantialModels
-from financial_options.use_cases.generate_save_pdf import generate_and_save_pdf
+from financial_options.use_cases.generate_save_pdf import generate_and_save_pdf, generate_and_save_pdf_mcs
 from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
 from financial_options.use_cases.option_price_american_use_case import create_american_option_plots, american_option_lsmc
 
@@ -167,6 +167,8 @@ def save_black_schole_model_view(request):
         resultados = financial_model.results
         if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON'):
             context = {
+            'first_name': request.user.first_name,  
+            'last_name': request.user.last_name,
             'report_title': data.get('title'),
             'parameters': financial_model.parameters,
             'results': {
@@ -187,6 +189,8 @@ def save_black_schole_model_view(request):
             }
         elif model_type in ('COX_ROSS'):
             context = {
+            'first_name': request.user.first_name,  
+            'last_name': request.user.last_name,
             'report_title': data.get('title'),
             'parameters': financial_model.parameters,
             'results': {
@@ -703,3 +707,103 @@ def precificar_opcao_americana_view(request):
         # Ensure this template path matches your project structure
         return render(request, 'site/financeiros/options_price_american_mcs.html', context)
 
+
+@require_POST 
+def save_mcs_model(request):
+    try:
+        data = json.loads(request.body)
+        model_type = data.get('model_type')
+        parameters = data.get('parameters')
+        results = data.get('results')
+        title = data.get('title', 'Financial Report') 
+
+        if not all([model_type, parameters, results]):
+            return JsonResponse({'success': False, 'error': 'Missing data in request.'}, status=400)
+
+        financial_model = FinantialModels(
+            usuario=request.user,
+            model_type=model_type,
+            parameters=parameters,
+            results=results,
+            report=None 
+        )
+        financial_model.save()
+        param_labels = {
+            'en': {
+                'S0': 'Initial Price (S0)',
+                'K': 'Strike Price (K)',
+                'T': 'Time to Maturity (T in years)',
+                'r': 'Risk-Free Rate (r, %)',
+                'sigma': 'Volatility (σ, %)',
+                'num_simulacoes': 'Number of Simulations',
+                'option_type': 'Option Type',
+                'num_passos': 'Number of Time Steps', # For American Options
+            },
+            'pt': {
+                'S0': 'Preço Atual do Ativo (S0)',
+                'K': 'Preço de Exercício (K)',
+                'T': 'Tempo até o Vencimento (T em anos)',
+                'r': 'Taxa de Juros Livre de Risco (r, %)',
+                'sigma': 'Volatilidade (σ, %)',
+                'num_simulacoes': 'Número de Simulações',
+                'option_type': 'Tipo de Opção',
+                'num_passos': 'Número de Passos de Tempo', # For American Options
+            }
+        }
+        language = request.session.get('language', 'pt')
+        labels_for_lang = param_labels.get(language, param_labels['pt'])
+        formatted_params = {labels_for_lang.get(key, key): value for key, value in financial_model.parameters.items()}
+
+        resultados = financial_model.results
+        context = {}
+
+        base_context = {
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'report_title': title,
+            'parameters': formatted_params,
+            'language': request.session.get('language', 'pt')
+        }
+
+        if model_type in ('MONTE_CARLO_EUROPEAN',):
+            context = {
+                **base_context,
+                'results': {
+                    'Estimated Option Price': resultados.get('estimated_price'),
+                },
+                'nested_results': {
+                    'Descriptive Statistics (Final Prices)': resultados.get('statistics', {})
+                },
+                'charts': {
+                    'Mean Price Convergence': resultados.get('price_plot'),
+                    'Final Price Distribution': resultados.get('distribution_plot'),
+                },
+                'interpretation': resultados.get('interpretation'), 
+            }
+            
+        elif model_type == 'MONTE_CARLO_AMERICAN':
+            context = {
+                **base_context,
+                'parameters': formatted_params,
+                'results': {
+                    'Estimated Option Price': results.get('preco_estimado'),
+                },
+                'nested_results': {}, # American option model doesn't have a stats table
+                'charts': {
+                    'Simulated Price Paths': results.get('price_plot'),
+                    'Optimal Exercise Boundary': results.get('exercise_boundary_plot'),
+                },
+                'interpretation': results.get('interpretation'),
+            }
+
+        if context:
+            generate_and_save_pdf_mcs(financial_model, context)
+        
+        return JsonResponse({'success': True, 'message': 'Project saved successfully!', 'id': financial_model.id})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON format.'}, status=400)
+    except Exception as e:
+        # Log the full error for debugging
+        print(f"Error in save_financial_model_view: {e}")
+        return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {e}'}, status=500)

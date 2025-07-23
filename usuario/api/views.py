@@ -1,7 +1,9 @@
+import json
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator # For token generation
 from django.contrib.sites.shortcuts import get_current_site # For building activation link
 from django.core.mail import send_mail
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
@@ -103,4 +105,33 @@ def verify_email_view(request, uidb64, token):
         return redirect(reverse(LOGIN_URL_NAME))
     else:
         messages.error(request, 'Activation link is invalid or has expired.')
-        return redirect(reverse(LOGIN_URL_NAME)) # Or a specific error page
+        return redirect(reverse(LOGIN_URL_NAME)) 
+    
+def update_profile_view(request):
+    try:
+        first_name = request.POST.get('first_name', '').strip()
+
+        last_name = request.POST.get('last_name', '').strip() 
+
+        if not first_name or not last_name:
+            return JsonResponse({'status': 'error', 'message': 'First and last name are required.'}, status=400)
+
+        # Update the user object
+        user = request.user
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+
+        # Send a success response
+        context = {
+        "first_name" : request.user.first_name,
+        "last_name" : request.user.last_name
+            }
+        return redirect("/home")
+
+    except json.JSONDecodeError as e:
+        print(e)
+        return redirect("/home")
+    except Exception as e:
+        print(e)
+        return redirect("/home")

@@ -3,6 +3,7 @@ from .api.views import *
 
 urlpatterns = [
     path('save-financial-model/', save_black_schole_model_view, name='save_financial_model'),
+    path('save-mcs-model/', save_mcs_model, name='save_mcs_model'),
     path('black-scholes/api/', black_scholes_view, name='black_scholes_api'),
     path('black-scholes-merton/', black_scholes_merton_template, name='black_scholes_merton'),
     path('black-scholes-merton/api/', black_scholes_merton_view, name='black_scholes_merton_api'),
