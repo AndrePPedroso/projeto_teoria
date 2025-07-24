@@ -4,8 +4,8 @@
         {% if request.session.language == 'en' %}My Simulations History{% else %}Histórico de Minhas Simulações{% endif %}
     </h1>
 
-    {% comment %} Check if the 'simulations' object passed from the view has any items {% endcomment %}
-    {% if simulations %}
+    {% comment %} Check if the 'page_obj' has any items {% endcomment %}
+    {% if page_obj.object_list %}
     <div class="w-100 shadow-sm" style="overflow-x: auto;">
         <table class="table table-striped table-hover bg-light text-center" style="border-radius: 0.75rem; overflow: hidden;">
             <thead class="table-dark">
@@ -16,13 +16,13 @@
                 </tr>
             </thead>
             <tbody id='simulation-list-container'>
-                {% for simulation in simulations %}
+                {% comment %} Loop through the items on the current page {% endcomment %}
+                {% for simulation in page_obj %}
                 <tr id="simulation-{{ simulation.id }}">
                     <td class="align-middle">{{ simulation.get_model_type_display }}</td>
                     <td class="align-middle">{{ simulation.criado_em|date:"d/m/Y H:i" }}</td>
                     <td class="align-middle">
                         <div class="d-flex justify-content-center align-items-center">
-                            {% comment %} Download Button {% endcomment %}
                             {% if simulation.report %}
                                 <a href="{% url 'download_report' simulation.id %}" class="btn btn-primary btn-sm me-2">
                                     {% if request.session.language == 'en' %}Download{% else %}Baixar{% endif %}
@@ -38,9 +38,52 @@
             </tbody>
         </table>
     </div>
+
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination">
+            {% comment %} Previous Page Link {% endcomment %}
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link nav-link" href="#" data-url="{% url 'simulation_list' %}?page={{ page_obj.previous_page_number }}">
+                        {% if request.session.language == 'en' %}Previous{% else %}Anterior{% endif %}
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">{% if request.session.language == 'en' %}Previous{% else %}Anterior{% endif %}</span>
+                </li>
+            {% endif %}
+
+            {% comment %} Page Number Links {% endcomment %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link nav-link" href="#" data-url="{% url 'simulation_list' %}?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% comment %} Next Page Link {% endcomment %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link nav-link" href="#" data-url="{% url 'simulation_list' %}?page={{ page_obj.next_page_number }}">
+                        {% if request.session.language == 'en' %}Next{% else %}Próximo{% endif %}
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">{% if request.session.language == 'en' %}Next{% else %}Próximo{% endif %}</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
     
     {% else %}
-    {% comment %} Display a message if there are no simulations for the user {% endcomment %}
+    {% comment %} Display message if there are no simulations {% endcomment %}
     <div class="card bg-light text-center shadow-sm p-4 w-100" style="border-radius: 0.75rem;">
         <div class="card-body">
             <h2 class="card-title h5 mb-3 text-dark">
@@ -53,7 +96,6 @@
                     Você ainda não realizou nenhuma simulação financeira. Acesse os módulos de aprendizagem para iniciar.
                 {% endif %}
             </p>
-            {% comment %} Make sure you have a URL named 'learning_modules' or change it accordingly {% endcomment %}
             <a href="/home" class="btn btn-info mt-3">
                 {% if request.session.language == 'en' %}Go to Modules{% else %}Ir para Módulos{% endif %}
             </a>

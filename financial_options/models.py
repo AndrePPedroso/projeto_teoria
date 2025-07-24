@@ -1,9 +1,12 @@
 
 import os
+
+from django.forms import ValidationError
 from core.models import ModelPadrao
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
+
 
 def _get_upload_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -48,3 +51,19 @@ class FinantialModels(ModelPadrao):
     
     def __str__(self):
         return f"{self.usuario or 'Unnamed'},{self.model_type} ({self.criado_em.date()})"
+    
+    def clean(self):
+        super().clean()
+        if self.pk is None and self.usuario:
+            current_count = FinantialModels.objects.filter(usuario=self.usuario).count()
+            if current_count >= 41:
+                raise ValidationError(
+                    _('You have reached the maximum limit of 40 financial models.'),
+                    code='limit_exceeded',
+                    params={'max_models': 40},
+                )
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.full_clean()
+        super().save(*args, **kwargs)

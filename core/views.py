@@ -75,14 +75,21 @@ def reference_view(request):
 def to_do_view(request):
     return render(request, "site/home/to_do_view.html")
 
+from django.core.paginator import Paginator 
+
 @login_required(login_url='/admin/login/')
 def simulation_list_view(request):
-    simulations = FinantialModels.objects.filter(usuario=request.user).order_by('-criado_em')
+    all_simulations = FinantialModels.objects.filter(usuario=request.user).order_by('-criado_em')
+
+    paginator = Paginator(all_simulations, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        'simulations': simulations
+        'page_obj': page_obj 
     }
     return render(request, 'site/home/simulation_list.html', context)
+
 @login_required
 def download_report_view(request, simulation_id):
     simulation = get_object_or_404(FinantialModels, id=simulation_id, usuario=request.user)
