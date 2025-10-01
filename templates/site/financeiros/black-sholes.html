@@ -242,7 +242,18 @@
                     </div>
                 </div>
             </div>
-            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Probability Distribution at Expiration{% else %}Distribuição de Probabilidade no Vencimento{% endif %}
+                        </div>
+                        <div class="card-body text-center">
+                            <img id="probabilityChart" src="" class="img-fluid" alt="Probability Distribution Curve">
+                        </div>
+                    </div>
+                </div>
+            </div>            
             <div class="card mb-4">
                 <div class="card-header bg-light">
                     {% if request.session.language == 'en' %}Interpretation of Results{% else %}Interpretação dos Resultados{% endif %}
@@ -394,6 +405,7 @@
             // Update charts
             document.getElementById('priceChart').src = 'data:image/png;base64,' + data.price_plot;
             document.getElementById('payoffChart').src = 'data:image/png;base64,' + data.payoff_plot;
+            document.getElementById('probabilityChart').src = 'data:image/png;base64,' + data.probability_chart;
             
             // Update interpretation
             document.getElementById('interpretation').innerHTML = data.interpretation;

@@ -365,3 +365,149 @@
     </div>
   </div>
 </div>
+<script>
+    function calculateOptions() {
+        // Get input parameters
+        const S0 = parseFloat(document.getElementById('initialValue').value);
+        const K = parseFloat(document.getElementById('strikePrice').value);
+        const T = parseFloat(document.getElementById('timeToMaturity').value);
+        const r = parseFloat(document.getElementById('riskFreeRate').value) / 100;
+        const sigma = parseFloat(document.getElementById('volatility').value) / 100;
+        const N = parseInt(document.getElementById('steps').value);
+        const optionType = document.getElementById('optionType').value;
+        const exerciseStyle = document.getElementById('exerciseStyle').value;
+        
+        const dt = T / N;
+        
+        const u = Math.exp(sigma * Math.sqrt(dt));
+        const d = 1 / u;
+        
+        // Calculate risk-neutral probability
+        const p = (Math.exp(r * dt) - d) / (u - d);
+        
+        const stockTree = Array(N + 1).fill().map(() => Array(N + 1).fill(0));
+        stockTree[0][0] = S0;
+        
+        // Fill in the stock price tree
+        for (let i = 1; i <= N; i++) {
+            for (let j = 0; j <= i; j++) {
+                stockTree[i][j] = stockTree[0][0] * Math.pow(u, j) * Math.pow(d, i - j);
+            }
+        }
+        
+        const optionTree = Array(N + 1).fill().map(() => Array(N + 1).fill(0));
+        
+        // Fill in terminal option values
+        for (let j = 0; j <= N; j++) {
+            if (optionType === 'call') {
+                optionTree[N][j] = Math.max(0, stockTree[N][j] - K);
+            } else { // put option
+                optionTree[N][j] = Math.max(0, K - stockTree[N][j]);
+            }
+        }
+        
+        // Calculate option values via backward induction
+        for (let i = N - 1; i >= 0; i--) {
+            for (let j = 0; j <= i; j++) {
+                // Expected option value (discounted)
+                const expectedValue = Math.exp(-r * dt) * (p * optionTree[i + 1][j + 1] + (1 - p) * optionTree[i + 1][j]);
+                
+                if (exerciseStyle === 'american') {
+                    // For American options, check for early exercise
+                    const exerciseValue = optionType === 'call' 
+                        ? Math.max(0, stockTree[i][j] - K)
+                        : Math.max(0, K - stockTree[i][j]);
+                    optionTree[i][j] = Math.max(expectedValue, exerciseValue);
+                } else {
+                    // For European options, just use the expected value
+                    optionTree[i][j] = expectedValue;
+                }
+            }
+        }
+        
+        // Calculate the traditional NPV
+        const traditionalNPV = S0 - K;
+        
+        // Calculate the expanded NPV (traditional NPV + option value)
+        const expandedNPV = traditionalNPV + optionTree[0][0];
+        
+        // Calculate value of flexibility
+        const flexibilityValue = optionTree[0][0];
+        
+        // Calculate option value / investment cost ratio
+        const optionRatio = optionTree[0][0] / K;
+        
+        // Display results
+        document.getElementById('optionValue').textContent = '$' + optionTree[0][0].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('upFactor').textContent = u.toFixed(4);
+        document.getElementById('downFactor').textContent = d.toFixed(4);
+        document.getElementById('probability').textContent = (p * 100).toFixed(2) + '%';
+        document.getElementById('deltaT').textContent = dt.toFixed(4);
+        
+        document.getElementById('traditionalNPV').textContent = '$' + traditionalNPV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('expandedNPV').textContent = '$' + expandedNPV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('flexibilityValue').textContent = '$' + flexibilityValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('optionRatio').textContent = optionRatio.toFixed(4);
+        
+        // Visualize binomial lattice
+        visualizeLattice(stockTree, optionTree, N);
+        
+        // Show results
+        document.getElementById('resultsContainer').style.display = 'block';
+    }
+    
+    function visualizeLattice(stockTree, optionTree, N) {
+        const container = document.getElementById('latticeContainer');
+        container.innerHTML = '';
+        
+        // Create lattice visualization HTML
+        let html = '<div class="binomial-lattice">';
+        
+        // Add table for the lattice
+        html += '<table class="table table-bordered table-sm">';
+        
+        // Add headers
+        html += '<thead><tr><th>Time Step</th>';
+        for (let t = 0; t <= N; t++) {
+            html += `<th>t=${t}</th>`;
+        }
+        html += '</tr></thead><tbody>';
+        
+        // Add stock price and option value rows
+        for (let j = N; j >= 0; j--) {
+            // Stock price row
+            html += '<tr><td>Stock Price (Node ' + j + ')</td>';
+            for (let t = 0; t <= N; t++) {
+                if (t >= j) {
+                    const index = t - j;
+                    html += `<td>$${stockTree[t][index].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>`;
+                } else {
+                    html += '<td>-</td>';
+                }
+            }
+            html += '</tr>';
+            
+            // Option value row
+            html += '<tr class="table-light"><td>Option Value (Node ' + j + ')</td>';
+            for (let t = 0; t <= N; t++) {
+                if (t >= j) {
+                    const index = t - j;
+                    html += `<td>$${optionTree[t][index].toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>`;
+                } else {
+                    html += '<td>-</td>';
+                }
+            }
+            html += '</tr>';
+        }
+        
+        html += '</tbody></table></div>';
+        
+        container.innerHTML = html;
+    }
+    
+    function resetForm() {
+        document.getElementById('binomialForm').reset();
+        document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('latticeContainer').innerHTML = '';
+    }
+</script>

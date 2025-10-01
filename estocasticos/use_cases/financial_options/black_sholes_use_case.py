@@ -178,3 +178,30 @@ class BlackScholesModelUseCase:
         
         return base64.b64encode(image_png).decode('utf-8')
 
+    def generate_probability_curve(self, S0, sigma, T, r):
+        # Time in years
+        T_years = T / 365.0
+        
+        # Asset price range for the curve
+        S_range = np.linspace(S0 * 0.5, S0 * 1.5, 300)
+        
+        # Parameters for lognormal distribution
+        mu = (r - 0.5 * sigma**2) * T_years + np.log(S0)
+        variance = sigma**2 * T_years
+        pdf = (1 / (S_range * np.sqrt(2 * np.pi * variance))) * np.exp(- (np.log(S_range) - mu)**2 / (2 * variance))
+        
+        # Plot
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(S_range, pdf, color='blue')
+        ax.set_title('Probability Density of Asset Price at Expiration')
+        ax.set_xlabel('Asset Price at Expiration')
+        ax.set_ylabel('Probability Density')
+        ax.grid(True)
+        # Save to base64
+        buffer = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        image_base64 = base64.b64encode(image_png).decode('utf-8')
+        return image_base64

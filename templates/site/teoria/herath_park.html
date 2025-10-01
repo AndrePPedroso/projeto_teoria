@@ -331,20 +331,14 @@
             const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
             const pv0 = expectedPV0 + (pv0StdDev * z);
             
-            // Calculate NPV for this simulation
-            let npv = -pv0; // Initial investment
+            let npv = -pv0;
             for (let i = 0; i < numPeriods; i++) {
                 npv += simulatedCashFlows[i] / Math.pow(1 + discountRate, i + 1);
             }
             npvValues.push(npv);
             
-            // CF1 is the first simulated cash flow
             const cf1 = simulatedCashFlows[0];
-            
-            // Calculate V1 = CF1 + PV1
             const v1 = cf1 + pv1;
-            
-            // Calculate z = ln(V1/V0) - Herath & Park approach with varying PV0
             const zHerath = Math.log(v1 / pv0);
             zValuesHerath.push(zHerath);
             

@@ -69,8 +69,8 @@ class MonteCarloUseCase:
         final_prices = self.prices[:, -1]
         stats = {
             "Mean": np.mean(final_prices),
-            "Desvio Padrão": np.std(final_prices),
-            "Standard Deviation": np.var(final_prices),
+            "Standard Deviation": np.std(final_prices),
+            "variance": np.var(final_prices),
             "Minimum": np.min(final_prices),
             "Maximum": np.max(final_prices),
         }

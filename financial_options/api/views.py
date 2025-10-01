@@ -73,12 +73,13 @@ def black_scholes_view(request):
             if S <= 0 or E <= 0 or T <= 0 or sigma <= 0:
                 return JsonResponse({'error': 'All values must be positive.'})
             model = BlackScholesModelUseCase(S, E, r, sigma, T, option_type)
-
+            probability_chart = model.generate_probability_curve(S, sigma/100, T, r/100)
             d1, d2 = model.calculate_d1_d2()
             option_price = model.calculate_price()
             greeks = model.calculate_greeks()
             price_plot = model.plot_price_vs_underlying()
             payoff_plot = model.plot_payoff_at_expiration()
+
             break_even = 0
             # Interpretation text
             if option_type == 'call':
@@ -120,6 +121,7 @@ def black_scholes_view(request):
                 'd2': d2,
                 'break_even' :break_even,
                 'max_loss' : option_price,
+                'probability_chart' : probability_chart
             })
             
         except ValueError as e:
