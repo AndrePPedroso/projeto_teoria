@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from estocasticos.use_cases.comparacao_modelos_use_case import ComparacaoModelosUseCase
 from estocasticos.use_cases.mbg_ito_use_case import GeneralizedBrownianMotionUseCase
 from estocasticos.use_cases.modelo_reversao_media_use_case import ReversaoMediaUseCase
 from estocasticos.use_cases.monte_carlos_use_case import MonteCarloUseCase
@@ -55,6 +56,8 @@ def mbg_teoria(request):
 def modelo_reversao_media(request):
     return render(request, "site/processos-estocasticos/modelo_media.html")
 
+def vizualizacao_modelos(request):
+    return render(request, "site/processos-estocasticos/vizualizacao_modelos.html")
 
 @login_required(login_url='/admin/login/')
 def teoria_opcoes_financeiras(request):
@@ -263,3 +266,35 @@ def simulate_mean_reversion_view(request):
             }
         )
     return render(request, "simulate_mean_reversion.html")
+
+def comparacao_modelos_template(request):
+    return render(request, "site/processos-estocasticos/vizualizacao_modelos.html")
+
+def comparacao_modelos_view(request):
+    if request.method == "POST":
+        try:
+            s0 = float(request.POST.get("s0"))
+            mu_gbm = float(request.POST.get("mu_gbm"))
+            sigma_gbm = float(request.POST.get("sigma_gbm"))
+            mu_mr = float(request.POST.get("mu_mr"))
+            kappa_mr = float(request.POST.get("kappa_mr"))
+            sigma_mr = float(request.POST.get("sigma_mr"))
+            t = float(request.POST.get("t"))
+            dt = float(request.POST.get("dt"))
+
+            use_case = ComparacaoModelosUseCase(
+                S0=s0,
+                mu_gbm=mu_gbm,
+                sigma_gbm=sigma_gbm,
+                mu_mr=mu_mr,
+                kappa_mr=kappa_mr,
+                sigma_mr=sigma_mr,
+                T=t,
+                dt=dt,
+            )
+            plot_image = use_case.generate_plot()
+
+            return JsonResponse({"plot_image": plot_image})
+        except (ValueError, TypeError) as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)

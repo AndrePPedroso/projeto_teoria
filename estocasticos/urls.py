@@ -18,6 +18,7 @@ urlpatterns = [
     path("mbg-ito", mbg_ito, name="mbg_ito"),
     path("mbg-teoria", mbg_teoria, name="mbg_teoria"),
     path("modelo-reversao-media", modelo_reversao_media, name="modelo_reversao_media"),
+    path("vizualizacao-modelos", vizualizacao_modelos, name="vizualizacao-modelos"),
     # #------calculos----------
     path("markov_simulador/", markov_simulator, name="simulate_markov"),
     path(
@@ -32,5 +33,15 @@ urlpatterns = [
         "simulate-mean-reversion/",
         simulate_mean_reversion_view,
         name="simulate_mean_reversion",
+    ),
+    path(
+        "vizualizacao-modelos/",
+        comparacao_modelos_template,
+        name="vizualizacao_modelos",
+    ),
+    path(
+        "comparacao-modelos-view/",
+        comparacao_modelos_view,
+        name="comparacao_modelos_view",
     ),
 ]

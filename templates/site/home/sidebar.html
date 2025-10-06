@@ -25,6 +25,9 @@
             <a class="nav-link" data-url="{% url 'modelo_reversao_media' %}">
                 {% if request.session.language == 'en' %}Mean Reversion Model{% else %}Modelo de Reversão a Média{% endif %}
             </a>
+            <a class="nav-link" data-url="{% url 'vizualizacao_modelos' %}">
+                {% if request.session.language == 'en' %}Models vizualization{% else %}Vizualição dos modelos{% endif %}
+            </a>
         </div>
     </div>
     <div class="accordion-section">

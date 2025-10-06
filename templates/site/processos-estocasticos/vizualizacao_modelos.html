@@ -1,0 +1,203 @@
+<div class="container mt-5">
+    <h1>{% if request.session.language == 'en' %}Stochastic Models Comparison{% else %}Comparação de Modelos Estocásticos{% endif %}</h1>
+    <p>{% if request.session.language == 'en' %}Enter the parameters to generate a chart comparing Random Walk, Geometric Brownian Motion, and Mean Reversion.{% else %}Insira os parâmetros para gerar um gráfico comparando Random Walk, Movimento Browniano Geométrico e Reversão à Média.{% endif %}</p>
+    <div class="text-center mb-5">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#conceptsExplanationModal">
+            {% if request.session.language == 'en' %}Models Guide{% else %}Guia dos Modelos{% endif %}
+        </button>
+    </div>
+    <form id="comparacaoModelosForm" method="post" action="{% url 'comparacao_modelos_view' %}">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-4">
+                <h4>{% if request.session.language == 'en' %}General Parameters{% else %}Parâmetros Gerais{% endif %}</h4>
+                <div class="form-group">
+                    <label for="s0">{% if request.session.language == 'en' %}Initial Value (S0){% else %}Valor Inicial (S0){% endif %}</label>
+                    <input type="number" class="form-control" id="s0" name="s0" step="any" required value="100">
+                </div>
+                <div class="form-group">
+                    <label for="t">{% if request.session.language == 'en' %}Total Time (T){% else %}Tempo Total (T){% endif %}</label>
+                    <input type="number" class="form-control" id="t" name="t" step="any" required value="1">
+                </div>
+                <div class="form-group">
+                    <label for="dt">{% if request.session.language == 'en' %}Time Step (dt){% else %}Passo de Tempo (dt){% endif %}</label>
+                    <input type="number" class="form-control" id="dt" name="dt" step="any" required value="0.01">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <h4>{% if request.session.language == 'en' %}Geometric Brownian Motion{% else %}Movimento Browniano Geométrico{% endif %}</h4>
+                <div class="form-group">
+                    <label for="mu_gbm">{% if request.session.language == 'en' %}Drift Rate (μ){% else %}Taxa de Drift (μ){% endif %}</label>
+                    <input type="number" class="form-control" id="mu_gbm" name="mu_gbm" step="any" required value="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="sigma_gbm">{% if request.session.language == 'en' %}Volatility (σ){% else %}Volatilidade (σ){% endif %}</label>
+                    <input type="number" class="form-control" id="sigma_gbm" name="sigma_gbm" step="any" required value="0.2">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <h4>{% if request.session.language == 'en' %}Mean Reversion{% else %}Reversão à Média{% endif %}</h4>
+                <div class="form-group">
+                    <label for="kappa_mr">{% if request.session.language == 'en' %}Reversion Speed (κ){% else %}Velocidade de Reversão (κ){% endif %}</label>
+                    <input type="number" class="form-control" id="kappa_mr" name="kappa_mr" step="any" required value="0.5">
+                </div>
+                <div class="form-group">
+                    <label for="mu_mr">{% if request.session.language == 'en' %}Long-term Level (μ){% else %}Nível de Longo Prazo (μ){% endif %}</label>
+                    <input type="number" class="form-control" id="mu_mr" name="mu_mr" step="any" required value="100">
+                </div>
+                <div class="form-group">
+                    <label for="sigma_mr">{% if request.session.language == 'en' %}Volatility (σ){% else %}Volatilidade (σ){% endif %}</label>
+                    <input type="number" class="form-control" id="sigma_mr" name="sigma_mr" step="any" required value="0.1">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">{% if request.session.language == 'en' %}Generate Chart{% else %}Gerar Gráfico{% endif %}</button>
+    </form>
+
+    <div id="plotContainer" class="mt-4"></div>
+</div>
+<div class="modal fade" id="conceptsExplanationModal" tabindex="-1" aria-labelledby="gbmGuideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="gbmGuideModalLabel">
+            {% if request.session.language == 'en' %}Guide to Stochastic`s Models{% else %}Guia dos Modelos Estocasticos{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-dark">
+          {% if request.session.language == 'en' %}
+            <h4>1. Random Walk</h4>
+            <p>A model where the next step is the previous step plus a random value.</p>
+            <ul>
+                <li><b>Initial Value (S0):</b> The starting point of the walk.</li>
+                <li><b>Steps:</b> The number of steps to simulate.</li>
+            </ul>
+
+            <h4>2. Normal Random Walk</h4>
+            <p>Similar to a random walk, but the random steps are drawn from a normal distribution.</p>
+            <ul>
+                <li><b>Initial Value (S0):</b> The starting point of the walk.</li>
+                <li><b>Drift (μ):</b> The average step size (tendency).</li>
+                <li><b>Volatility (σ):</b> The standard deviation of the steps (randomness).</li>
+                <li><b>Time (T):</b> The total time period.</li>
+                <li><b>Time Step (dt):</b> The size of each time interval.</li>
+            </ul>
+
+            <h4>3. Geometric Brownian Motion (GBM)</h4>
+            <p>A continuous-time stochastic process where the logarithm of the randomly varying quantity follows a Brownian motion with drift. It's widely used in finance to model stock prices.</p>
+            <ul>
+                <li><b>Initial Value (S0):</b> The initial price of the asset.</li>
+                <li><b>Drift (μ):</b> The expected rate of return.</li>
+                <li><b>Volatility (σ):</b> The measure of the price fluctuation.</li>
+                <li><b>Time (T):</b> The total time period.</li>
+                <li><b>Time Step (dt):</b> The size of each time interval.</li>
+            </ul>
+
+            <h4>4. Mean-Reverting Model (Ornstein-Uhlenbeck)</h4>
+            <p>A model where the variable tends to move towards a long-term mean over time.</p>
+            <ul>
+                <li><b>Initial Value (S0):</b> The starting value.</li>
+                <li><b>Reversion Speed (κ):</b> How quickly the variable returns to the mean.</li>
+                <li><b>Long-term Level (μ):</b> The long-term mean to which the variable reverts.</li>
+                <li><b>Volatility (σ):</b> The measure of the random fluctuation.</li>
+                <li><b>Time (T):</b> The total time period.</li>
+                <li><b>Time Step (dt):</b> The size of each time interval.</li>
+            </ul>
+
+            <hr>
+
+            <h3>Main Differences</h3>
+            <ul>
+                <li><b>Random Walk vs. GBM:</b> A simple random walk adds random steps, which can result in negative values. GBM multiplies by a random factor, preventing prices from becoming negative and ensuring that the volatility is proportional to the price level.</li>
+                <li><b>GBM vs. Mean-Reverting Model:</b> GBM has no tendency to return to a specific level; its variance grows with time. A mean-reverting model is "attracted" to a long-term average, making it suitable for modeling interest rates or commodity prices.</li>
+            </ul>
+
+          {% else %}
+            <h4>1. Passeio Aleatório (Random Walk)</h4>
+            <p>Um modelo onde o próximo passo é o passo anterior mais um valor aleatório.</p>
+            <ul>
+                <li><b>Valor Inicial (S0):</b> O ponto de partida do passeio.</li>
+                <li><b>Passos:</b> O número de passos a simular.</li>
+            </ul>
+
+            <h4>2. Passeio Aleatório Normal (Normal Random Walk)</h4>
+            <p>Semelhante a um passeio aleatório, mas os passos aleatórios são extraídos de uma distribuição normal.</p>
+            <ul>
+                <li><b>Valor Inicial (S0):</b> O ponto de partida do passeio.</li>
+                <li><b>Drift (μ):</b> O tamanho médio do passo (tendência).</li>
+                <li><b>Volatilidade (σ):</b> O desvio padrão dos passos (aleatoriedade).</li>
+                <li><b>Tempo (T):</b> O período de tempo total.</li>
+                <li><b>Passo de Tempo (dt):</b> O tamanho de cada intervalo de tempo.</li>
+            </ul>
+
+            <h4>3. Movimento Browniano Geométrico (MBG)</h4>
+            <p>Um processo estocástico de tempo contínuo onde o logaritmo da quantidade que varia aleatoriamente segue um movimento Browniano com drift. É amplamente utilizado em finanças para modelar preços de ações.</p>
+            <ul>
+                <li><b>Valor Inicial (S0):</b> O preço inicial do ativo.</li>
+                <li><b>Taxa de Drift (μ):</b> A taxa de retorno esperada.</li>
+                <li><b>Volatilidade (σ):</b> A medida da flutuação do preço.</li>
+                <li><b>Tempo (T):</b> O período de tempo total.</li>
+                <li><b>Passo de Tempo (dt):</b> O tamanho de cada intervalo de tempo.</li>
+            </ul>
+
+            <h4>4. Modelo de Reversão à Média (Ornstein-Uhlenbeck)</h4>
+            <p>Um modelo onde a variável tende a se mover em direção a uma média de longo prazo ao longo do tempo.</p>
+            <ul>
+                <li><b>Valor Inicial (S0):</b> O valor inicial.</li>
+                <li><b>Velocidade de Reversão (κ):</b> A rapidez com que a variável retorna à média.</li>
+                <li><b>Nível de Longo Prazo (μ):</b> A média de longo prazo para a qual a variável reverte.</li>
+                <li><b>Volatilidade (σ):</b> A medida da flutuação aleatória.</li>
+                <li><b>Tempo (T):</b> O período de tempo total.</li>
+                <li><b>Passo de Tempo (dt):</b> O tamanho de cada intervalo de tempo.</li>
+            </ul>
+            <hr>
+
+            <h3>Principais Diferenças</h3>
+            <ul>
+                <li><b>Passeio Aleatório vs. MBG:</b> Um passeio aleatório simples adiciona passos aleatórios, o que pode resultar em valores negativos. O MBG multiplica por um fator aleatório, impedindo que os preços se tornem negativos e garantindo que a volatilidade seja proporcional ao nível de preços.</li>
+                <li><b>MBG vs. Modelo de Reversão à Média:</b> O MBG não tem tendência a retornar a um nível específico; sua variância cresce com o tempo. Um modelo de reversão à média é "atraído" para uma média de longo prazo, tornando-o adequado para modelar taxas de juros ou preços de commodities.</li>
+            </ul>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              {% if request.session.language == 'en' %}Close{% else %}Fechar{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>
+<script>
+    document.getElementById('comparacaoModelosForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.plot_image) {
+                const plotContainer = document.getElementById('plotContainer');
+                const altText = "{% if request.session.language == 'en' %}Model Comparison Chart{% else %}Gráfico de Comparação de Modelos{% endif %}";
+                plotContainer.innerHTML = `<img src="data:image/png;base64,${data.plot_image}" alt="${altText}" class="img-fluid">`;
+            } else if (data.error) {
+                const errorMsg = "{% if request.session.language == 'en' %}Error generating chart:{% else %}Erro ao gerar o gráfico:{% endif %} " + data.error;
+                alert(errorMsg);
+            } else {
+                const unknownErrorMsg = "{% if request.session.language == 'en' %}An unknown error occurred.{% else %}Ocorreu um erro desconhecido.{% endif %}";
+                alert(unknownErrorMsg);
+            }
+        })
+        .catch(error => {
+            const requestErrorMsg = "{% if request.session.language == 'en' %}An error occurred with the request:{% else %}Ocorreu um erro na requisição:{% endif %} " + error;
+            alert(requestErrorMsg);
+        });
+    });
+</script>
