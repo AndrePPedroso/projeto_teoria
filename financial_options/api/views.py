@@ -1,7 +1,7 @@
 import json
 import math
 import traceback
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -24,7 +24,21 @@ def black_scholes_merton_template(request):
 
 @login_required(login_url='/admin/login/')
 def cox_ross_rubinstein_template(request):
-    return render(request, "site/financeiros/cox-ross-rubinstein.html")
+    initial_data = {
+        'asset_price': request.GET.get('asset_price', 100.0),
+        'exercise_price': request.GET.get('exercise_price', 100.0),
+        'time_to_expiration': request.GET.get('time_to_expiration', 30),
+        'interest_rate': request.GET.get('interest_rate', 5),
+        'volatility': request.GET.get('volatility', 30),
+        'option_type': request.GET.get('option_type', 'call'),
+        'steps': request.GET.get('steps', 3),
+        'dividend_yield': request.GET.get('dividend_yield', 0),
+    }
+    context = {
+        'initial_data': initial_data,
+        'language': request.session.get('language', 'pt')
+    }
+    return render(request, "site/financeiros/cox-ross-rubinstein.html", context)
 
 @login_required(login_url='/admin/login/')
 def basic_concepts_overview_view(request):
@@ -130,12 +144,12 @@ def black_scholes_view(request):
             return JsonResponse({'error': str(e)})
     else:
         initial_data = {
-            'asset_price': 100.0,
-            'exercise_price': 100.0,
-            'time_to_expiration': 30,
-            'interest_rate': 5,
-            'volatility': 20,
-            'option_type': 'call',
+            'asset_price': request.GET.get('asset_price', 100.0),
+            'exercise_price': request.GET.get('exercise_price', 100.0),
+            'time_to_expiration': request.GET.get('time_to_expiration', 30),
+            'interest_rate': request.GET.get('interest_rate', 5),
+            'volatility': request.GET.get('volatility', 20),
+            'option_type': request.GET.get('option_type', 'call'),
         }
             
         context = {
@@ -353,13 +367,13 @@ def black_scholes_merton_view(request):
     
     else:
         initial_data = {
-            'asset_price': 100.0,
-            'exercise_price': 100.0,
-            'time_to_expiration': 30,
-            'interest_rate': 5,
-            'volatility': 20,
-            'dividend_yield': 2,
-            'option_type': 'call',
+            'asset_price': request.GET.get('asset_price', 100.0),
+            'exercise_price': request.GET.get('exercise_price', 100.0),
+            'time_to_expiration': request.GET.get('time_to_expiration', 30),
+            'interest_rate': request.GET.get('interest_rate', 5),
+            'volatility': request.GET.get('volatility', 20),
+            'dividend_yield': request.GET.get('dividend_yield', 2),
+            'option_type': request.GET.get('option_type', 'call'),
         }
             
         context = {
@@ -511,7 +525,22 @@ def cox_ross_rubinstein_view(request):
             return JsonResponse({'error': str(e)})
     
     # If not POST, just render the template
-    return render(request, 'site/financeiros/cox-ross-rubinstein.html')
+    else:
+        initial_data = {
+            'asset_price': request.GET.get('asset_price', 100.0),
+            'exercise_price': request.GET.get('exercise_price', 100.0),
+            'time_to_expiration': request.GET.get('time_to_expiration', 30),
+            'interest_rate': request.GET.get('interest_rate', 5),
+            'volatility': request.GET.get('volatility', 30),
+            'option_type': request.GET.get('option_type', 'call'),
+            'steps': request.GET.get('steps', 3),
+            'dividend_yield': request.GET.get('dividend_yield', 0),
+        }
+        context = {
+            'initial_data': initial_data,
+            'language': request.session.get('language', 'pt')
+        }
+        return render(request, 'site/financeiros/cox-ross-rubinstein.html', context)
 
 
 
@@ -590,13 +619,13 @@ def precificar_opcao_view(request):
 
     else: # GET request
         initial_data = {
-            'S0': 100.0,
-            'K': 100.0,
-            'T': 1.0,
-            'r': 5,
-            'sigma': 20,
-            'num_simulacoes': 100000,
-            'option_type': 'call',  # Define um valor padrão para o GET
+            'S0': request.GET.get('S0', 100.0),
+            'K': request.GET.get('K', 100.0),
+            'T': request.GET.get('T', 1.0),
+            'r': request.GET.get('r', 5),
+            'sigma': request.GET.get('sigma', 20),
+            'num_simulacoes': request.GET.get('num_simulacoes', 100000),
+            'option_type': request.GET.get('option_type', 'call'),
         }
         context = {
             'initial_data': initial_data,
@@ -693,14 +722,14 @@ def precificar_opcao_americana_view(request):
     else: # GET request
         # Provide initial data for the form when the page is first loaded
         initial_data = {
-            'S0': 100.0,
-            'K': 100.0,
-            'T': 1.0,
-            'r': 5.0,
-            'sigma': 20.0,
-            'num_simulacoes': 10000,
-            'num_passos': 100,
-            'option_type': 'put', # Default option type
+            'S0': request.GET.get('S0', 100.0),
+            'K': request.GET.get('K', 100.0),
+            'T': request.GET.get('T', 1.0),
+            'r': request.GET.get('r', 5.0),
+            'sigma': request.GET.get('sigma', 20.0),
+            'num_simulacoes': request.GET.get('num_simulacoes', 10000),
+            'num_passos': request.GET.get('num_passos', 100),
+            'option_type': request.GET.get('option_type', 'put'), # Default option type
         }
         context = {
             'initial_data': initial_data,
@@ -809,3 +838,28 @@ def save_mcs_model(request):
         # Log the full error for debugging
         print(f"Error in save_financial_model_view: {e}")
         return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {e}'}, status=500)
+
+
+@login_required(login_url='/admin/login/')
+def rerun_simulation_view(request, simulation_id):
+    simulation = get_object_or_404(FinantialModels, id=simulation_id, usuario=request.user)
+    params = simulation.parameters
+
+    if simulation.model_type == 'BLACK_SCHOLES':
+        template_name = 'site/financeiros/black-sholes.html'
+    elif simulation.model_type == 'BLACK_SCHOLES_MERTON':
+        template_name = 'site/financeiros/black-scholes-merton.html'
+    elif simulation.model_type == 'COX_ROSS':
+        template_name = 'site/financeiros/cox-ross-rubinstein.html'
+    elif simulation.model_type == 'MONTE_CARLO_EUROPEAN':
+        template_name = 'site/financeiros/options_price_mcs.html'
+    elif simulation.model_type == 'MONTE_CARLO_AMERICAN':
+        template_name = 'site/financeiros/options_price_american_mcs.html'
+    else:
+        return redirect('simulation_list')
+
+    context = {
+        'initial_data': params,
+        'language': request.session.get('language', 'pt')
+    }
+    return render(request, template_name, context)

@@ -173,7 +173,7 @@
         }
 
         $(document).ready(function(){
-            $('#main-content, .sidebar').on('click', '.nav-link', function(event){
+            $('#main-content, .sidebar').on('click', '.nav-link, .rerun-btn', function(event){
                 event.preventDefault(); // Prevent default link behavior
                 const url = $(this).data('url'); // Get the URL from the data-url attribute
 

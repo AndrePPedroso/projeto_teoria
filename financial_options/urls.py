@@ -21,4 +21,5 @@ urlpatterns = [
     path('financial_options/basic_concepts/bull_bear_spread/', bull_bear_spread_view, name='bull_bear_spread'),
     path('financial_options/basic_concepts/collar_strategy_simulator/', collar_strategy_simulator_view, name='collar_strategy_simulator'),
 
+    path('rerun_simulation/<uuid:simulation_id>/', rerun_simulation_view, name='rerun_simulation'),
 ]
