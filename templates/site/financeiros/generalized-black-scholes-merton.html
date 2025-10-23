@@ -1,0 +1,395 @@
+{% load static %}
+<div class="container mt-5">
+    <h1>
+        {% if request.session.language == 'en' %}Generalized Black-Scholes-Merton Model{% else %}Modelo Black-Scholes-Merton Generalizado{% endif %}
+    </h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Description{% else %}Descrição{% endif %}
+        </div>
+        <div class="card-body">
+            <p>
+                {% if request.session.language == 'en' %}
+                The Generalized Black-Scholes-Merton model is the most versatile version, capable of pricing options on a variety of underlying assets by using a "cost of carry" rate (b). This rate accounts for any income (like dividends or foreign interest rates) or costs (like storage costs) associated with holding the asset.
+                {% else %}
+                O modelo Black-Scholes-Merton Generalizado é a versão mais versátil, capaz de precificar opções em uma variedade de ativos subjacentes usando uma taxa de "custo de carregamento" (b). Essa taxa contabiliza qualquer receita (como dividendos ou taxas de juros estrangeiras) or custos (como custos de armazenamento) associados à manutenção do ativo.
+                {% endif %}
+            </p>
+            <p>
+                <strong>Custo de Carregamento (b):</strong><br>
+                - <strong>Ações sem dividendos:</strong> b = r <br>
+                - <strong>Ações com dividendos (q):</strong> b = r - q <br>
+                - <strong>Futuros:</strong> b = 0 <br>
+                - <strong>Moedas (taxa de juros estrangeira r_f):</strong> b = r - r_f
+            </p>
+        </div>
+    </div>
+
+    <form id="generalizedBsmForm">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Option Parameters{% else %}Parâmetros da Opção{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="option_type">
+                                {% if request.session.language == 'en' %}Option Type:{% else %}Tipo de Opção:{% endif %}
+                            </label>
+                            <div class="d-flex">
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" name="option_type" id="callOptionGeneralized" value="call" {% if initial_data.option_type == 'call' %}checked{% endif %}>
+                                    <label class="form-check-label" for="callOptionGeneralized">
+                                        {% if language == 'en' %}Call Option{% else %}Opção de Compra{% endif %}
+                                    </label>
+                                </div>
+                                <div class="form-check ml-2">
+                                    <input class="form-check-input" type="radio" name="option_type" id="putOptionGeneralized" value="put" {% if initial_data.option_type == 'put' %}checked{% endif %}>
+                                    <label class="form-check-label" for="putOptionGeneralized">
+                                        {% if language == 'en' %}Put Option{% else %}Opção de Venda{% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="asset_price">
+                                {% if request.session.language == 'en' %}Underlying current Asset Price (So):{% else %}Preço atual do Ativo Subjacente (So):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="asset_price_generalized" name="asset_price" class="form-control" min="0.01" step="0.01" value="{{ initial_data.asset_price }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="exercise_price">
+                                {% if request.session.language == 'en' %}Strike Price (K):{% else %}Preço de Exercício (K):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="exercise_price_generalized" name="exercise_price" class="form-control" min="0.01" step="0.01" value="{{ initial_data.exercise_price }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="time_to_expiration">
+                                {% if request.session.language == 'en' %}Time to Expiration (days):{% else %}Tempo até o Vencimento (dias):{% endif %}
+                            </label>
+                            <input type="number" id="time_to_expiration_generalized" name="time_to_expiration" class="form-control" min="1" step="1" value="{{ initial_data.time_to_expiration }}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        {% if request.session.language == 'en' %}Market Parameters{% else %}Parâmetros de Mercado{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="interest_rate">
+                                {% if request.session.language == 'en' %}Risk-Free Interest Rate (r, %):{% else %}Taxa de Juros Livre de Risco (r, %):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="interest_rate_generalized" name="interest_rate" class="form-control" min="0" max="100" step="0.01" value="{{ initial_data.interest_rate }}" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="volatility">
+                                {% if request.session.language == 'en' %}Volatility (σ, %):{% else %}Volatilidade (σ, %):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="volatility_generalized" name="volatility" class="form-control" min="0.1" max="200" step="0.1" value="{{ initial_data.volatility }}" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="cost_of_carry">
+                                {% if request.session.language == 'en' %}Cost of Carry (b, %):{% else %}Custo de Carregamento (b, %):{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="cost_of_carry_generalized" name="cost_of_carry" class="form-control" min="-100" max="100" step="0.01" value="{{ initial_data.cost_of_carry }}" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mb-4">
+                    <button type="button" class="btn btn-secondary me-2" onclick="resetGeneralizedBsmForm()">
+                        {% if request.session.language == 'en' %}Reset{% else %}Reiniciar{% endif %}
+                    </button>
+                    <button type="button" class="btn btn-primary" id="calculateBtnGeneralized" onclick="handleGeneralizedBsmSubmit()">
+                        {% if request.session.language == 'en' %}Calculate Option Value{% else %}Calcular Valor da Opção{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div id="loadingSpinnerGeneralized" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+        </div>
+    </div>
+    
+    <div id="generalizedBsmResults" class="card mb-4" style="display: none;">
+        <div class="card-header">
+            {% if request.session.language == 'en' %}Option Pricing Results{% else %}Resultados do Apreçamento da Opção{% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Option Value{% else %}Valor da Opção{% endif %}
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 id="optionPriceGeneralized">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Greeks (Sensitivity Measures){% else %}Gregas (Medidas de Sensibilidade){% endif %}
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Delta:</td>
+                                        <td id="deltaMeasureGeneralized">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gamma:</td>
+                                        <td id="gammaMeasureGeneralized">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Theta:</td>
+                                        <td id="thetaMeasureGeneralized">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vega:</td>
+                                        <td id="vegaMeasureGeneralized">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rho:</td>
+                                        <td id="rhoMeasureGeneralized">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Key Metrics{% else %}Métricas Chave{% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>{% if request.session.language == 'en' %}METRIC{% else %}MÉTRICA{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}VALUE{% else %}VALOR{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>d₁</td>
+                                    <td id="d1ValueGeneralized">-</td>
+                                </tr>
+                                <tr>
+                                    <td>d₂</td>
+                                    <td id="d2ValueGeneralized">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Break-Even Point{% else %}Ponto de Equilíbrio{% endif %}</td>
+                                    <td id="breakEvenValueGeneralized">-</td>
+                                </tr>
+                                <tr>
+                                    <td>{% if request.session.language == 'en' %}Maximum Loss{% else %}Perda Máxima{% endif %}</td>
+                                    <td id="maxLossValueGeneralized">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Option Price vs. Underlying Asset Price{% else %}Preço da Opção vs. Preço do Ativo Subjacente{% endif %}
+                        </div>
+                        <div class="card-body">
+                            <img id="priceChartGeneralized" src="" class="img-fluid" alt="Price vs. Underlying Asset Chart">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            {% if request.session.language == 'en' %}Profit/Loss at Expiration{% else %}Lucro/Prejuízo no Vencimento{% endif %}
+                        </div>
+                        <div class="card-body">
+                            <img id="payoffChartGeneralized" src="" class="img-fluid" alt="Payoff Chart">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    {% if request.session.language == 'en' %}Interpretation of Results{% else %}Interpretação dos Resultados{% endif %}
+                </div>
+                <div class="card-body">
+                    <div id="interpretationGeneralized">
+                        </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="button" class="btn btn-success" id="saveProjectBtnGeneralized" onclick="saveGeneralizedProject()">
+                    {% if language == 'en' %}Save Project{% else %}Salvar Projeto{% endif %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleGeneralizedBsmSubmit() {
+        const loadingSpinner = document.getElementById('loadingSpinnerGeneralized');
+        const resultsContainer = document.getElementById('generalizedBsmResults');
+        const form = document.getElementById('generalizedBsmForm');
+        
+        loadingSpinner.style.display = 'block';
+        resultsContainer.style.display = 'none';
+        
+        const formData = new FormData(form);
+        
+        fetch('{% url "generalized_black_scholes_merton_api" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            document.getElementById('optionPriceGeneralized').textContent = '$' + data.option_price;
+            document.getElementById('deltaMeasureGeneralized').textContent = data.greeks.delta;
+            document.getElementById('gammaMeasureGeneralized').textContent = data.greeks.gamma;
+            document.getElementById('thetaMeasureGeneralized').textContent = data.greeks.theta;
+            document.getElementById('vegaMeasureGeneralized').textContent = data.greeks.vega;
+            document.getElementById('rhoMeasureGeneralized').textContent = data.greeks.rho;
+            
+            document.getElementById('d1ValueGeneralized').textContent = data.d1;
+            document.getElementById('d2ValueGeneralized').textContent = data.d2;
+            document.getElementById('breakEvenValueGeneralized').textContent = '$' + data.break_even;
+            document.getElementById('maxLossValueGeneralized').textContent = '$' + data.max_loss;
+            
+            document.getElementById('priceChartGeneralized').src = 'data:image/png;base64,' + data.price_plot;
+            document.getElementById('payoffChartGeneralized').src = 'data:image/png;base64,' + data.payoff_plot;
+            
+            document.getElementById('interpretationGeneralized').innerHTML = data.interpretation;
+            
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingSpinner.style.display = 'none';
+            alert('An error occurred while processing your request.');
+        });
+    }
+    
+    function resetGeneralizedBsmForm() {
+        document.getElementById('generalizedBsmForm').reset();
+        document.getElementById('generalizedBsmResults').style.display = 'none';
+    }
+
+    function saveGeneralizedProject() {
+        const saveBtn = document.getElementById('saveProjectBtnGeneralized');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> {% if language == 'en' %}Saving...{% else %}Salvando...{% endif %}`;
+
+        const parameters = {
+            asset_price: document.getElementById('asset_price_generalized').value,
+            exercise_price: document.getElementById('exercise_price_generalized').value,
+            time_to_expiration: document.getElementById('time_to_expiration_generalized').value,
+            interest_rate: document.getElementById('interest_rate_generalized').value,
+            volatility: document.getElementById('volatility_generalized').value,
+            cost_of_carry: document.getElementById('cost_of_carry_generalized').value,
+            option_type: document.querySelector('input[name="option_type"]:checked').value
+        };
+
+        const results = {
+            option_price: document.getElementById('optionPriceGeneralized').textContent,
+            d1: document.getElementById('d1ValueGeneralized').textContent,
+            d2: document.getElementById('d2ValueGeneralized').textContent,
+            break_even: document.getElementById('breakEvenValueGeneralized').textContent,
+            max_loss: document.getElementById('maxLossValueGeneralized').textContent,
+            greeks: {
+                delta: document.getElementById('deltaMeasureGeneralized').textContent,
+                gamma: document.getElementById('gammaMeasureGeneralized').textContent,
+                theta: document.getElementById('thetaMeasureGeneralized').textContent,
+                vega: document.getElementById('vegaMeasureGeneralized').textContent,
+                rho: document.getElementById('rhoMeasureGeneralized').textContent,
+            },
+            payoff_plot : document.getElementById('payoffChartGeneralized').src,
+            interpretation: document.getElementById('interpretationGeneralized').innerHTML
+        };
+
+        const payload = {
+            model_type: 'GENERALIZED_BLACK_SCHOLES_MERTON',
+            title:'Generalized Black-Scholes-Merton Report', 
+            parameters: parameters,
+            results: results
+        };
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        fetch("{% url 'save_financial_model' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('{% if language == "en" %}Project saved successfully!{% else %}Projeto salvo com sucesso!{% endif %}');
+            } else {
+                alert('{% if language == "en" %}Error saving project:{% else %}Erro ao salvar o projeto:{% endif %} ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{% if language == "en" %}An unexpected error occurred.{% else %}Ocorreu um erro inesperado.{% endif %}');
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `{% if language == 'en' %}Save Project{% else %}Salvar Projeto{% endif %}`;
+        });
+    }
+</script>

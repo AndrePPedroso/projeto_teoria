@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from estocasticos.use_cases.financial_options.black_scholes_merton_use_case import BlackScholesMertonUseCase
 from estocasticos.use_cases.financial_options.black_sholes_use_case import BlackScholesModelUseCase
 from estocasticos.use_cases.financial_options.cox_ross_rubinstein_use_case import CoxRossRubinsteinUseCase
+from estocasticos.use_cases.financial_options.generalized_black_scholes_merton_use_case import GeneralizedBlackScholesMertonUseCase
 from financial_options.models import FinantialModels
 from financial_options.use_cases.generate_save_pdf import generate_and_save_pdf, generate_and_save_pdf_mcs
 from financial_options.use_cases.option_price_use_Case import create_plots, option_price_use_case
@@ -181,7 +182,7 @@ def save_black_schole_model_view(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Erro ao salvar o modelo financeiro inicialmente: {e}'}, status=500)
         resultados = financial_model.results
-        if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON'):
+        if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON', 'GENERALIZED_BLACK_SCHOLES_MERTON'):
             context = {
             'first_name': request.user.first_name,  
             'last_name': request.user.last_name,
@@ -849,6 +850,8 @@ def rerun_simulation_view(request, simulation_id):
         template_name = 'site/financeiros/black-sholes.html'
     elif simulation.model_type == 'BLACK_SCHOLES_MERTON':
         template_name = 'site/financeiros/black-scholes-merton.html'
+    elif simulation.model_type == 'GENERALIZED_BLACK_SCHOLES_MERTON':
+        template_name = 'site/financeiros/generalized-black-scholes-merton.html'
     elif simulation.model_type == 'COX_ROSS':
         template_name = 'site/financeiros/cox-ross-rubinstein.html'
     elif simulation.model_type == 'MONTE_CARLO_EUROPEAN':
@@ -863,3 +866,133 @@ def rerun_simulation_view(request, simulation_id):
         'language': request.session.get('language', 'pt')
     }
     return render(request, template_name, context)
+
+@login_required(login_url='/admin/login/')
+def generalized_black_scholes_merton_template(request):
+    initial_data = {
+        'asset_price': request.GET.get('asset_price', 100.0),
+        'exercise_price': request.GET.get('exercise_price', 100.0),
+        'time_to_expiration': request.GET.get('time_to_expiration', 30),
+        'interest_rate': request.GET.get('interest_rate', 5),
+        'volatility': request.GET.get('volatility', 20),
+        'cost_of_carry': request.GET.get('cost_of_carry', 5),
+        'option_type': request.GET.get('option_type', 'call'),
+    }
+    context = {
+        'initial_data': initial_data,
+        'language': request.session.get('language', 'pt')
+    }
+    return render(request, "site/financeiros/generalized-black-scholes-merton.html", context)
+
+
+def generalized_black_scholes_merton_view(request):
+    """Handle API requests for Generalized Black-Scholes-Merton calculations."""
+    if request.method == 'POST':
+        try:
+            S = float(request.POST.get('asset_price', 0))
+            E = float(request.POST.get('exercise_price', 0))
+            r = float(request.POST.get('interest_rate', 0))
+            sigma = float(request.POST.get('volatility', 0))
+            T = float(request.POST.get('time_to_expiration', 0))
+            option_type = request.POST.get('option_type', 'call')
+            cost_of_carry = float(request.POST.get('cost_of_carry', 0))
+
+            if S <= 0 or E <= 0 or T <= 0 or sigma <= 0:
+                return JsonResponse({'error': 'All values must be positive.'})
+
+            model = GeneralizedBlackScholesMertonUseCase(S, E, r, sigma, T, option_type, cost_of_carry)
+            d1, d2 = model.calculate_d1_d2()
+            option_price = model.calculate_price()
+            greeks = model.calculate_greeks()
+            price_plot = model.plot_price_vs_underlying()
+            payoff_plot = model.plot_payoff_at_expiration()
+            current_language = request.session.get('language')
+
+            b_interpretation = ""
+            if current_language == 'pt':
+                b_interpretation = f"""
+                <p>O <strong>Custo de Carregamento (b)</strong> de <strong>{cost_of_carry:.2f}%</strong> é um parâmetro chave neste modelo generalizado. Ele representa o custo líquido de manter o ativo subjacente. O valor de 'b' muda dependendo do ativo:</p>
+                <ul>
+                    <li>Para uma <strong>ação que não paga dividendos</strong>, <code>b = r</code> (a taxa livre de risco).</li>
+                    <li>Para uma <strong>ação que paga dividendos contínuos (q)</strong>, <code>b = r - q</code>.</li>
+                    <li>Para um <strong>contrato futuro</strong>, <code>b = 0</code>.</li>
+                    <li>Para uma <strong>opção de moeda</strong>, <code>b = r - r_f</code> (onde r_f é a taxa de juros estrangeira).</li>
+                </ul>
+                """
+            else:  # English
+                b_interpretation = f"""
+                <p>The <strong>Cost of Carry (b)</strong> of <strong>{cost_of_carry:.2f}%</strong> is a key parameter in this generalized model. It represents the net cost of holding the underlying asset. The value of 'b' changes depending on the asset:</p>
+                <ul>
+                    <li>For a <strong>non-dividend-paying stock</strong>, <code>b = r</code> (the risk-free rate).</li>
+                    <li>For a <strong>stock paying a continuous dividend (q)</strong>, <code>b = r - q</code>.</li>
+                    <li>For a <strong>futures contract</strong>, <code>b = 0</code>.</li>
+                    <li>For a <strong>currency option</strong>, <code>b = r - r_f</code> (where r_f is the foreign risk-free rate).</li>
+                </ul>
+                """
+
+            if option_type == 'call':
+                break_even = round(E + option_price, 2)
+                if current_language == 'pt':
+                    interpretation = f"""
+                    <h4>Interpretação dos Resultados:</h4>
+                    {b_interpretation}
+                    <p>O preço teórico da opção de compra é <strong>R$ {option_price:.2f}</strong>.</p>
+                    <p><strong>Delta de {greeks['delta']:.4f}</strong>: Para cada R$ 1,00 de aumento no preço do ativo, o preço da opção aumentará R$ {greeks['delta']:.4f}.</p>
+                    <p><strong>Gamma de {greeks['gamma']:.4f}</strong>: Indica a taxa de variação do delta.</p>
+                    <p><strong>Theta de {greeks['theta']:.4f}</strong>: Mostra a perda de valor da opção por dia devido à passagem do tempo.</p>
+                    <p><strong>Vega de {greeks['vega']:.4f}</strong>: Representa a sensibilidade a uma mudança de 1% na volatilidade.</p>
+                    <p>Seu <strong>ponto de equilíbrio</strong> no vencimento é R$ {break_even}.</p>
+                    """
+                else:  # English
+                    interpretation = f"""
+                    <h4>Interpretation of Results:</h4>
+                    {b_interpretation}
+                    <p>The theoretical price of the call option is <strong>$ {option_price:.2f}</strong>.</p>
+                    <p>A **Delta of {greeks['delta']:.4f}** means the option's price will increase by approximately $ {greeks['delta']:.4f} for every $1.00 increase in the underlying asset price.</p>
+                    <p>A **Gamma of {greeks['gamma']:.4f}** indicates the rate of change of delta.</p>
+                    <p>A **Theta of {greeks['theta']:.4f}** shows the option's value decay per day.</p>
+                    <p>A **Vega of {greeks['vega']:.4f}** represents the sensitivity to a 1% change in volatility.</p>
+                    <p>Your **break-even point** at expiration is $ {break_even}.</p>
+                    """
+            else:  # Put
+                break_even = round(E - option_price, 2)
+                if current_language == 'pt':
+                    interpretation = f"""
+                    <h4>Interpretação dos Resultados:</h4>
+                    {b_interpretation}
+                    <p>O preço teórico da opção de venda é <strong>R$ {option_price:.2f}</strong>.</p>
+                    <p><strong>Delta de {greeks['delta']:.4f}</strong>: Para cada R$ 1,00 de aumento no preço do ativo, o preço da opção diminuirá R$ {abs(greeks['delta']):.4f}.</p>
+                    <p><strong>Gamma de {greeks['gamma']:.4f}</strong>: Indica a taxa de variação do delta.</p>
+                    <p><strong>Theta de {greeks['theta']:.4f}</strong>: Mostra a perda de valor da opção por dia.</p>
+                    <p><strong>Vega de {greeks['vega']:.4f}</strong>: Representa a sensibilidade a uma mudança de 1% na volatilidade.</p>
+                    <p>Seu <strong>ponto de equilíbrio</strong> no vencimento é R$ {break_even}.</p>
+                    """
+                else:  # English
+                    interpretation = f"""
+                    <h4>Interpretation of Results:</h4>
+                    {b_interpretation}
+                    <p>The theoretical price of the put option is <strong>$ {option_price:.2f}</strong>.</p>
+                    <p>A **Delta of {greeks['delta']:.4f}** means the option's price will decrease by approximately $ {abs(greeks['delta']):.4f} for every $1.00 increase in the underlying asset price.</p>
+                    <p>A **Gamma of {greeks['gamma']:.4f}** indicates the rate of change of delta.</p>
+                    <p>A **Theta of {greeks['theta']:.4f}** shows the option's value decay per day.</p>
+                    <p>A **Vega of {greeks['vega']:.4f}** represents the sensitivity to a 1% change in volatility.</p>
+                    <p>Your **break-even point** at expiration is $ {break_even}.</p>
+                    """
+
+            return JsonResponse({
+                'option_price': option_price,
+                'greeks': greeks,
+                'price_plot': price_plot,
+                'payoff_plot': payoff_plot,
+                'interpretation': interpretation,
+                'd1': d1,
+                'd2': d2,
+                'break_even': break_even,
+                'max_loss': option_price,
+            })
+
+        except ValueError:
+            return JsonResponse({'error': 'Por favor, insira valores numéricos válidos.'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+
