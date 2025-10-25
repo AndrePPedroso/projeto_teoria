@@ -60,7 +60,10 @@
                 <tbody id="resultsTable">
                 </tbody>
             </table>
-            <h4 id="volatilityTitle">
+            <div class="mt-4">
+                <canvas id="returnsChart"></canvas>
+            </div>
+            <h4 id="volatilityTitle" class="mt-4">
                 {% if request.session.language == 'en' %}Volatility{% else %}Volatilidade{% endif %}
             </h4>
             <p><strong id="discreteVolatilityLabel">
@@ -72,7 +75,10 @@
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let returnsChart;
+
         function generateTable() {
             const interval = parseInt(document.getElementById("timeInterval").value);
             const tableBody = document.getElementById("inputTable").querySelector("tbody");
@@ -127,6 +133,52 @@
             document.getElementById("volatilityContinuous").textContent = `${(volatilityContinuous * 100).toFixed(2)}%`;
         
             document.getElementById("resultsContainer").style.display = "block";
+
+            const ctx = document.getElementById('returnsChart').getContext('2d');
+            const labels = Array.from({ length: discreteReturns.length }, (_, i) => i + 1);
+
+            if (returnsChart) {
+                returnsChart.destroy();
+            }
+
+            returnsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '{% if request.session.language == 'en' %}Discrete Return{% else %}Retorno Discreto{% endif %}',
+                        data: discreteReturns.map(r => r * 100),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }, {
+                        label: '{% if request.session.language == 'en' %}Continuous Return{% else %}Retorno Contínuo{% endif %}',
+                        data: continuousReturns.map(r => r * 100),
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: '{% if request.session.language == 'en' %}Discrete vs Continuous Returns{% else %}Retornos Discretos vs Contínuos{% endif %}'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }        
     </script>
     </body>
