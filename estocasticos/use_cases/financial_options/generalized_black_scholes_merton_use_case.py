@@ -5,7 +5,7 @@ import base64
 from io import BytesIO
 
 class GeneralizedBlackScholesMertonUseCase:
-    def __init__(self, S, E, r, sigma, T, option_type, cost_of_carry):
+    def __init__(self, S, E, r, sigma, T, option_type, cost_of_carry, dividend_yield=0):
         """
         Initialize the Generalized Black-Scholes-Merton model with parameters.
         
@@ -17,6 +17,7 @@ class GeneralizedBlackScholesMertonUseCase:
         T: Time to expiration (in days)
         option_type: 'call' or 'put'
         cost_of_carry: Cost of carry 'b' (decimal)
+        dividend_yield: Dividend yield 'q' (decimal)
         """
         self.S = S
         self.E = E
@@ -24,7 +25,7 @@ class GeneralizedBlackScholesMertonUseCase:
         self.sigma = sigma / 100  # Convert percentage to decimal
         self.T = T / 365  # Convert days to years
         self.option_type = option_type.lower()
-        self.b = cost_of_carry / 100  # Convert percentage to decimal
+        self.b = (cost_of_carry - dividend_yield) / 100  # Convert percentage to decimal
     
     def calculate_d1_d2(self):
         """Calculate d1 and d2 parameters for the Generalized BSM formula."""
