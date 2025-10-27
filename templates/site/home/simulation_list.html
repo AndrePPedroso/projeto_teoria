@@ -24,8 +24,8 @@
                     <td class="align-middle">
                         <div class="d-flex justify-content-center align-items-center">
                             {% if simulation.report %}
-                                <a href="{% url 'download_report' simulation.id %}" class="btn btn-primary btn-sm me-2">
-                                    {% if request.session.language == 'en' %}Download{% else %}Baixar{% endif %}
+                                <a href="{% url 'view_report' simulation.id %}" target="_blank" class="btn btn-success btn-sm me-2">
+                                    {% if request.session.language == 'en' %}View Report{% else %}Ver Relatório{% endif %}
                                 </a>
                             {% endif %}
                             {% if simulation.model_type == 'BLACK_SCHOLES' or simulation.model_type == 'BLACK_SCHOLES_MERTON' or simulation.model_type == 'COX_ROSS' or simulation.model_type == 'MONTE_CARLO_EUROPEAN' or simulation.model_type == 'MONTE_CARLO_AMERICAN' or simulation.model_type == 'GENERALIZED_BLACK_SCHOLES_MERTON' %}

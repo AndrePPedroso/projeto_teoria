@@ -182,53 +182,9 @@ def save_black_schole_model_view(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Erro ao salvar o modelo financeiro inicialmente: {e}'}, status=500)
         resultados = financial_model.results
-        if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON', 'GENERALIZED_BLACK_SCHOLES_MERTON'):
-            context = {
-            'first_name': request.user.first_name,  
-            'last_name': request.user.last_name,
-            'report_title': data.get('title'),
-            'parameters': financial_model.parameters,
-            'results': {
-                'Option price': resultados.get('option_price'),
-                'd1': resultados.get('d1'),
-                'd2': resultados.get('d2'),
-                'Break-even point': resultados.get('break_even'),
-                'Max loss': resultados.get('max_loss'),
-            },
-            'nested_results': {
-                'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
-            },
-            'interpretation': resultados.get('interpretation'),
-            'charts': {
-                'Lucro/Prejuízo no Vencimento': resultados.get('payoff_plot'),
-            },
-            'language': 'pt' 
-            }
-        elif model_type in ('COX_ROSS'):
-            context = {
-            'first_name': request.user.first_name,  
-            'last_name': request.user.last_name,
-            'report_title': data.get('title'),
-            'parameters': financial_model.parameters,
-            'results': {
-                'Option price': resultados.get('option_price'),
-                'Up factor': resultados.get('upFactor'),
-                'Down factor': resultados.get('d2'),
-                'Break-even point': resultados.get('break_even'),
-                'Max loss': resultados.get('max_loss'),
-                'Risk-neutral probability (%)': (round(float(resultados.get('prob')),3)*100),
-                'VPL Tradicional':resultados.get('traditionalNPV'),
-                'VPL expandido':resultados.get('expandedNPV'),
-                'Valor da opção / custo':resultados.get('optionRatio'),
-            },
-            'nested_results': {
-                'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
-            },
-            'interpretation': resultados.get('interpretation'),
-            'latticeContainer':  resultados.get('lattice'),
-            'language': 'pt' 
-            }
-        generate_and_save_pdf(financial_model, context)
+        if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON', 'GENERALIZED_BLACK_SCHOLES_MERTON', 'COX_ROSS'):
+            financial_model.report = 'online'
+            financial_model.save()
         return JsonResponse({'success': True, 'message': 'Project saved successfully!', 'id': financial_model.id})
 
     except json.JSONDecodeError:
@@ -757,79 +713,9 @@ def save_mcs_model(request):
             model_type=model_type,
             parameters=parameters,
             results=results,
-            report=None 
+            report='online'
         )
         financial_model.save()
-        param_labels = {
-            'en': {
-                'S0': 'Initial Price (S0)',
-                'K': 'Strike Price (K)',
-                'T': 'Time to Maturity (T in years)',
-                'r': 'Risk-Free Rate (r, %)',
-                'sigma': 'Volatility (σ, %)',
-                'num_simulacoes': 'Number of Simulations',
-                'option_type': 'Option Type',
-                'num_passos': 'Number of Time Steps', # For American Options
-            },
-            'pt': {
-                'S0': 'Preço Atual do Ativo (S0)',
-                'K': 'Preço de Exercício (K)',
-                'T': 'Tempo até o Vencimento (T em anos)',
-                'r': 'Taxa de Juros Livre de Risco (r, %)',
-                'sigma': 'Volatilidade (σ, %)',
-                'num_simulacoes': 'Número de Simulações',
-                'option_type': 'Tipo de Opção',
-                'num_passos': 'Número de Passos de Tempo', # For American Options
-            }
-        }
-        language = request.session.get('language', 'pt')
-        labels_for_lang = param_labels.get(language, param_labels['pt'])
-        formatted_params = {labels_for_lang.get(key, key): value for key, value in financial_model.parameters.items()}
-
-        resultados = financial_model.results
-        context = {}
-
-        base_context = {
-            'first_name': request.user.first_name,
-            'last_name': request.user.last_name,
-            'report_title': title,
-            'parameters': formatted_params,
-            'language': request.session.get('language', 'pt')
-        }
-
-        if model_type in ('MONTE_CARLO_EUROPEAN',):
-            context = {
-                **base_context,
-                'results': {
-                    'Estimated Option Price': resultados.get('estimated_price'),
-                },
-                'nested_results': {
-                    'Descriptive Statistics (Final Prices)': resultados.get('statistics', {})
-                },
-                'charts': {
-                    'Mean Price Convergence': resultados.get('price_plot'),
-                    'Final Price Distribution': resultados.get('distribution_plot'),
-                },
-                'interpretation': resultados.get('interpretation'), 
-            }
-            
-        elif model_type == 'MONTE_CARLO_AMERICAN':
-            context = {
-                **base_context,
-                'parameters': formatted_params,
-                'results': {
-                    'Estimated Option Price': results.get('preco_estimado'),
-                },
-                'nested_results': {}, # American option model doesn't have a stats table
-                'charts': {
-                    'Simulated Price Paths': results.get('price_plot'),
-                    'Optimal Exercise Boundary': results.get('exercise_boundary_plot'),
-                },
-                'interpretation': results.get('interpretation'),
-            }
-
-        if context:
-            generate_and_save_pdf_mcs(financial_model, context)
         
         return JsonResponse({'success': True, 'message': 'Project saved successfully!', 'id': financial_model.id})
 
@@ -839,6 +725,107 @@ def save_mcs_model(request):
         # Log the full error for debugging
         print(f"Error in save_financial_model_view: {e}")
         return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {e}'}, status=500)
+
+
+@login_required(login_url='/admin/login/')
+def view_report_view(request, simulation_id):
+    simulation = get_object_or_404(FinantialModels, id=simulation_id, usuario=request.user)
+    
+    resultados = simulation.results
+    parameters = simulation.parameters
+    model_type = simulation.model_type
+    context = {}
+    language = request.session.get('language', 'pt')
+
+    base_context = {
+        'first_name': request.user.first_name,
+        'last_name': request.user.last_name,
+        'report_title': f"Relatório - {simulation.get_model_type_display()}",
+        'language': language
+    }
+
+    if model_type in ('BLACK_SCHOLES','BLACK_SCHOLES_MERTON', 'GENERALIZED_BLACK_SCHOLES_MERTON'):
+        context = {
+            **base_context,
+            'parameters': parameters,
+            'results': {
+                'Option price': resultados.get('option_price'),
+                'd1': resultados.get('d1'),
+                'd2': resultados.get('d2'),
+                'Break-even point': resultados.get('break_even'),
+                'Max loss': resultados.get('max_loss'),
+            },
+            'nested_results': {
+                'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
+            },
+            'interpretation': resultados.get('interpretation'),
+            'charts': {
+                'Lucro/Prejuízo no Vencimento': resultados.get('payoff_plot'),
+            }
+        }
+    elif model_type in ('COX_ROSS',):
+        context = {
+            **base_context,
+            'parameters': parameters,
+            'results': {
+                'Option price': resultados.get('option_price'),
+                'Up factor': resultados.get('upFactor'),
+                'Down factor': resultados.get('d2'),
+                'Break-even point': resultados.get('break_even'),
+                'Max loss': resultados.get('max_loss'),
+                'Risk-neutral probability (%)': (round(float(resultados.get('prob')),3)*100),
+                'VPL Tradicional':resultados.get('traditionalNPV'),
+                'VPL expandido':resultados.get('expandedNPV'),
+                'Valor da opção / custo':resultados.get('optionRatio'),
+            },
+            'nested_results': {
+                'Greeks (Medidas de Sensibilidade)': resultados.get('greeks', {})
+            },
+            'interpretation': resultados.get('interpretation'),
+            'latticeContainer':  resultados.get('lattice'),
+        }
+    elif model_type in ('MONTE_CARLO_EUROPEAN', 'MONTE_CARLO_AMERICAN'):
+        param_labels = {
+            'en': {
+                'S0': 'Initial Price (S0)', 'K': 'Strike Price (K)', 'T': 'Time to Maturity (T in years)',
+                'r': 'Risk-Free Rate (r, %)', 'sigma': 'Volatility (σ, %)', 'num_simulacoes': 'Number of Simulations',
+                'option_type': 'Option Type', 'num_passos': 'Number of Time Steps',
+            },
+            'pt': {
+                'S0': 'Preço Atual do Ativo (S0)', 'K': 'Preço de Exercício (K)', 'T': 'Tempo até o Vencimento (T em anos)',
+                'r': 'Taxa de Juros Livre de Risco (r, %)', 'sigma': 'Volatilidade (σ, %)', 'num_simulacoes': 'Número de Simulações',
+                'option_type': 'Tipo de Opção', 'num_passos': 'Número de Passos de Tempo',
+            }
+        }
+        labels_for_lang = param_labels.get(language, param_labels['pt'])
+        formatted_params = {labels_for_lang.get(key, key): value for key, value in parameters.items()}
+        
+        base_context['parameters'] = formatted_params
+
+        if model_type == 'MONTE_CARLO_EUROPEAN':
+            context = {
+                **base_context,
+                'results': { 'Estimated Option Price': resultados.get('estimated_price'), },
+                'nested_results': { 'Descriptive Statistics (Final Prices)': resultados.get('statistics', {}) },
+                'charts': {
+                    'Mean Price Convergence': resultados.get('price_plot'),
+                    'Final Price Distribution': resultados.get('distribution_plot'),
+                },
+                'interpretation': resultados.get('interpretation'), 
+            }
+        elif model_type == 'MONTE_CARLO_AMERICAN':
+            context = {
+                **base_context,
+                'results': { 'Estimated Option Price': resultados.get('preco_estimado'), },
+                'nested_results': {},
+                'charts': {
+                    'Simulated Price Paths': resultados.get('price_plot'),
+                    'Optimal Exercise Boundary': resultados.get('exercise_boundary_plot'),
+                },
+                'interpretation': resultados.get('interpretation'),
+            }
+
+    return render(request, "site/financeiros/report/report_template.html", context)
 
 
 @login_required(login_url='/admin/login/')

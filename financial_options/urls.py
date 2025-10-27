@@ -17,7 +17,7 @@ urlpatterns = [
     path('financial_options/black_scholes/overview/', black_scholes_overview_view, name='black_scholes_overview'),
     path('financial_options/cox_ross/overview/', cox_ross_overview_view, name='cox_ross_overview'),
     path('financial_options/monte_carlo/overview/', monte_carlo_overview_view, name='monte_carlo_overview'),
-
+    path('report/view/<uuid:simulation_id>/', view_report_view, name='view_report'),
     path('financial_options/basic_concepts/call_put_options/', call_put_options_view, name='call_put_options'),
     path('financial_options/basic_concepts/asset_put_combination/', asset_put_combination_view, name='asset_put_combination'),
     path('financial_options/basic_concepts/bull_bear_spread/', bull_bear_spread_view, name='bull_bear_spread'),
