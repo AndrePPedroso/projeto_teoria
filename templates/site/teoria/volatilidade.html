@@ -1,6 +1,6 @@
 <body>
     <div class="container mt-5">
-        <h1 id="title">{% if request.session.language == 'en' %}Volatility Estimation{% else %}Estimativa da Volatilidade{% endif %}</h1>
+        <h1 id="title">{% if request.session.language == 'en' %}Return and Volatility Estimation{% else %}Estimativas de Retornos e Volatilidades{% endif %}</h1>
         <form id="volatilityForm" onsubmit="calculateVolatility(); return false;">
             <div class="form-group">
                 <label id="labelTimeInterval" for="timeInterval">
@@ -100,7 +100,7 @@
             for (let i = 1; i <= interval; i++) {
                 const price = parseFloat(document.getElementById(`price_${i}`).value);
                 if (isNaN(price)) {
-                    alert("Preencha todos os valores dos ativos.");
+                    alert("{% if request.session.language == 'en' %}Please fill in all asset values.{% else %}Preencha todos os valores dos ativos.{% endif %}");
                     return;
                 }
                 prices.push(price);
@@ -114,9 +114,36 @@
                 discreteReturns.push(discreteReturn);
                 continuousReturns.push(continuousReturn);
             }
-        
-            const volatilityDiscrete = Math.sqrt(discreteReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / discreteReturns.length);
-            const volatilityContinuous = Math.sqrt(continuousReturns.reduce((acc, r) => acc + Math.pow(r, 2), 0) / continuousReturns.length);
+
+            // --- START OF CORRECTION ---
+            
+            const n = discreteReturns.length;
+            let volatilityDiscrete = 0;
+            let volatilityContinuous = 0;
+
+            // Check if we have enough data to calculate standard deviation
+            if (n > 1) {
+                // 1. Calculate Mean (Average) of returns
+                const meanDiscrete = discreteReturns.reduce((acc, r) => acc + r, 0) / n;
+                const meanContinuous = continuousReturns.reduce((acc, r) => acc + r, 0) / n;
+
+                // 2. Calculate Variance (using N-1 for sample standard deviation)
+                const varianceDiscrete = discreteReturns.reduce((acc, r) => acc + Math.pow(r - meanDiscrete, 2), 0) / (n - 1);
+                const varianceContinuous = continuousReturns.reduce((acc, r) => acc + Math.pow(r - meanContinuous, 2), 0) / (n - 1);
+
+                // 3. Volatility is the square root of the variance (Standard Deviation)
+                volatilityDiscrete = Math.sqrt(varianceDiscrete);
+                volatilityContinuous = Math.sqrt(varianceContinuous);
+
+                document.getElementById("volatilityDiscrete").textContent = `${(volatilityDiscrete * 100).toFixed(2)}%`;
+                document.getElementById("volatilityContinuous").textContent = `${(volatilityContinuous * 100).toFixed(2)}%`;
+            } else {
+                // Not enough data to calculate volatility
+                document.getElementById("volatilityDiscrete").textContent = "N/A (Need > 2 periods)";
+                document.getElementById("volatilityContinuous").textContent = "N/A (Need > 2 periods)";
+            }
+            
+            // --- END OF CORRECTION ---
         
             const resultsTable = document.getElementById("resultsTable");
             resultsTable.innerHTML = "";
@@ -128,9 +155,6 @@
                              </tr>`;
                 resultsTable.insertAdjacentHTML("beforeend", row);
             }
-        
-            document.getElementById("volatilityDiscrete").textContent = `${(volatilityDiscrete * 100).toFixed(2)}%`;
-            document.getElementById("volatilityContinuous").textContent = `${(volatilityContinuous * 100).toFixed(2)}%`;
         
             document.getElementById("resultsContainer").style.display = "block";
 
