@@ -26,7 +26,7 @@ class GeneralizedBlackScholesMertonUseCase:
         self.T = T / 365  # Convert days to years
         self.option_type = option_type.lower()
         self.q = dividend_yield / 100  # Convert percentage to decimal
-        self.b = self.r - self.q
+        self.b = self.r - self.q - cost_of_carry / 100  # Convert percentage to decimal
         
     def calculate_d1_d2(self):
         """Calculate d1 and d2 parameters for the Generalized BSM formula."""
