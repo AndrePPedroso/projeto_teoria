@@ -34,7 +34,7 @@
         <input type="checkbox" id="accordion-2" class="accordion-checkbox">
         <label class="accordion-label d-flex justify-content-between" for="accordion-2">
             <div>
-                {% if request.session.language == 'en' %}Finantial Options {% else %}Opções Financeiras{% endif %}
+                {% if request.session.language == 'en' %}Financial Options {% else %}Opções Financeiras{% endif %}
             </div>
             <div class="d-flex justify-content-center align-items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,9 +90,9 @@
     </div>
     <div class="accordion-section">
         <input type="checkbox" id="accordion-4" class="accordion-checkbox">
-        <label data-url="{% url 'to_do' %}" class="nav-link accordion-label d-flex justify-content-between" for="accordion-4">
+        <label class="accordion-label d-flex justify-content-between" for="accordion-4">
             <div>
-                    {% if request.session.language == 'en' %}Theory of Games{% else %}Teoria dos Jogos{% endif %}
+                    {% if request.session.language == 'en' %}Game Theory{% else %}Teoria dos Jogos{% endif %}
             </div>
             <div class="d-flex justify-content-center align-items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,15 +100,15 @@
                 </svg>
             </div>
         </label>
-        {% comment %} <div class="accordion-content">
-            <a href="{% url 'binomial_model' %}" class="nav-link" data-url="{% url 'binomial_model' %}">
-                {% if request.session.language == 'en' %}Binomial model{% else %}Modelo binomial{% endif %}
+        <div class="accordion-content">
+            <a class="nav-link" data-url="{% url 'dilema_do_prisioneiro' %}">
+                {% if request.session.language == 'en' %}Prisoner's Dilemma{% else %}Dilema do Prisioneiro{% endif %}
             </a>
-        </div> {% endcomment %}
+        </div>
     </div>
     <div class="accordion-section">
         <input type="checkbox" id="accordion-5" class="accordion-checkbox">
-        <label data-url="{% url 'to_do' %}" class="nav-link accordion-label d-flex justify-content-between" for="accordion-4">
+        <label data-url="{% url 'to_do' %}" class="nav-link accordion-label d-flex justify-content-between" for="accordion-5">
             <div>
                 {% if request.session.language == 'en' %}Aplications{% else %}Aplicações{% endif %}
             </div>

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "teoria_opcao",
     "financial_options",
     "usuario",
+    "teoria_dos_jogos",
 ]
 
 MIDDLEWARE = [
