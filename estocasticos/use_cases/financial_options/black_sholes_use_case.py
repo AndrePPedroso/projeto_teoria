@@ -7,38 +7,39 @@ import base64
 from scipy.stats import norm
 
 class BlackScholesModelUseCase:
-    def __init__(self, S, E, r, sigma, T, option_type='call', d1 = None, d2 = None):
+    def __init__(self, S, E, r, sigma, T, option_type='call'):
         self.S = S  # Price of the underlying asset
         self.E = E  # Exercise price
         self.r = r / 100  # Interest rate (converted from percentage)
         self.sigma = sigma / 100  # Volatility (converted from percentage)
         self.T = T / 365  # Time to expiration in years (converted from days)
         self.option_type = option_type  # 'call' or 'put'
-        self.d1 = d1
-        self.d2 = d2
 
-    def calculate_d1_d2(self):
-        self.d1 = (np.log(self.S / self.E) + (self.r + 0.5 * self.sigma**2) * self.T) / (self.sigma * np.sqrt(self.T))
-        self.d2 = self.d1 - self.sigma * np.sqrt(self.T)
-        return self.d1, self.d2
+    def calculate_d_values(self):
+        """Calculate d1, d2, and their CDFs N(d1), N(d2)."""
+        d1 = (np.log(self.S / self.E) + (self.r + 0.5 * self.sigma**2) * self.T) / (self.sigma * np.sqrt(self.T))
+        d2 = d1 - self.sigma * np.sqrt(self.T)
+        n_d1 = norm.cdf(d1)
+        n_d2 = norm.cdf(d2)
+        return d1, d2, n_d1, n_d2
         
     def calculate_price(self):
+        d1, d2, n_d1, n_d2 = self.calculate_d_values()
         if self.option_type == 'call':
-            price = self.S * norm.cdf(self.d1) - self.E * np.exp(-self.r * self.T) * norm.cdf(self.d2)
+            price = self.S * n_d1 - self.E * np.exp(-self.r * self.T) * n_d2
         else:  # put option
-            price = self.E * np.exp(-self.r * self.T) * norm.cdf(-self.d2) - self.S * norm.cdf(-self.d1)
+            price = self.E * np.exp(-self.r * self.T) * norm.cdf(-d2) - self.S * norm.cdf(-d1)
             
         return round(price, 2)
     
     def calculate_greeks(self):
-        d1 = (np.log(self.S / self.E) + (self.r + 0.5 * self.sigma**2) * self.T) / (self.sigma * np.sqrt(self.T))
-        d2 = d1 - self.sigma * np.sqrt(self.T)
+        d1, d2, n_d1, n_d2 = self.calculate_d_values()
         
         # Delta (sensitivity to underlying price change)
         if self.option_type == 'call':
-            delta = norm.cdf(d1)
+            delta = n_d1
         else:
-            delta = norm.cdf(d1) - 1
+            delta = n_d1 - 1
         
         # Gamma (sensitivity of delta to underlying price change)
         gamma = norm.pdf(d1) / (self.S * self.sigma * np.sqrt(self.T))
@@ -46,7 +47,7 @@ class BlackScholesModelUseCase:
         # Theta (sensitivity to time decay)
         term1 = -self.S * norm.pdf(d1) * self.sigma / (2 * np.sqrt(self.T))
         if self.option_type == 'call':
-            term2 = -self.r * self.E * np.exp(-self.r * self.T) * norm.cdf(d2)
+            term2 = -self.r * self.E * np.exp(-self.r * self.T) * n_d2
             theta = term1 + term2
         else:
             term2 = self.r * self.E * np.exp(-self.r * self.T) * norm.cdf(-d2)
@@ -68,7 +69,7 @@ class BlackScholesModelUseCase:
         option_prices = []
         
         for price in price_range:
-            temp_model = BlackScholesModelUseCase(price, self.E, self.r * 100, self.sigma * 100, self.T * 365, self.option_type, self.d1, self.d2)
+            temp_model = BlackScholesModelUseCase(price, self.E, self.r * 100, self.sigma * 100, self.T * 365, self.option_type)
             option_prices.append(temp_model.calculate_price())
         
         # Plot

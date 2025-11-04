@@ -28,18 +28,20 @@ class GeneralizedBlackScholesMertonUseCase:
         self.q = dividend_yield / 100  # Convert percentage to decimal
         self.b = self.r - self.q - cost_of_carry / 100  # Convert percentage to decimal
         
-    def calculate_d1_d2(self):
-        """Calculate d1 and d2 parameters for the Generalized BSM formula."""
+    def calculate_d_values(self):
+        """Calculate d1, d2, and their CDFs N(d1), N(d2)."""
         d1 = (np.log(self.S / self.E) + (self.b + 0.5 * self.sigma**2) * self.T) / (self.sigma * np.sqrt(self.T))
         d2 = d1 - self.sigma * np.sqrt(self.T)
-        return round(d1, 4), round(d2, 4)
+        n_d1 = norm.cdf(d1)
+        n_d2 = norm.cdf(d2)
+        return d1, d2, n_d1, n_d2
     
     def calculate_price(self):
         """Calculate the option price using the Generalized BSM formula."""
-        d1, d2 = self.calculate_d1_d2()
+        d1, d2, n_d1, n_d2 = self.calculate_d_values()
         
         if self.option_type == 'call':
-            price = self.S * np.exp((self.b - self.r) * self.T) * norm.cdf(d1) - self.E * np.exp(-self.r * self.T) * norm.cdf(d2)
+            price = self.S * np.exp((self.b - self.r) * self.T) * n_d1 - self.E * np.exp(-self.r * self.T) * n_d2
         else:  # put option
             price = self.E * np.exp(-self.r * self.T) * norm.cdf(-d2) - self.S * np.exp((self.b - self.r) * self.T) * norm.cdf(-d1)
         
@@ -47,13 +49,13 @@ class GeneralizedBlackScholesMertonUseCase:
     
     def calculate_greeks(self):
         """Calculate option Greeks: Delta, Gamma, Theta, Vega, and Rho."""
-        d1, d2 = self.calculate_d1_d2()
+        d1, d2, n_d1, n_d2 = self.calculate_d_values()
         
         # Delta
         if self.option_type == 'call':
-            delta = np.exp((self.b - self.r) * self.T) * norm.cdf(d1)
+            delta = np.exp((self.b - self.r) * self.T) * n_d1
         else:
-            delta = np.exp((self.b - self.r) * self.T) * (norm.cdf(d1) - 1)
+            delta = np.exp((self.b - self.r) * self.T) * (n_d1 - 1)
         
         # Gamma
         gamma = norm.pdf(d1) * np.exp((self.b - self.r) * self.T) / (self.S * self.sigma * np.sqrt(self.T))
@@ -61,8 +63,8 @@ class GeneralizedBlackScholesMertonUseCase:
         # Theta
         term1 = - (self.S * norm.pdf(d1) * self.sigma * np.exp((self.b - self.r) * self.T)) / (2 * np.sqrt(self.T))
         if self.option_type == 'call':
-            term2 = - (self.b - self.r) * self.S * np.exp((self.b - self.r) * self.T) * norm.cdf(d1)
-            term3 = - self.r * self.E * np.exp(-self.r * self.T) * norm.cdf(d2)
+            term2 = - (self.b - self.r) * self.S * np.exp((self.b - self.r) * self.T) * n_d1
+            term3 = - self.r * self.E * np.exp(-self.r * self.T) * n_d2
             theta = term1 + term2 + term3
         else: # put
             term2 = (self.b - self.r) * self.S * np.exp((self.b - self.r) * self.T) * norm.cdf(-d1)
@@ -76,7 +78,7 @@ class GeneralizedBlackScholesMertonUseCase:
         
         # Rho
         if self.option_type == 'call':
-            rho = self.T * self.E * np.exp(-self.r * self.T) * norm.cdf(d2) / 100 # per 1% change
+            rho = self.T * self.E * np.exp(-self.r * self.T) * n_d2 / 100 # per 1% change
         else:
             rho = -self.T * self.E * np.exp(-self.r * self.T) * norm.cdf(-d2) / 100
         

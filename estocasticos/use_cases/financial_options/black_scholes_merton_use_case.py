@@ -25,56 +25,57 @@ class BlackScholesMertonUseCase:
         self.T = T / 365  # Convert days to years
         self.option_type = option_type.lower()
         self.q = dividend_yield / 100  # Convert percentage to decimal
-    
-    def calculate_d1_d2(self):
-        """Calculate d1 and d2 parameters for the Black-Scholes-Merton formula."""
+
+    def calculate_d_values(self):
+        """Calculate d1, d2, and their CDFs N(d1), N(d2)."""
         d1 = (np.log(self.S / self.E) + (self.r - self.q + 0.5 * self.sigma**2) * self.T) / (self.sigma * np.sqrt(self.T))
         d2 = d1 - self.sigma * np.sqrt(self.T)
-        return round(d1, 4), round(d2, 4)
-    
+        n_d1 = norm.cdf(d1)
+        n_d2 = norm.cdf(d2)
+        return d1, d2, n_d1, n_d2
+
     def calculate_price(self):
         """Calculate the option price using the Black-Scholes-Merton formula."""
-        d1, d2 = self.calculate_d1_d2()
+        d1, d2, n_d1, n_d2 = self.calculate_d_values()
         
         if self.option_type == 'call':
-            price = self.S * np.exp(-self.q * self.T) * norm.cdf(d1) - self.E * np.exp(-self.r * self.T) * norm.cdf(d2)
+            price = self.S * np.exp(-self.q * self.T) * n_d1 - self.E * np.exp(-self.r * self.T) * n_d2
         else:  # put option
             price = self.E * np.exp(-self.r * self.T) * norm.cdf(-d2) - self.S * np.exp(-self.q * self.T) * norm.cdf(-d1)
         
         return round(price, 2)
-    
+
     def calculate_greeks(self):
         """Calculate option Greeks: Delta, Gamma, Theta, Vega, and Rho."""
-        d1, d2 = self.calculate_d1_d2()
+        d1, d2, n_d1, n_d2 = self.calculate_d_values()
         
-        # Delta - rate of change of option price with respect to underlying asset price
+        # Delta
         if self.option_type == 'call':
-            delta = np.exp(-self.q * self.T) * norm.cdf(d1)
+            delta = np.exp(-self.q * self.T) * n_d1
         else:
-            delta = np.exp(-self.q * self.T) * (norm.cdf(d1) - 1)
+            delta = np.exp(-self.q * self.T) * (n_d1 - 1)
         
-        # Gamma - rate of change of delta with respect to underlying asset price
+        # Gamma
         gamma = np.exp(-self.q * self.T) * norm.pdf(d1) / (self.S * self.sigma * np.sqrt(self.T))
         
-        # Theta - rate of change of option price with respect to time
+        # Theta
         if self.option_type == 'call':
             theta = -self.S * self.sigma * np.exp(-self.q * self.T) * norm.pdf(d1) / (2 * np.sqrt(self.T)) - \
-                    self.r * self.E * np.exp(-self.r * self.T) * norm.cdf(d2) + \
-                    self.q * self.S * np.exp(-self.q * self.T) * norm.cdf(d1)
+                    self.r * self.E * np.exp(-self.r * self.T) * n_d2 + \
+                    self.q * self.S * np.exp(-self.q * self.T) * n_d1
         else:
             theta = -self.S * self.sigma * np.exp(-self.q * self.T) * norm.pdf(d1) / (2 * np.sqrt(self.T)) + \
                     self.r * self.E * np.exp(-self.r * self.T) * norm.cdf(-d2) - \
                     self.q * self.S * np.exp(-self.q * self.T) * norm.cdf(-d1)
         
-        # Convert theta to daily decay (from annual)
-        theta = theta / 365
+        theta /= 365
         
-        # Vega - rate of change of option price with respect to volatility
-        vega = self.S * np.exp(-self.q * self.T) * np.sqrt(self.T) * norm.pdf(d1) / 100  # Divided by 100 to get change per 1% in volatility
+        # Vega
+        vega = self.S * np.exp(-self.q * self.T) * np.sqrt(self.T) * norm.pdf(d1) / 100
         
-        # Rho - rate of change of option price with respect to risk-free interest rate
+        # Rho
         if self.option_type == 'call':
-            rho = self.E * self.T * np.exp(-self.r * self.T) * norm.cdf(d2) / 100  # Divided by 100 to get change per 1% in interest rate
+            rho = self.E * self.T * np.exp(-self.r * self.T) * n_d2 / 100
         else:
             rho = -self.E * self.T * np.exp(-self.r * self.T) * norm.cdf(-d2) / 100
         

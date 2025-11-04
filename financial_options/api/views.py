@@ -89,7 +89,7 @@ def black_scholes_view(request):
                 return JsonResponse({'error': 'All values must be positive.'})
             model = BlackScholesModelUseCase(S, E, r, sigma, T, option_type)
             probability_chart = model.generate_probability_curve(S, sigma/100, T, r/100)
-            d1, d2 = model.calculate_d1_d2()
+            d1, d2, n_d1, n_d2 = model.calculate_d_values()
             option_price = model.calculate_price()
             greeks = model.calculate_greeks()
             price_plot = model.plot_price_vs_underlying()
@@ -132,8 +132,10 @@ def black_scholes_view(request):
                 'price_plot': price_plot,
                 'payoff_plot': payoff_plot,
                 'interpretation': interpretation,
-                'd1': d1,
-                'd2': d2,
+                'd1': round(d1, 4),
+                'd2': round(d2, 4),
+                'n_d1': (round(n_d1, 4)*100),
+                'n_d2': (round(n_d2, 4)*100),
                 'break_even' :break_even,
                 'max_loss' : option_price,
                 'probability_chart' : probability_chart
@@ -213,7 +215,7 @@ def black_scholes_merton_view(request):
             
             # Create model and perform calculations
             model = BlackScholesMertonUseCase(S, E, r, sigma, T, option_type, dividend_yield)
-            d1, d2 = model.calculate_d1_d2()
+            d1, d2, n_d1, n_d2 = model.calculate_d_values()
             option_price = model.calculate_price()
             greeks = model.calculate_greeks()
             price_plot = model.plot_price_vs_underlying()
@@ -311,8 +313,10 @@ def black_scholes_merton_view(request):
                 'price_plot': price_plot,
                 'payoff_plot': payoff_plot,
                 'interpretation': interpretation,
-                'd1': d1,
-                'd2': d2,
+                'd1': round(d1, 4),
+                'd2': round(d2, 4),
+                'n_d1': (round(n_d1, 4)*100),
+                'n_d2': (round(n_d2, 4)*100),
                 'break_even': break_even,
                 'max_loss': option_price,
             })
@@ -752,6 +756,8 @@ def view_report_view(request, simulation_id):
                 'Option price': resultados.get('option_price'),
                 'd1': resultados.get('d1'),
                 'd2': resultados.get('d2'),
+                'N(d1)': resultados.get('n_d1'),
+                'N(d2)': resultados.get('n_d2'),
                 'Break-even point': resultados.get('break_even'),
                 'Max loss': resultados.get('max_loss'),
             },
@@ -889,7 +895,7 @@ def generalized_black_scholes_merton_view(request):
                 return JsonResponse({'error': 'All values must be positive.'})
 
             model = GeneralizedBlackScholesMertonUseCase(S, E, r, sigma, T, option_type, cost_of_carry, dividend_yield)
-            d1, d2 = model.calculate_d1_d2()
+            d1, d2, n_d1, n_d2 = model.calculate_d_values()
             option_price = model.calculate_price()
             greeks = model.calculate_greeks()
             price_plot = model.plot_price_vs_underlying()
@@ -966,15 +972,17 @@ def generalized_black_scholes_merton_view(request):
                     <p>A **Vega of {greeks['vega']:.4f}** represents the sensitivity to a 1% change in volatility.</p>
                     <p>Your **break-even point** at expiration is $ {break_even}.</p>
                     """
-
+            
             return JsonResponse({
                 'option_price': option_price,
                 'greeks': greeks,
                 'price_plot': price_plot,
                 'payoff_plot': payoff_plot,
                 'interpretation': interpretation,
-                'd1': d1,
-                'd2': d2,
+                'd1': round(d1, 4),
+                'd2': round(d2, 4),
+                'n_d1': (round(n_d1, 4)*100),
+                'n_d2': (round(n_d2, 4)*100),
                 'break_even': break_even,
                 'max_loss': option_price,
             })

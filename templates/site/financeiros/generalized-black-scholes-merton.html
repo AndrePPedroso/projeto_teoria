@@ -212,24 +212,39 @@
                                 <tr>
                                     <th>{% if request.session.language == 'en' %}METRIC{% else %}MÉTRICA{% endif %}</th>
                                     <th>{% if request.session.language == 'en' %}VALUE{% else %}VALOR{% endif %}</th>
+                                    <th>{% if request.session.language == 'en' %}DESCRIPTION{% else %}DESCRIÇÃO{% endif %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>d₁</td>
                                     <td id="d1ValueGeneralized">-</td>
+                                    <td>{% if request.session.language == 'en' %}First parameter in the Black-Scholes-Merton formula{% else %}Primeiro parâmetro na fórmula de Black-Scholes-Merton{% endif %}</td>
                                 </tr>
                                 <tr>
                                     <td>d₂</td>
                                     <td id="d2ValueGeneralized">-</td>
+                                    <td>{% if request.session.language == 'en' %}Second parameter in the Black-Scholes-Merton formula{% else %}Segundo parâmetro na fórmula de Black-Scholes-Merton{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>N(d₁)</td>
+                                    <td id="nd1ValueGeneralized">-</td>
+                                    <td>{% if request.session.language == 'en' %}Probability of the option being in-the-money{% else %}Probabilidade da opção estar "in-the-money"{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>N(d₂)</td>
+                                    <td id="nd2ValueGeneralized">-</td>
+                                    <td>{% if request.session.language == 'en' %}Risk-adjusted probability of the option being exercised{% else %}Probabilidade ajustada ao risco do exercício da opção{% endif %}</td>
                                 </tr>
                                 <tr>
                                     <td>{% if request.session.language == 'en' %}Break-Even Point{% else %}Ponto de Equilíbrio{% endif %}</td>
                                     <td id="breakEvenValueGeneralized">-</td>
+                                    <td>{% if request.session.language == 'en' %}Asset price where option investment breaks even at expiration{% else %}Preço do ativo onde o investimento na opção atinge o equilíbrio no vencimento{% endif %}</td>
                                 </tr>
                                 <tr>
                                     <td>{% if request.session.language == 'en' %}Maximum Loss{% else %}Perda Máxima{% endif %}</td>
                                     <td id="maxLossValueGeneralized">-</td>
+                                    <td>{% if request.session.language == 'en' %}Maximum potential loss for the option buyer{% else %}Perda potencial máxima para o comprador da opção{% endif %}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -314,6 +329,8 @@
             
             document.getElementById('d1ValueGeneralized').textContent = data.d1;
             document.getElementById('d2ValueGeneralized').textContent = data.d2;
+            document.getElementById('nd1ValueGeneralized').textContent = data.n_d1 + '%';
+            document.getElementById('nd2ValueGeneralized').textContent = data.n_d2 + '%';
             document.getElementById('breakEvenValueGeneralized').textContent = '$' + data.break_even;
             document.getElementById('maxLossValueGeneralized').textContent = '$' + data.max_loss;
             
@@ -357,6 +374,8 @@
             option_price: document.getElementById('optionPriceGeneralized').textContent,
             d1: document.getElementById('d1ValueGeneralized').textContent,
             d2: document.getElementById('d2ValueGeneralized').textContent,
+            n_d1: document.getElementById('nd1ValueGeneralized').textContent,
+            n_d2: document.getElementById('nd2ValueGeneralized').textContent,
             break_even: document.getElementById('breakEvenValueGeneralized').textContent,
             max_loss: document.getElementById('maxLossValueGeneralized').textContent,
             greeks: {

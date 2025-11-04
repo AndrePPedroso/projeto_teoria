@@ -205,6 +205,16 @@
                                     <td>{% if request.session.language == 'en' %}Second parameter in the Black-Scholes formula{% else %}Segundo parâmetro na fórmula de Black-Scholes{% endif %}</td>
                                 </tr>
                                 <tr>
+                                    <td>N(d₁)</td>
+                                    <td id="nd1Value">-</td>
+                                    <td>{% if request.session.language == 'en' %}Probability of the option being in-the-money{% else %}Probabilidade da opção estar "in-the-money"{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>N(d₂)</td>
+                                    <td id="nd2Value">-</td>
+                                    <td>{% if request.session.language == 'en' %}Risk-adjusted probability of the option being exercised{% else %}Probabilidade ajustada ao risco do exercício da opção{% endif %}</td>
+                                </tr>
+                                <tr>
                                     <td>{% if request.session.language == 'en' %}Break-Even Point{% else %}Ponto de Equilíbrio{% endif %}</td>
                                     <td id="breakEvenValue">-</td>
                                     <td>{% if request.session.language == 'en' %}Asset price where option investment breaks even at expiration{% else %}Preço do ativo onde o investimento na opção atinge o equilíbrio no vencimento{% endif %}</td>
@@ -399,6 +409,8 @@
             // Update metrics
             document.getElementById('d1Value').textContent = data.d1;
             document.getElementById('d2Value').textContent = data.d2;
+            document.getElementById('nd1Value').textContent = data.n_d1 + '%';
+            document.getElementById('nd2Value').textContent = data.n_d2 + '%';
             document.getElementById('breakEvenValue').textContent = '$' + data.break_even;
             document.getElementById('maxLossValue').textContent = '$' + data.max_loss;
             
@@ -447,6 +459,8 @@
             option_price: document.getElementById('optionPrice').textContent,
             d1: document.getElementById('d1Value').textContent,
             d2: document.getElementById('d2Value').textContent,
+            n_d1: document.getElementById('nd1Value').textContent,
+            n_d2: document.getElementById('nd2Value').textContent,
             break_even: document.getElementById('breakEvenValue').textContent,
             max_loss: document.getElementById('maxLossValue').textContent,
             greeks: {

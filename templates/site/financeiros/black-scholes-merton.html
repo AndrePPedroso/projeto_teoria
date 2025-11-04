@@ -235,6 +235,16 @@
                                     <td>{% if request.session.language == 'en' %}Second parameter in the Black-Scholes-Merton formula{% else %}Segundo parâmetro na fórmula de Black-Scholes-Merton{% endif %}</td>
                                 </tr>
                                 <tr>
+                                    <td>N(d₁)</td>
+                                    <td id="nd1ValueMerton">-</td>
+                                    <td>{% if request.session.language == 'en' %}Probability of the option being in-the-money{% else %}Probabilidade da opção estar "in-the-money"{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td>N(d₂)</td>
+                                    <td id="nd2ValueMerton">-</td>
+                                    <td>{% if request.session.language == 'en' %}Risk-adjusted probability of the option being exercised{% else %}Probabilidade ajustada ao risco do exercício da opção{% endif %}</td>
+                                </tr>
+                                <tr>
                                     <td>{% if request.session.language == 'en' %}Break-Even Point{% else %}Ponto de Equilíbrio{% endif %}</td>
                                     <td id="breakEvenValueMerton">-</td>
                                     <td>{% if request.session.language == 'en' %}Asset price where option investment breaks even at expiration{% else %}Preço do ativo onde o investimento na opção atinge o equilíbrio no vencimento{% endif %}</td>
@@ -456,6 +466,8 @@
             // Update metrics
             document.getElementById('d1ValueMerton').textContent = data.d1;
             document.getElementById('d2ValueMerton').textContent = data.d2;
+            document.getElementById('nd1ValueMerton').textContent = data.n_d1 + '%';
+            document.getElementById('nd2ValueMerton').textContent = data.n_d2 + '%';
             document.getElementById('breakEvenValueMerton').textContent = '$' + data.break_even;
             document.getElementById('maxLossValueMerton').textContent = '$' + data.max_loss;
             
@@ -505,6 +517,8 @@
             option_price: document.getElementById('optionPriceMerton').textContent,
             d1: document.getElementById('d1ValueMerton').textContent,
             d2: document.getElementById('d2ValueMerton').textContent,
+            n_d1: document.getElementById('nd1ValueMerton').textContent,
+            n_d2: document.getElementById('nd2ValueMerton').textContent,
             break_even: document.getElementById('breakEvenValueMerton').textContent,
             max_loss: document.getElementById('maxLossValueMerton').textContent,
             greeks: {
